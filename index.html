@@ -227,6 +227,11 @@ input[type=checkbox]{ width:15px; height:15px; flex:none; margin:0; cursor:point
 /* Numeric and date content is monospace so digits align column to column. */
 input[type=number], input[type=date], input[inputmode=decimal]{ font-family:'IBM Plex Mono', monospace; }
 input[type=number], input[inputmode=decimal]{ text-align:right; }
+/* Dates read left-to-right as a unit and must align left, never centre.
+   They were rendering centred because no rule claimed them and the
+   surrounding context won -- visible immediately on a phone. */
+input[type=date]{ text-align:left; }
+html[dir=rtl] input[type=date]{ text-align:left; direction:ltr; }
 /* Day-of-month style boxes: short, centred. */
 .exp-dueday, .cc-statement-day-input, .cc-payment-day-input, #s1-payday-input,
 input[data-p2p-field=repayDay]{ text-align:center; }
@@ -309,6 +314,12 @@ td.positive{ color:var(--emerald); }
    each payment as a labelled card instead of letting columns collapse. */
 @media (max-width:520px){
   .p2p-pay-table thead{ display:none; }
+  /* The <colgroup> widths are for the DESKTOP table only. In stacked mode
+     they still bind (table-layout:fixed) and crushed each card into the
+     150px date column, which is what made this section look broken on a
+     phone. Reset the table to normal flow here. */
+  .p2p-pay-table{ table-layout:auto; }
+  .p2p-pay-table colgroup, .p2p-pay-table col{ display:none; }
   .p2p-pay-table, .p2p-pay-table tbody, .p2p-pay-table tr, .p2p-pay-table td{ display:block; width:100%; }
   .p2p-pay-table tr{ border:1px solid var(--rule); border-radius:7px; padding:8px; margin-bottom:8px; }
   .p2p-pay-table td{ border-top:none; padding:3px 0; }
@@ -405,22 +416,33 @@ td.positive{ color:var(--emerald); }
 .drag-handle{ cursor:grab; color:var(--ink-faint); padding:0 4px; }
 .reorder-btn{ background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:10px; padding:2px; }
 .reorder-btn:disabled{ opacity:.25; cursor:default; }
-.exp-name{ width:150px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Sans',sans-serif; }
+/* User-entered names vary far too much for a fixed width ("GEIDEA*TABBY
+   FZ LLC (Jul '26)" is real data here). Let the field grow with its
+   column instead of clipping, with a floor so it stays usable. */
+/* Fixed width, sized for typical names. Percentage widths collapse here
+   because the cell has no intrinsic width to resolve against (measured:
+   35px), so a fixed value is the honest choice. Genuinely long entries
+   like "GEIDEA*TABBY FZ LLC (Jul '26)" still scroll horizontally within
+   the field, which is normal for a text input and preferable to a
+   layout that shifts per row. */
+.exp-name{ width:190px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Sans',sans-serif; }
 .exp-name.empty-required{ border-color:var(--rust); background:#FBEEEA; }
 .exp-name.empty-required::placeholder{ color:var(--rust); }
 .exp-category, .exp-frequency{ padding:5px 6px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Sans',sans-serif; font-size:13px; }
 .exp-amount{ width:90px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; text-align:right; font-family:'IBM Plex Mono',monospace; }
 .due-date-cell, .overrides-cell{ font-size:12.5px; }
 
-.due-date-cell input[type=number]{ width:52px; }
+.due-date-cell input[type=number]{ width:66px; }
+.due-date-cell .exp-dueday{ width:52px; }
 .onetime-note{ font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px; }
 .end-date-row{ margin-top:5px; font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:4px; }
 
 .dates-editor, .overrides-editor{ display:flex; flex-direction:column; gap:4px; }
 .date-row, .override-row{ display:flex; gap:4px; align-items:center; }
 
-.date-row input[type=number], .override-row input[type=number]{ width:50px; }
-.override-row .exp-ov-amount{ width:70px; }
+.date-row input[type=number], .override-row input[type=number]{ width:66px; }
+.date-row .exp-date-day, .override-row .exp-ov-month{ width:52px; }
+.override-row .exp-ov-amount{ width:92px; }
 .remove-date-btn, .remove-override-btn, .del-row-btn{ background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:12px; padding:2px 4px; }
 .remove-date-btn:hover, .remove-override-btn:hover, .del-row-btn:hover{ color:var(--rust); }
 .add-date-btn, .add-override-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; }
@@ -3575,9 +3597,9 @@ function renderP2P(){
           + '<thead><tr><th>' + tr("Date","التاريخ") + '</th><th class="num">' + tr("Amount","المبلغ") + '</th><th>' + tr("Note","ملاحظة") + '</th><th></th></tr></thead><tbody>';
         pays.forEach(function(pp){
           html += '<tr>'
-            + '<td data-label="Date"><input type="date" data-p2p-pay="date" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + escapeAttr(pp.date || "") + '"></td>'
-            + '<td class="num" data-label="Amount"><input type="text" inputmode="decimal" data-p2p-pay="amount" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + fmt(Number(pp.amount)||0) + '"></td>'
-            + '<td data-label="Note"><input type="text" data-p2p-pay="note" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" placeholder="optional" value="' + escapeAttr(pp.note || "") + '"></td>'
+            + '<td data-label="' + tr("Date","التاريخ") + '"><input type="date" data-p2p-pay="date" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + escapeAttr(pp.date || "") + '"></td>'
+            + '<td class="num" data-label="' + tr("Amount","المبلغ") + '"><input type="text" inputmode="decimal" data-p2p-pay="amount" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + fmt(Number(pp.amount)||0) + '"></td>'
+            + '<td data-label="' + tr("Note","ملاحظة") + '"><input type="text" data-p2p-pay="note" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" placeholder="' + tr("optional","اختياري") + '" value="' + escapeAttr(pp.note || "") + '"></td>'
             + '<td><button type="button" class="link-btn" data-p2p-delpay="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '">' + tr("Remove","إزالة") + '</button></td>'
             + '</tr>';
         });
@@ -3613,16 +3635,16 @@ function renderP2P(){
         var pd = parseISODate(pp.date);
         var amt = Number(pp.amount) || 0;
         if (amt < -0.005){
-          warns.push('A payment of <strong>' + fmt(amt) + '</strong> is negative. Payments should be positive amounts; to correct an over-recorded payment, edit or remove the original entry instead.');
+          warns.push(tr('A payment of <strong>','دفعة بمقدار <strong>') + fmt(amt) + tr('</strong> is negative. Payments should be positive amounts; to correct an over-recorded payment, edit or remove the original entry instead.','</strong> بالسالب. يجب أن تكون الدفعات مبالغ موجبة؛ لتصحيح دفعة مسجلة بالزيادة، عدّل أو احذف الإدخال الأصلي.'));
         }
         if (pd && loan.date){
           var ldd = parseISODate(loan.date);
           if (ldd && toAbsDay(pd.y, pd.m, pd.d) < toAbsDay(ldd.y, ldd.m, ldd.d)){
-            warns.push('A payment dated <strong>' + formatDueDate(pd.y, pd.m, pd.d) + '</strong> falls before the loan itself was made. Check the date.');
+            warns.push(tr('A payment dated <strong>','دفعة بتاريخ <strong>') + formatDueDate(pd.y, pd.m, pd.d) + tr('</strong> falls before the loan itself was made. Check the date.','</strong> تسبق تاريخ القرض نفسه. تحقق من التاريخ.'));
           }
         }
         if (pd && toAbsDay(pd.y, pd.m, pd.d) > toAbsDay(todayYear(), todayMonthNum(), todayDayNum())){
-          warns.push('A payment dated <strong>' + formatDueDate(pd.y, pd.m, pd.d) + '</strong> is in the future. Logged payments are meant to record money that has actually moved; a future-dated one will be forecast on that date.');
+          warns.push(tr('A payment dated <strong>','دفعة بتاريخ <strong>') + formatDueDate(pd.y, pd.m, pd.d) + tr('</strong> is in the future. Logged payments are meant to record money that has actually moved; a future-dated one will be forecast on that date.','</strong> تقع في المستقبل. الدفعات المسجلة تمثل مالاً تحرك فعلياً؛ الدفعة المستقبلية ستُدرج في التوقعات بذلك التاريخ.'));
         }
       });
       if (warns.length){
@@ -4666,7 +4688,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-37)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-38)";
 }
 
 loadStateAndInit();
