@@ -9,7 +9,7 @@
    activate handler below delete the previous cache -- without a bump an
    installed app can keep serving old files even though the server has
    new ones. */
-var CACHE = "household-budget-v38";
+var CACHE = "household-budget-v39";
 
 self.addEventListener("install", function(){ self.skipWaiting(); });
 
@@ -31,7 +31,12 @@ self.addEventListener("activate", function(e){
 self.addEventListener("fetch", function(e){
   if (e.request.method !== "GET") return;
   e.respondWith(
-    fetch(e.request).then(function(res){
+    // cache:"reload" bypasses the BROWSER's HTTP cache. Without it a
+    // "network-first" fetch can still be answered from that cache (GitHub
+    // Pages sends max-age=600), so the worker faithfully caches a stale
+    // file and the user never sees the new build. This was the real cause
+    // of updates not landing.
+    fetch(new Request(e.request, { cache: "reload" })).then(function(res){
       var copy = res.clone();
       caches.open(CACHE).then(function(c){ c.put(e.request, copy); }).catch(function(){});
       return res;

@@ -745,6 +745,7 @@ td.positive{ color:var(--emerald); }
   
 
   <footer class="page-footer">
+    <button id="force-update-btn" class="ghost-btn" type="button" data-i18n="btn_forceupdate">Check for updates</button>
     <button id="reset-btn" class="ghost-btn" type="button" data-i18n="btn_reset">Reset to defaults</button>
     <button id="export-btn" class="ghost-btn" type="button" data-i18n="btn_export">Export backup</button>
     <button id="import-btn" class="ghost-btn" type="button" data-i18n="btn_import">Import backup</button>
@@ -3313,6 +3314,7 @@ var I18N = {
     s_p2p: "\u0627\u0644\u0625\u0642\u0631\u0627\u0636 \u0627\u0644\u0634\u062e\u0635\u064a",
     s_adhoc: "\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a",
     btn_reset: "\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0636\u0628\u0637",
+    btn_forceupdate: "التحقق من التحديثات",
     btn_export: "\u062a\u0635\u062f\u064a\u0631 \u0646\u0633\u062e\u0629",
     btn_import: "\u0627\u0633\u062a\u064a\u0631\u0627\u062f \u0646\u0633\u062e\u0629",
     btn_lent: "+ \u0645\u0628\u0644\u063a \u0623\u0642\u0631\u0636\u062a\u0647",
@@ -4033,6 +4035,24 @@ function bindStaticListeners(){
     state.cashOnHandAutoCorrect = e.target.checked;
     saveState(); render();
   });
+  el("force-update-btn").addEventListener("click", function(){
+    // Nuclear option, deliberately available to the user: unregister every
+    // service worker, delete every cache, then hard-reload with a
+    // cache-busting query. Exists because a stuck cache is otherwise
+    // unrecoverable from inside an installed app -- the user cannot clear
+    // it without deleting and reinstalling, which is a terrible answer.
+    var done = function(){
+      location.replace(location.pathname + "?v=" + Date.now());
+    };
+    if (!("serviceWorker" in navigator)) return done();
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      return Promise.all(regs.map(function(r){ return r.unregister(); }));
+    }).then(function(){
+      return (window.caches ? caches.keys().then(function(ks){
+        return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+      }) : null);
+    }).then(done).catch(done);
+  });
   el("lang-en").addEventListener("click", function(){
     state.lang = "en"; saveState(); render();
   });
@@ -4688,7 +4708,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-38)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-39)";
 }
 
 loadStateAndInit();
@@ -4758,7 +4778,13 @@ loadStateAndInit();
   // a missing optional file must never break the app.
   if (!("serviceWorker" in navigator)) return;
   if (location.protocol === "file:") return; // not installable from disk; page still works
-  navigator.serviceWorker.register("sw.js", { scope: "./" }).then(function(reg){
+  // updateViaCache:"none" is ESSENTIAL. Without it the browser serves sw.js
+  // from its own HTTP cache (GitHub Pages sends max-age=600), so a NEW
+  // service worker is never fetched and none of the update logic below
+  // ever runs. This was the actual reason a user kept seeing an old build
+  // after uploading a new one -- the update code was correct and simply
+  // never reached the device.
+  navigator.serviceWorker.register("sw.js", { scope: "./", updateViaCache: "none" }).then(function(reg){
     // Actively check for a newer build on every launch. Without this an
     // installed PWA can keep running an old version for a long time --
     // the user uploads a new file, opens the app, and sees no change,
