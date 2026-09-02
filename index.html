@@ -22,7 +22,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23FAF6EC'/%3E%3Ctext x='90' y='122' font-family='Georgia,serif' font-size='96' font-weight='600' fill='%23B8894A' text-anchor='middle'%3E%C2%A4%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Elegant, light, easy on the eyes -- gold as a refined accent against
@@ -78,6 +78,65 @@ h1{ font-family:'Newsreader',serif; font-weight:500; font-size:34px; margin:0; l
    the editable "what's driving it" ones. Deliberately understated -- they
    orient a new user without competing with the section headings inside
    the cards below them. */
+/* Backup reminder. Browser storage on iOS can be cleared after ~7 days of
+   not opening the app, which would wipe every figure while leaving the app
+   itself working -- so the user would open it one day to an empty
+   dashboard. This is the one failure this tool cannot recover from on its
+   own, so the prompt is prominent rather than tucked away. */
+.backup-reminder{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  background:var(--card-tint); border:1px solid var(--gold); border-radius:8px; padding:11px 14px; margin:6px 2px 18px; }
+.backup-reminder-text{ flex:1 1 260px; font-size:12.5px; color:var(--ink); }
+.backup-reminder-text strong{ display:block; margin-bottom:2px; }
+.backup-reminder-text span{ color:var(--ink-soft); }
+.backup-reminder-actions{ display:flex; align-items:center; gap:12px; }
+.backup-reminder.urgent{ background:#FBEAE4; border-color:var(--rust); }
+.backup-reminder.urgent .backup-reminder-text strong{ color:#7A3320; }
+/* ---- Language toggle + RTL ------------------------------------------------
+   Arabic mode sets dir="rtl" on <html>, which flips the whole document:
+   text alignment, flex/grid flow, list markers, table column order. Most
+   of the layout inherits that for free because it uses flex/grid rather
+   than hard-coded left/right.
+
+   Numbers stay in Western digits and stay LTR. That is the finance
+   convention in the Gulf, and it also keeps figures legible against a
+   bank statement. Currency amounts are wrapped so a minus sign cannot
+   be re-ordered to the wrong end of the number by the bidi algorithm --
+   the classic RTL money bug where -1,234 renders as 1,234-.
+   -------------------------------------------------------------------------- */
+.header-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.lang-toggle{ display:flex; border:1px solid var(--rule-strong); border-radius:6px; overflow:hidden; }
+.lang-btn{ background:transparent; border:none; padding:5px 11px; font-size:12px; cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif; color:var(--ink-soft); }
+.lang-btn.active{ background:var(--gold); color:#fff; }
+/* Cairo throughout in Arabic -- a contemporary sans designed for Arabic,
+   which sits better with this dashboard's clean look than a naskh serif
+   and stays legible at the small sizes used in tables and hints.
+   Applied with high specificity (and !important on the catch-all) because
+   dozens of per-component rules further down still name IBM Plex, and
+   those would otherwise win and leave Arabic text in a Latin font that
+   renders it with fallback glyphs. */
+html[dir=rtl] body, html[dir=rtl] body *{ font-family:'Cairo','IBM Plex Sans',Tahoma,sans-serif !important; }
+html[dir=rtl] h1, html[dir=rtl] h2, html[dir=rtl] .group-heading span{ font-family:'Cairo',sans-serif !important; font-weight:600; }
+/* Numeric contexts keep the monospace face so digits stay column-aligned;
+   Cairo's own digits are proportional and would break the alignment that
+   the whole money layout depends on. */
+html[dir=rtl] .num, html[dir=rtl] td.num, html[dir=rtl] .mono,
+html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal],
+html[dir=rtl] input[type=date], html[dir=rtl] .s1-stat strong,
+html[dir=rtl] .p2p-bal, html[dir=rtl] .p2p-sum-val, html[dir=rtl] .item-due,
+html[dir=rtl] .cashonhand-log-row, html[dir=rtl] #forecast-table td,
+html[dir=rtl] .chart-detail-line strong, html[dir=rtl] .eyebrow{
+  font-family:'IBM Plex Mono',monospace !important;
+}
+/* Keep every numeric value LTR and left-to-right internally. */
+html[dir=rtl] .num, html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal],
+html[dir=rtl] input[type=date], html[dir=rtl] .s1-stat strong, html[dir=rtl] .p2p-bal,
+html[dir=rtl] .p2p-sum-val, html[dir=rtl] .cashonhand-log-row, html[dir=rtl] td.num,
+html[dir=rtl] #forecast-table td, html[dir=rtl] .chart-detail-line strong{
+  direction:ltr; unicode-bidi:isolate;
+}
+html[dir=rtl] .num, html[dir=rtl] td.num{ text-align:left; }
+html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-align:left; }
 .group-heading{ margin:26px 2px 12px; }
 .group-heading:first-of-type{ margin-top:6px; }
 .group-heading span{ font-family:'Newsreader',Georgia,serif; font-size:19px; color:var(--ink); letter-spacing:.01em; }
@@ -410,126 +469,147 @@ td.positive{ color:var(--emerald); }
 <div class="page">
 
   <header class="ledger-header">
-    <div class="eyebrow">Household Ledger &middot; AED</div>
+    <div class="header-top">
+      <div class="eyebrow" data-i18n="eyebrow">Household Ledger &middot; AED</div>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" id="lang-en" class="lang-btn">EN</button>
+        <button type="button" id="lang-ar" class="lang-btn">عربي</button>
+      </div>
+      <div class="lang-toggle" id="digit-toggle-wrap" style="display:none;">
+        <button type="button" id="digit-ar" class="lang-btn" title="Arabic-Indic digits">٩٩</button>
+        <button type="button" id="digit-en" class="lang-btn" title="Western digits">99</button>
+      </div>
+    </div>
     <div class="header-row">
-      <h1>Household Budget Dashboard</h1>
+      <h1 data-i18n="title">Household Budget Dashboard</h1>
       <div class="year-select-wrap">
-        <label for="forecast-year-select">Forecast year</label>
+        <label for="forecast-year-select" data-i18n="forecastYear">Forecast year</label>
         <select id="forecast-year-select"></select>
       </div>
     </div>
   </header>
 
-    <div class="group-heading">
-    <span>Where you stand</span>
-    <p>A read-only view of your position &mdash; nothing here is edited directly.</p>
+    <div id="backup-reminder" class="backup-reminder hidden">
+    <div class="backup-reminder-text">
+      <strong id="backup-reminder-title"></strong>
+      <span id="backup-reminder-body"></span>
+    </div>
+    <div class="backup-reminder-actions">
+      <button type="button" id="backup-reminder-export" class="btn-small" data-i18n="k_backupnow">Back up now</button>
+      <button type="button" id="backup-reminder-dismiss" class="link-btn" data-i18n="k_later">Later</button>
+    </div>
+  </div>
+
+  <div class="group-heading">
+    <span data-i18n="g_stand">Where you stand</span>
+    <p data-i18n="g_stand_sub">A read-only view of your position &mdash; nothing here is edited directly.</p>
   </div>
 
 <section class="card" id="section1">
-    <h2>Monthly Cash Flow</h2>
+    <h2 data-i18n="s_cashflow">Monthly Cash Flow</h2>
     <p class="card-hint" id="s1-period-label"></p>
     <p class="card-hint" id="s1-period-days" style="margin-top:-8px;"></p>
     <label class="s1-payday-row">
-      Pay period starts on day <input type="number" min="1" max="31" id="s1-payday-input">
-      <span class="field-hint" style="margin:0;">&mdash; the day your pay arrives, which is where each month's budget period begins</span>
+      <span data-i18n="l_payday">Pay period starts on day</span> <input type="number" min="1" max="31" id="s1-payday-input">
+      <span class="field-hint" style="margin:0;" data-i18n="h_payday">&mdash; the day your pay arrives, which is where each month's budget period begins</span>
     </label>
 
     <label class="asof-checkbox has-cash-toggle">
       <input type="checkbox" id="has-cashonhand-checkbox">
-      I want to reconcile a real cash balance
+      <span data-i18n="l_reconcile">I want to reconcile a real cash balance</span>
     </label>
 
     <div class="s1-grid hidden" id="cash-onhand-fields">
-      <label class="s1-field">Cash on hand
+      <label class="s1-field"><span data-i18n="l_coh">Cash on hand</span>
         <input type="text" inputmode="decimal" id="cash-onhand-input">
-        <span id="cash-onhand-assumed-badge" class="badge-assumed" style="display:none;">assumed</span>
+        <span id="cash-onhand-assumed-badge" class="badge-assumed" style="display:none;" data-i18n="k_assumed">assumed</span>
       </label>
-      <label class="s1-field">Recorded on
+      <label class="s1-field"><span data-i18n="l_rec">Recorded on</span>
         <input type="date" id="cash-onhand-date-input">
       </label>
     </div>
-    <p class="field-hint hidden" id="cash-onhand-hint">A reconciliation check rather than a running balance: this figure does not feed any total directly. Enter your actual balance and the date it was accurate. If it differs from what your income and expense entries alone predict, the dashboard offers to record the difference as a new line in the Income or Expense Ledger, where it behaves like any other entry.</p>
+    <p class="field-hint hidden" id="cash-onhand-hint" data-i18n="h_coh">A reconciliation check rather than a running balance: this figure does not feed any total directly. Enter your actual balance and the date it was accurate. If it differs from what your income and expense entries alone predict, the dashboard offers to record the difference as a new line in the Income or Expense Ledger, where it behaves like any other entry.</p>
     <div id="cashonhand-reconciled-badge" class="reconciled-badge hidden">
-      <span><span id="cashonhand-badge-label">&#10003; Reconciled</span> &mdash; see <span id="cashonhand-reconciled-link" class="link-btn"></span> in the ledger</span>
-      <button type="button" id="cashonhand-recalc-btn" class="link-btn">Recalculate</button>
+      <span><span id="cashonhand-badge-label">&#10003; Reconciled</span> &mdash; <span data-i18n="k_see">see</span> <span id="cashonhand-reconciled-link" class="link-btn"></span> <span data-i18n="k_inledger">in the ledger</span></span>
+      <button type="button" id="cashonhand-recalc-btn" class="link-btn" data-i18n="k_recalc">Recalculate</button>
       <p id="cashonhand-stale-note" class="cashonhand-stale-note hidden"></p>
       <label class="cashonhand-auto-line">
         <input type="checkbox" id="cashonhand-autocorrect-checkbox">
-        Keep this corrected automatically
+        <span data-i18n="k_autocorr">Keep this corrected automatically</span>
       </label>
       <label class="cashonhand-auto-line" id="cashonhand-limit-line">
-        Only up to
+        <span data-i18n="k_onlyupto">Only up to</span>
         <input type="text" inputmode="decimal" id="cashonhand-autolimit-input">
         <select id="cashonhand-autolimit-mode">
-          <option value="amount">flat amount</option>
-          <option value="percent">% of balance</option>
+          <option value="amount" data-i18n="k_flat">flat amount</option>
+          <option value="percent" data-i18n="k_pct">% of balance</option>
         </select>
-        <span>&mdash; larger differences are flagged instead (0 = no limit)</span>
+        <span data-i18n="k_limithint">&mdash; larger differences are flagged instead (0 = no limit)</span>
       </label>
       <div class="cashonhand-log-actions">
         <button type="button" id="cashonhand-log-toggle" class="link-btn"></button>
-        <button type="button" id="cashonhand-redo-btn" class="link-btn hidden">Redo last undo</button>
-        <button type="button" id="cashonhand-log-export" class="link-btn hidden">Export history (CSV)</button>
+        <button type="button" id="cashonhand-redo-btn" class="link-btn hidden" data-i18n="k_redo">Redo last undo</button>
+        <button type="button" id="cashonhand-log-export" class="link-btn hidden" data-i18n="k_expcsv">Export history (CSV)</button>
       </div>
       <div id="cashonhand-log" class="cashonhand-log hidden"></div>
     </div>
     <div id="cashonhand-suggestion" class="cashonhand-suggestion hidden">
       <p id="cashonhand-suggestion-text"></p>
       <div class="cashonhand-suggestion-actions">
-        <button type="button" id="cashonhand-suggestion-accept" class="btn-small">Add to ledger</button>
-        <button type="button" id="cashonhand-suggestion-dismiss" class="link-btn">Not now</button>
+        <button type="button" id="cashonhand-suggestion-accept" class="btn-small" data-i18n="k_addledger">Add to ledger</button>
+        <button type="button" id="cashonhand-suggestion-dismiss" class="link-btn" data-i18n="k_notnow">Not now</button>
       </div>
     </div>
 
     <div class="stilldue-section">
-      <div class="stilldue-heading">Snapshot</div>
+      <div class="stilldue-heading" data-i18n="l_snapshot">Snapshot</div>
       <label class="stilldue-line">
-        Viewing as of
+        <span data-i18n="l_viewing">Viewing as of</span>
         <input type="date" id="asof-date-input">
       </label>
-      <p class="field-hint">Everything below reflects this exact date, as though you had travelled to it &mdash; which budget period you are in, what has already happened, and what is still ahead. Change the date and the whole section updates. Credit card charges follow their own statement and payment dates instead, set per category in the Expense Ledger.</p>
+      <p class="field-hint" data-i18n="h_snapshot">Everything below reflects this exact date, as though you had travelled to it &mdash; which budget period you are in, what has already happened, and what is still ahead. Change the date and the whole section updates. Credit card charges follow their own statement and payment dates instead, set per category in the Expense Ledger.</p>
       <div id="cc-defer-block" class="hidden">
         <label class="stilldue-line">
           <input type="checkbox" id="cc-defer-checkbox">
-          Defer credit card payment to
+          <span data-i18n="l_defer">Defer credit card payment to</span>
           <input type="date" id="cc-defer-date-input" class="hidden">
         </label>
-        <p class="field-hint">Treats every outstanding credit card charge this period as a single payment due on this date, overriding the usual statement and payment days. Use this when you know you are settling the card earlier or later than normal this cycle.</p>
+        <p class="field-hint" data-i18n="h_defer">Treats every outstanding credit card charge this period as a single payment due on this date, overriding the usual statement and payment days. Use this when you know you are settling the card earlier or later than normal this cycle.</p>
       </div>
     </div>
 
     <div id="deficit-banner" class="deficit-banner" style="display:none;"></div>
 
     <div class="s1-grid">
-      <div class="s1-stat"><span>Total income</span><strong id="s1-total-income"></strong></div>
-      <div class="s1-stat"><span>Total expense</span><strong id="s1-total-expense"></strong></div>
-      <div class="s1-stat"><span>Total cash</span><strong id="s1-total-cash"></strong></div>
-      <div class="s1-stat"><span>Remaining cash</span><strong id="s1-remaining-cash"></strong></div>
-      <div class="s1-stat highlight"><span>Amount to save</span><strong id="s1-amount-to-save"></strong></div>
+      <div class="s1-stat"><span data-i18n="k_totinc">Total income</span><strong id="s1-total-income"></strong></div>
+      <div class="s1-stat"><span data-i18n="k_totexp">Total expense</span><strong id="s1-total-expense"></strong></div>
+      <div class="s1-stat"><span data-i18n="k_totcash">Total cash</span><strong id="s1-total-cash"></strong></div>
+      <div class="s1-stat"><span data-i18n="k_remcash">Remaining cash</span><strong id="s1-remaining-cash"></strong></div>
+      <div class="s1-stat highlight"><span data-i18n="k_amtsave">Amount to save</span><strong id="s1-amount-to-save"></strong></div>
     </div>
   </section>
 
 <section class="card" id="section3">
-    <h2>The Year at a Glance</h2>
-    <p class="card-hint">Select any bar or dot to see that period's figures, with a full breakdown of income received, income still expected, expenses paid, and expenses still due.</p>
+    <h2 data-i18n="s_chart">The Year at a Glance</h2>
+    <p class="card-hint" data-i18n="h_chart">Select any bar or dot to see that period's figures, with a full breakdown of income received, income still expected, expenses paid, and expenses still due.</p>
     <div id="chart-detail" class="chart-detail"></div>
     <div id="year-chart-wrap" class="year-chart-wrap"></div>
   </section>
 
 <section class="card" id="section2">
-    <h2>Monthly Summary</h2>
-    <p class="card-hint">A rolling twelve-period forecast. Every figure here is calculated from your income and expense entries &mdash; nothing in this table is edited directly.</p>
+    <h2 data-i18n="s_summary">Monthly Summary</h2>
+    <p class="card-hint" data-i18n="h_summary">A rolling twelve-period forecast. Every figure here is calculated from your income and expense entries &mdash; nothing in this table is edited directly.</p>
     <div class="table-scroll">
       <table id="forecast-table">
         <thead><tr>
-          <th>Period</th>
-          <th title="Monthly income">Income</th>
-          <th title="Cash carried into this period">Leftover</th>
-          <th title="Leftover plus income">Total Cash</th>
-          <th title="Total expenses due this period">Expenses</th>
-          <th title="Total cash minus expenses">Remaining Cash</th>
-          <th title="Safely spendable this period">Amount to Save</th>
-          <th title="Cumulative safely-spendable balance">Saving Account Balance</th>
+          <th data-i18n="c_period">Period</th>
+          <th title="Monthly income" data-i18n="c_income">Income</th>
+          <th title="Cash carried into this period" data-i18n="c_leftover">Leftover</th>
+          <th title="Leftover plus income" data-i18n="c_totalcash">Total Cash</th>
+          <th title="Total expenses due this period" data-i18n="c_expenses">Expenses</th>
+          <th title="Total cash minus expenses" data-i18n="c_remaining">Remaining Cash</th>
+          <th title="Safely spendable this period" data-i18n="c_tosave">Amount to Save</th>
+          <th title="Cumulative safely-spendable balance" data-i18n="c_savingbal">Saving Account Balance</th>
         </tr></thead>
         <tbody id="forecast-tbody"></tbody>
       </table>
@@ -537,23 +617,23 @@ td.positive{ color:var(--emerald); }
   </section>
 
   <div class="group-heading">
-    <span>What's driving it</span>
-    <p>Everything you enter. Changes here flow through the figures above.</p>
+    <span data-i18n="g_driving">What's driving it</span>
+    <p data-i18n="g_driving_sub">Everything you enter. Changes here flow through the figures above.</p>
   </div>
 
 <section class="card" id="section-income">
     <div class="ledger-header-row">
-      <h2>Income Ledger</h2>
+      <h2 data-i18n="s_income">Income Ledger</h2>
       <div class="ledger-actions">
-        <button id="income-collapse-all-btn" class="ghost-btn" type="button">Collapse all</button>
-        <button id="income-expand-all-btn" class="ghost-btn" type="button">Expand all</button>
-        <button id="add-income-btn" class="primary-btn" type="button">+ Add income source</button>
+        <button id="income-collapse-all-btn" class="ghost-btn" type="button" data-i18n="k_collapse">Collapse all</button>
+        <button id="income-expand-all-btn" class="ghost-btn" type="button" data-i18n="k_expand">Expand all</button>
+        <button id="add-income-btn" class="primary-btn" type="button" data-i18n="k_addinc">+ Add income source</button>
       </div>
     </div>
-    <p class="card-hint">Every income source that lands in your cash flow &mdash; salary (with room for a future raise), a one-off payment like a bonus, or rental income from a tenant's contract.</p>
+    <p class="card-hint" data-i18n="h_income">Every income source that lands in your cash flow &mdash; salary (with room for a future raise), a one-off payment like a bonus, or rental income from a tenant's contract.</p>
     <div class="table-scroll">
       <table id="income-table">
-        <thead><tr><th>Name</th><th>Type</th><th>Details</th><th>Amount</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="c_name">Name</th><th data-i18n="c_type">Type</th><th data-i18n="c_details">Details</th><th data-i18n="c_amount">Amount</th><th></th></tr></thead>
         <tbody id="income-tbody"></tbody>
       </table>
     </div>
@@ -561,37 +641,37 @@ td.positive{ color:var(--emerald); }
 
 <section class="card" id="section4">
     <div class="ledger-header-row">
-      <h2>Expense Ledger</h2>
+      <h2 data-i18n="s_expense">Expense Ledger</h2>
       <div class="ledger-actions">
-        <button id="collapse-all-btn" class="ghost-btn" type="button">Collapse all</button>
-        <button id="expand-all-btn" class="ghost-btn" type="button">Expand all</button>
-        <button id="add-category-toggle-btn" class="ghost-btn" type="button">Manage categories</button>
-        <button id="add-row-btn" class="primary-btn" type="button">+ Add expense</button>
+        <button id="collapse-all-btn" class="ghost-btn" type="button" data-i18n="k_collapse">Collapse all</button>
+        <button id="expand-all-btn" class="ghost-btn" type="button" data-i18n="k_expand">Expand all</button>
+        <button id="add-category-toggle-btn" class="ghost-btn" type="button" data-i18n="k_mancat">Manage categories</button>
+        <button id="add-row-btn" class="primary-btn" type="button" data-i18n="k_addexp">+ Add expense</button>
       </div>
     </div>
     <div id="add-category-panel" class="add-category-panel hidden">
       <div class="table-scroll">
         <table class="category-manager-table">
-          <thead><tr><th></th><th>Category</th><th>Logic</th><th></th></tr></thead>
+          <thead><tr><th></th><th data-i18n="c_cat">Category</th><th data-i18n="c_logic">Logic</th><th></th></tr></thead>
           <tbody id="category-manager-tbody"></tbody>
         </table>
       </div>
       <div class="new-category-row">
         <input type="text" id="new-category-name" placeholder="New category name">
         <select id="new-category-behavior">
-          <option value="">No special logic</option>
-          <option value="statementBilling">Statement billing (like Credit Card)</option>
-          <option value="deficitCutSuggestion">Deficit-cut suggestion (like Home Expense)</option>
-          <option value="finiteTerm">Finite term -- has an end date (loans, leases)</option>
+          <option value="" data-i18n="o_none">No special logic</option>
+          <option value="statementBilling" data-i18n="o_stmt">Statement billing (like Credit Card)</option>
+          <option value="deficitCutSuggestion" data-i18n="o_def">Deficit-cut suggestion (like Home Expense)</option>
+          <option value="finiteTerm" data-i18n="o_fin">Finite term -- has an end date (loans, leases)</option>
         </select>
-        <button id="add-category-confirm-btn" class="primary-btn small" type="button">Add</button>
+        <button id="add-category-confirm-btn" class="primary-btn small" type="button" data-i18n="k_add">Add</button>
       </div>
       <span id="add-category-error" class="field-error"></span>
     </div>
     <div class="table-scroll">
       <table id="ledger-table">
         <thead><tr>
-          <th></th><th>Name</th><th>Category</th><th>Frequency</th><th>Amount</th><th>Due date(s)</th><th>Overrides</th><th></th>
+          <th></th><th data-i18n="c_name">Name</th><th data-i18n="c_cat">Category</th><th data-i18n="c_freq">Frequency</th><th data-i18n="c_amount">Amount</th><th data-i18n="c_due">Due date(s)</th><th data-i18n="c_ovr">Overrides</th><th></th>
         </tr></thead>
         <tbody id="ledger-tbody"></tbody>
       </table>
@@ -599,12 +679,12 @@ td.positive{ color:var(--emerald); }
   </section>
 
 <section class="card" id="section6">
-    <h2>P2P Lending</h2>
-    <p class="card-hint">Informal loans between you and another person, in either direction. Both the loan itself and its repayments flow into your forecast: money you borrow arrives as income on the loan date and its repayments become expenses, while money you lend leaves as an expense and comes back as income. Only payments you actually record reduce a balance &mdash; nothing is assumed settled because a date has passed.</p>
+    <h2 data-i18n="s_p2p">P2P Lending</h2>
+    <p class="card-hint" data-i18n="h_p2p">Informal loans between you and another person, in either direction. Both the loan itself and its repayments flow into your forecast: money you borrow arrives as income on the loan date and its repayments become expenses, while money you lend leaves as an expense and comes back as income. Only payments you actually record reduce a balance &mdash; nothing is assumed settled because a date has passed.</p>
 
     <label class="s1-payday-row">
-      Base currency <input type="text" maxlength="6" id="base-currency-input">
-      <span class="field-hint" style="margin:0;">&mdash; the currency every figure on this dashboard is stated in</span>
+      <span data-i18n="k_basecur">Base currency</span> <input type="text" maxlength="6" id="base-currency-input">
+      <span class="field-hint" style="margin:0;" data-i18n="k_curhint">&mdash; the currency every figure on this dashboard is stated in</span>
     </label>
 
     <div class="p2p-summary" id="p2p-summary"></div>
@@ -612,21 +692,21 @@ td.positive{ color:var(--emerald); }
     <div id="p2p-list"></div>
 
     <div class="p2p-add-row">
-      <button id="add-lent-btn" class="primary-btn" type="button">+ Money I lent out</button>
-      <button id="add-borrowed-btn" class="primary-btn" type="button">+ Money I borrowed</button>
+      <button id="add-lent-btn" class="primary-btn" type="button" data-i18n="btn_lent">+ Money I lent out</button>
+      <button id="add-borrowed-btn" class="primary-btn" type="button" data-i18n="btn_borrowed">+ Money I borrowed</button>
     </div>
   </section>
 
 <section class="card" id="section5">
-    <h2>Ad-hoc Savings Spending</h2>
-    <p class="card-hint">One-off purchases paid for out of savings rather than regular income. Each entry reduces the Saving Account Balance from its date onward, and leaves your income, expenses, and Amount to Save untouched.</p>
+    <h2 data-i18n="s_adhoc">Ad-hoc Savings Spending</h2>
+    <p class="card-hint" data-i18n="h_adhoc">One-off purchases paid for out of savings rather than regular income. Each entry reduces the Saving Account Balance from its date onward, and leaves your income, expenses, and Amount to Save untouched.</p>
     <div class="table-scroll">
       <table id="adhoc-table">
-        <thead><tr><th>Name</th><th>Date</th><th>Amount</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="c_name">Name</th><th data-i18n="c_date">Date</th><th data-i18n="c_amount">Amount</th><th></th></tr></thead>
         <tbody id="adhoc-tbody"></tbody>
       </table>
     </div>
-    <button id="add-adhoc-btn" class="primary-btn" type="button" style="margin-top:10px;">+ Add ad-hoc expense</button>
+    <button id="add-adhoc-btn" class="primary-btn" type="button" style="margin-top:10px;" data-i18n="k_addadhoc">+ Add ad-hoc expense</button>
   </section>
 
 
@@ -643,9 +723,9 @@ td.positive{ color:var(--emerald); }
   
 
   <footer class="page-footer">
-    <button id="reset-btn" class="ghost-btn" type="button">Reset to defaults</button>
-    <button id="export-btn" class="ghost-btn" type="button">Export backup</button>
-    <button id="import-btn" class="ghost-btn" type="button">Import backup</button>
+    <button id="reset-btn" class="ghost-btn" type="button" data-i18n="btn_reset">Reset to defaults</button>
+    <button id="export-btn" class="ghost-btn" type="button" data-i18n="btn_export">Export backup</button>
+    <button id="import-btn" class="ghost-btn" type="button" data-i18n="btn_import">Import backup</button>
     <input type="file" id="import-file-input" accept="application/json" style="display:none;">
     <p>Planning tool only &mdash; not financial advice. <span id="build-stamp"></span></p>
   </footer>
@@ -654,13 +734,13 @@ td.positive{ color:var(--emerald); }
     <div class="backup-modal-inner">
       <div class="backup-modal-header">
         <span id="backup-modal-title">Backup</span>
-        <button type="button" id="backup-modal-close" class="ghost-btn small">Close</button>
+        <button type="button" id="backup-modal-close" class="ghost-btn small" data-i18n="k_close">Close</button>
       </div>
       <p class="card-hint" id="backup-modal-hint" style="margin:0;"></p>
       <textarea id="backup-textarea" class="backup-textarea" rows="10" spellcheck="false"></textarea>
       <div class="backup-modal-actions">
-        <button type="button" id="backup-copy-btn" class="primary-btn small">Copy to clipboard</button>
-        <button type="button" id="backup-load-btn" class="primary-btn small">Load this backup</button>
+        <button type="button" id="backup-copy-btn" class="primary-btn small" data-i18n="k_copy">Copy to clipboard</button>
+        <button type="button" id="backup-load-btn" class="primary-btn small" data-i18n="k_load">Load this backup</button>
         <span id="backup-feedback" style="color:var(--emerald); font-size:12px;"></span>
       </div>
       <div class="backup-modal-secondary">
@@ -810,7 +890,7 @@ var DEFAULT_CREDIT_CARD_PAYMENT_DAY = 24; // real habit: paid same day as salary
 var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 function formatDueDate(y, m, d){
-  return (d<10?"0"+d:""+d) + "-" + MONTHS[m-1].slice(0,3) + "-" + y;
+  return toArabicDigits((d<10?"0"+d:""+d)) + "-" + monthShort(m) + "-" + toArabicDigits(y);
 }
 function dueColumnLabel(item){
   if (item.deferredY !== undefined) return formatDueDate(item.deferredY, item.deferredM, item.deferredD);
@@ -1011,7 +1091,10 @@ function fmt(n){
   var v = Math.abs(n);
   var parts = v.toFixed(2).split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return (neg ? "-" : "") + parts.join(".");
+  // Digit conversion happens HERE, at the display boundary only. Stored
+  // values and every parse path stay Western -- converting at source
+  // would corrupt the data the moment it was read back.
+  return toArabicDigits((neg ? "-" : "") + parts.join("."));
 }
 function sizeMoneyInput(el){
   // Dynamic width: roughly one character-width per character shown, plus
@@ -1153,7 +1236,7 @@ function monthOccurrences(y, m){
   p2pLoans().forEach(function(loan){
     if (loan.direction !== "borrowed" || !p2pIncludedInForecast(loan)) return;
     p2pScheduledOccurrences(loan, y, m).forEach(function(o){
-      out.push({ day: o.day, amount: p2pToBase(loan, o.amount), category: P2P_EXPENSE_CATEGORY, name: "Repay \u2014 " + (loan.counterparty || "loan") });
+      out.push({ day: o.day, amount: p2pToBase(loan, o.amount), category: P2P_EXPENSE_CATEGORY, name: tr("Repay","سداد") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
     });
   });
   // ACTUAL logged repayments on borrowed money. Critical and easy to get
@@ -1175,7 +1258,7 @@ function monthOccurrences(y, m){
       if (!pd || pd.y !== y || pd.m !== m) return;
       var amt = Number(pp.amount) || 0;
       if (amt <= 0.005) return;
-      out.push({ day: pd.d, amount: p2pToBase(loan, amt), category: P2P_EXPENSE_CATEGORY, name: "Paid \u2014 " + (loan.counterparty || "loan") });
+      out.push({ day: pd.d, amount: p2pToBase(loan, amt), category: P2P_EXPENSE_CATEGORY, name: tr("Paid","مدفوع") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
     });
   });
   // The PRINCIPAL the user LENT OUT is real cash leaving on the loan
@@ -1191,7 +1274,7 @@ function monthOccurrences(y, m){
       var snap = parseISODate(state.cashOnHandDate);
       if (snap && toAbsDay(ld.y, ld.m, ld.d) <= toAbsDay(snap.y, snap.m, snap.d)) return;
     }
-    out.push({ day: ld.d, amount: p2pToBase(loan, Number(loan.principal) || 0), category: P2P_EXPENSE_CATEGORY, name: "Lent \u2014 " + (loan.counterparty || "loan") });
+    out.push({ day: ld.d, amount: p2pToBase(loan, Number(loan.principal) || 0), category: P2P_EXPENSE_CATEGORY, name: tr("Lent","إقراض") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
   });
   return out;
 }
@@ -1484,7 +1567,7 @@ function monthIncomeOccurrences(y, m){
   p2pLoans().forEach(function(loan){
     if (loan.direction !== "lent" || !p2pIncludedInForecast(loan)) return;
     p2pScheduledOccurrences(loan, y, m).forEach(function(o){
-      out.push({ day: o.day, amount: p2pToBase(loan, o.amount), name: "Repayment \u2014 " + (loan.counterparty || "loan") });
+      out.push({ day: o.day, amount: p2pToBase(loan, o.amount), name: tr("Repayment","قسط") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
     });
   });
   // ACTUAL logged repayments received on money lent out -- the mirror of
@@ -1498,7 +1581,7 @@ function monthIncomeOccurrences(y, m){
       if (!pd || pd.y !== y || pd.m !== m) return;
       var amt = Number(pp.amount) || 0;
       if (amt <= 0.005) return;
-      out.push({ day: pd.d, amount: p2pToBase(loan, amt), name: "Received \u2014 " + (loan.counterparty || "loan") });
+      out.push({ day: pd.d, amount: p2pToBase(loan, amt), name: tr("Received","مستلم") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
     });
   });
   // The PRINCIPAL of money the user BORROWED is real cash arriving on the
@@ -1520,7 +1603,7 @@ function monthIncomeOccurrences(y, m){
       var snap = parseISODate(state.cashOnHandDate);
       if (snap && toAbsDay(ld.y, ld.m, ld.d) <= toAbsDay(snap.y, snap.m, snap.d)) return;
     }
-    out.push({ day: ld.d, amount: p2pToBase(loan, Number(loan.principal) || 0), name: "Borrowed \u2014 " + (loan.counterparty || "loan") });
+    out.push({ day: ld.d, amount: p2pToBase(loan, Number(loan.principal) || 0), name: tr("Borrowed","اقتراض") + " \u2014 " + (loan.counterparty || tr("loan","قرض")) });
   });
   return out;
 }
@@ -1604,12 +1687,12 @@ function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBefo
 }
 
 function periodLabel(row){
-  var mA = MONTHS[row.monthA-1].slice(0,3), mB = MONTHS[row.monthB-1].slice(0,3);
-  if (row.yearA === row.yearB) return mA + "\u2013" + mB + " (" + row.yearA + ")";
-  return mA + "(" + row.yearA + ")" + "\u2013" + mB + "(" + row.yearB + ")";
+  var mA = monthShort(row.monthA), mB = monthShort(row.monthB);
+  if (row.yearA === row.yearB) return mA + "\u2013" + mB + " (" + toArabicDigits(row.yearA) + ")";
+  return mA + "(" + toArabicDigits(row.yearA) + ")" + "\u2013" + mB + "(" + toArabicDigits(row.yearB) + ")";
 }
 function periodLabelCompact(row){
-  return MONTHS[row.monthA-1].slice(0,3) + "\u2019" + String(row.yearA).slice(-2);
+  return monthShort(row.monthA) + "\u2019" + toArabicDigits(String(row.yearA).slice(-2));
 }
 function formatDayRange(row, incomeDay){
   // The exact day-level range for a period, e.g. "Aug 24 - Sep 23, 2026" --
@@ -1621,8 +1704,8 @@ function formatDayRange(row, incomeDay){
   // (day 0 isn't a real date; the correct end is the last day of the
   // PRECEDING month, e.g. "Sep 30", which varies by month length).
   var end = absToYMD(toAbsDay(row.yearB, row.monthB, incomeDay) - 1);
-  var mA = MONTHS[row.monthA-1].slice(0,3), mB = MONTHS[end.m-1].slice(0,3);
-  return mA + " " + incomeDay + (row.yearA !== end.y ? ", " + row.yearA : "") + " \u2013 " + mB + " " + end.d + ", " + end.y;
+  var mA = monthShort(row.monthA), mB = monthShort(end.m);
+  return mA + " " + toArabicDigits(incomeDay) + (row.yearA !== end.y ? ", " + toArabicDigits(row.yearA) : "") + " \u2013 " + mB + " " + toArabicDigits(end.d) + ", " + toArabicDigits(end.y);
 }
 
 function todayISO(){
@@ -2033,6 +2116,13 @@ function makeDefaultState(){
     // balance, which suits someone whose balance varies a lot.
     cashOnHandAutoCorrectLimitMode: "amount",
     cashOnHandRedoStack: [],
+    // Backup reminder tracking. lastBackupAt is set only when the user
+    // actually opens the export -- not when they merely dismiss the
+    // prompt, which would defeat the point.
+    lang: "en",
+    arabicDigits: true,
+    lastBackupAt: null,
+    backupReminderSnoozedUntil: null,
     cashOnHandAdjustmentLog: [],
     forecastYear: todayYear(),
     nextExpenseId: DEFAULT_EXPENSES.length,
@@ -2563,7 +2653,7 @@ function renderCashOnHandReconciliation(){
       }
       if (drift){
         badge.classList.add("reconciled-stale");
-        el("cashonhand-badge-label").innerHTML = "\u26A0 Needs recalculating";
+        el("cashonhand-badge-label").innerHTML = tr("\u26A0 Needs recalculating", "\u26A0 \u064a\u062d\u062a\u0627\u062c \u0625\u0639\u0627\u062f\u0629 \u062d\u0633\u0627\u0628");
         el("cashonhand-reconciled-link").textContent = entryLabel;
         el("cashonhand-stale-note").textContent = "Out of date by " + fmt(Math.abs(drift.drift))
           + (state.cashOnHandAutoCorrect && !withinLimit
@@ -2572,10 +2662,18 @@ function renderCashOnHandReconciliation(){
         el("cashonhand-stale-note").classList.remove("hidden");
       } else {
         badge.classList.remove("reconciled-stale");
-        el("cashonhand-badge-label").innerHTML = "\u2713 Reconciled";
+        el("cashonhand-badge-label").innerHTML = tr("\u2713 Reconciled", "\u2713 \u0645\u064f\u0637\u0627\u0628\u064e\u0642");
         el("cashonhand-reconciled-link").textContent = entryLabel;
         if (autoFixed){
-          el("cashonhand-stale-note").textContent = "Adjusted automatically by " + fmt(Math.abs(autoFixed.drift)) + " to keep this balance accurate.";
+          // Remember the AMOUNT, not the finished sentence: the note has to
+          // survive a language switch, and a stored English sentence would
+          // sit there untranslated because auto-correct does not re-fire.
+          cashOnHandLastAutoFix = Math.abs(autoFixed.drift);
+          el("cashonhand-stale-note").textContent = tr("Adjusted automatically by ", "\u062a\u0645 \u0627\u0644\u062a\u0639\u062f\u064a\u0644 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0628\u0645\u0642\u062f\u0627\u0631 ") + fmt(cashOnHandLastAutoFix) + tr(" to keep this balance accurate.", " \u0644\u0644\u062d\u0641\u0627\u0638 \u0639\u0644\u0649 \u062f\u0642\u0629 \u0647\u0630\u0627 \u0627\u0644\u0631\u0635\u064a\u062f.");
+          el("cashonhand-stale-note").classList.remove("hidden");
+        } else if (cashOnHandLastAutoFix !== null){
+          // Re-rendered every pass so it follows the current language.
+          el("cashonhand-stale-note").textContent = tr("Adjusted automatically by ", "\u062a\u0645 \u0627\u0644\u062a\u0639\u062f\u064a\u0644 \u062a\u0644\u0642\u0627\u0626\u064a\u0627\u064b \u0628\u0645\u0642\u062f\u0627\u0631 ") + fmt(cashOnHandLastAutoFix) + tr(" to keep this balance accurate.", " \u0644\u0644\u062d\u0641\u0627\u0638 \u0639\u0644\u0649 \u062f\u0642\u0629 \u0647\u0630\u0627 \u0627\u0644\u0631\u0635\u064a\u062f.");
           el("cashonhand-stale-note").classList.remove("hidden");
         } else {
           el("cashonhand-stale-note").classList.add("hidden");
@@ -2592,7 +2690,7 @@ function renderCashOnHandReconciliation(){
       el("cashonhand-log-export").classList.toggle("hidden", (state.cashOnHandAdjustmentLog || []).length === 0);
       var log = state.cashOnHandAdjustmentLog || [];
       if (log.length){
-        el("cashonhand-log-toggle").textContent = (cashOnHandLogOpen ? "Hide" : "Show") + " correction history (" + log.length + ")";
+        el("cashonhand-log-toggle").textContent = (cashOnHandLogOpen ? tr("Hide","إخفاء") : tr("Show","عرض")) + " " + tr("correction history","سجل التصحيحات") + " (" + toArabicDigits(log.length) + ")";
         el("cashonhand-log-toggle").classList.remove("hidden");
         if (cashOnHandLogOpen){
           el("cashonhand-log").innerHTML = log.slice().reverse().map(function(e, revIdx){
@@ -2603,8 +2701,8 @@ function renderCashOnHandReconciliation(){
             // never happened.
             var canUndo = revIdx === 0;
             return '<div class="cashonhand-log-row"><span>' + escapeHtml(when) + " \u2014 " + fmt(e.from) + " \u2192 " + fmt(e.to)
-              + " (" + (e.drift >= 0 ? "+" : "") + fmt(e.drift) + ", " + (e.auto ? "automatic" : "manual") + ")</span>"
-              + (canUndo ? '<button type="button" class="link-btn undo-btn" data-undo-corr="' + escapeAttr(e.id || "") + '">Undo</button>' : "")
+              + " (" + (e.drift >= 0 ? "+" : "") + fmt(e.drift) + ", " + (e.auto ? tr("automatic","\u062a\u0644\u0642\u0627\u0626\u064a") : tr("manual","\u064a\u062f\u0648\u064a")) + ")</span>"
+              + (canUndo ? '<button type="button" class="link-btn undo-btn" data-undo-corr="' + escapeAttr(e.id || "") + '">' + tr("Undo","\u062a\u0631\u0627\u062c\u0639") + '</button>' : "")
               + "</div>";
           }).join("");
           var undoBtns = el("cashonhand-log").querySelectorAll("[data-undo-corr]");
@@ -2679,7 +2777,7 @@ function renderSection1(rows){
   if (row0.isDeficit){
     var gap = Math.abs(row0.remainingCash), home = row0.homeExpense, cutLabel = deficitCutLabel(), msg;
     if (gap <= home){
-      msg = "As of this date, this period is running " + fmt(gap) + " short. Trimming " + cutLabel + " by " + fmt(gap) + " would cover it.";
+      msg = tr("As of this date, this period is running ","حتى هذا التاريخ، هذه الفترة ناقصة بمقدار ") + fmt(gap) + tr(" short. Trimming ",". خفض ") + cutLabel + tr(" by "," بمقدار ") + fmt(gap) + tr(" would cover it."," يغطي العجز.");
     } else {
       msg = "As of this date, this period is running " + fmt(gap) + " short. Even cutting all of " + cutLabel + " (" + fmt(home) + ") would still leave a gap of " + fmt(gap - home) + ".";
     }
@@ -2832,19 +2930,20 @@ var chartItemsRevealed = false; // gated behind an explicit bar/dot click -- see
 var chartItemsGrouped = false; // session-only view toggle, not persisted
 var cashOnHandSuggestionDismissed = false; // session-only -- reappears on reload if still unresolved
 var cashOnHandPendingUpdate = null;
+var cashOnHandLastAutoFix = null; // amount of the last automatic correction, for re-rendering the note in either language
 var cashOnHandLogOpen = false; // session-only: is the correction history expanded // set when Recalculate finds a discrepancy against the linked entry; drives the update-prompt banner
 var paidItemsGrouped = false; // same, independent toggle for the "already paid" breakdown
 var chartItemsCurrentRow = null; // so toggling group/collapse can re-render without a fresh bar click
 
 function renderIncomeBreakdown(items, noun){
-  if (!items || items.length === 0) return '<div class="chart-items-hint">No ' + noun + ' here.</div>';
+  if (!items || items.length === 0) return '<div class="chart-items-hint">' + tr("Nothing here.","لا يوجد شيء هنا.") + '</div>';
   var total = items.reduce(function(s,it){ return s + it.amount; }, 0);
   var sorted = items.slice().sort(function(a,b){ return b.amount - a.amount; });
   var html = '<div class="chart-items">'
     + '<div class="chart-items-header"><div class="chart-items-title">'
-    + items.length + " " + (items.length === 1 ? noun.replace(/s$/, "") : noun)
+    + toArabicDigits(items.length) + " " + tr(items.length === 1 ? noun.replace(/s$/, "") : noun, noun === "income sources" ? "مصدر دخل" : noun)
     + ' &mdash; ' + fmt(total) + '</div></div>'
-    + '<div class="table-scroll"><table><thead><tr><th>Source</th><th>Date</th><th class="num">Amount</th></tr></thead><tbody>';
+    + '<div class="table-scroll"><table><thead><tr><th>' + tr("Source","\u0627\u0644\u0645\u0635\u062f\u0631") + '</th><th>' + tr("Date","\u0627\u0644\u062a\u0627\u0631\u064a\u062e") + '</th><th class="num">' + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + '</th></tr></thead><tbody>';
   sorted.forEach(function(it){
     var dateCell = (it.dueY !== undefined) ? formatDueDate(it.dueY, it.dueM, it.dueD) : "\u2014";
     html += "<tr><td>" + escapeHtml(it.name) + '</td><td class="item-due">' + dateCell + '</td><td class="num">' + fmt(it.amount) + "</td></tr>";
@@ -2857,54 +2956,54 @@ function showChartDetail(row){
   state._chartSelected = row.index;
   chartItemsCurrentRow = row;
   var html = '<div class="chart-detail-period">' + escapeHtml(periodLabel(row)) + "</div>"
-    + '<div class="chart-detail-line"><span>Income</span><strong>' + fmt(row.income) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>Expenses</span><strong>' + fmt(row.expense) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>Remaining Cash</span><strong style="color:' + (row.remainingCash<-0.005?"var(--rust)":"inherit") + '">' + fmt(row.remainingCash) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>Amount to Save</span><strong>' + fmt(row.amountToSave) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>Saving Account Balance</span><strong style="color:' + (row.excessCash>0.005?"var(--emerald)":(row.excessCash<-0.005?"var(--rust)":"inherit")) + '">' + fmt(row.excessCash) + "</strong></div>";
+    + '<div class="chart-detail-line"><span>' + tr("Income","\u0627\u0644\u062f\u062e\u0644") + '</span><strong>' + fmt(row.income) + "</strong></div>"
+    + '<div class="chart-detail-line"><span>' + tr("Expenses","\u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a") + '</span><strong>' + fmt(row.expense) + "</strong></div>"
+    + '<div class="chart-detail-line"><span>' + tr("Remaining Cash","\u0627\u0644\u0646\u0642\u062f \u0627\u0644\u0645\u062a\u0628\u0642\u064a") + '</span><strong style="color:' + (row.remainingCash<-0.005?"var(--rust)":"inherit") + '">' + fmt(row.remainingCash) + "</strong></div>"
+    + '<div class="chart-detail-line"><span>' + tr("Amount to Save","\u0627\u0644\u0645\u0628\u0644\u063a \u0644\u0644\u0627\u062f\u062e\u0627\u0631") + '</span><strong>' + fmt(row.amountToSave) + "</strong></div>"
+    + '<div class="chart-detail-line"><span>' + tr("Saving Account Balance","\u0631\u0635\u064a\u062f \u062d\u0633\u0627\u0628 \u0627\u0644\u062a\u0648\u0641\u064a\u0631") + '</span><strong style="color:' + (row.excessCash>0.005?"var(--emerald)":(row.excessCash<-0.005?"var(--rust)":"inherit")) + '">' + fmt(row.excessCash) + "</strong></div>";
   if (row.isDeficit){
     var gap = Math.abs(row.remainingCash);
-    if (gap <= row.homeExpense) html += '<div class="chart-detail-note">Cutting ' + escapeHtml(deficitCutLabel()) + " by " + fmt(gap) + " would cover this period.</div>";
+    if (gap <= row.homeExpense) html += '<div class="chart-detail-note">' + tr("Cutting ","خفض ") + escapeHtml(deficitCutLabel()) + tr(" by "," بمقدار ") + fmt(gap) + tr(" would cover this period."," يغطي هذه الفترة.") + "</div>";
     else html += '<div class="chart-detail-note">Cutting all of ' + escapeHtml(deficitCutLabel()) + " (" + fmt(row.homeExpense) + ") still leaves " + fmt(gap - row.homeExpense) + " short.</div>";
   }
   if (chartItemsRevealed){
     var incomeDay = getPrimaryIncomeDay();
     var periodEnd = absToYMD(toAbsDay(row.yearB, row.monthB, incomeDay) - 1);
-    var periodEndLabel = MONTHS[periodEnd.m-1].slice(0,3) + " " + periodEnd.d;
-    var periodStartLabel = MONTHS[row.monthA-1].slice(0,3) + " " + incomeDay;
-    html += '<div class="chart-items-subhead">Income received — ' + periodStartLabel + ' to your snapshot</div>';
+    var periodEndLabel = monthShort(periodEnd.m) + " " + toArabicDigits(periodEnd.d);
+    var periodStartLabel = monthShort(row.monthA) + " " + toArabicDigits(incomeDay);
+    html += '<div class="chart-items-subhead">' + tr("Income received","الدخل المستلم") + ' — ' + periodStartLabel + ' ' + tr("to your snapshot","حتى لقطتك") + '</div>';
     html += renderIncomeBreakdown(row.incomeItems || [], "income sources");
     if (row.pendingIncomeItems && row.pendingIncomeItems.length){
-      html += '<div class="chart-items-subhead">Income still expected — your snapshot to ' + periodEndLabel + '</div>';
+      html += '<div class="chart-items-subhead">' + tr("Income still expected","الدخل المتوقع") + ' — ' + tr("your snapshot to","من لقطتك حتى") + ' ' + periodEndLabel + '</div>';
       html += renderIncomeBreakdown(row.pendingIncomeItems, "income sources");
     }
-    html += '<div class="chart-items-subhead">Expenses still due — your snapshot to ' + periodEndLabel + '</div>';
+    html += '<div class="chart-items-subhead">' + tr("Expenses still due","مصروفات مستحقة") + ' — ' + tr("your snapshot to","من لقطتك حتى") + ' ' + periodEndLabel + '</div>';
     html += renderItemsBreakdown(row.items || [], "still-due", chartItemsGrouped, "expense");
     if (row.paidItems !== undefined){
-      html += '<div class="chart-items-subhead">Expenses already paid — ' + periodStartLabel + ' to your snapshot</div>';
+      html += '<div class="chart-items-subhead">' + tr("Expenses already paid","مصروفات مدفوعة") + ' — ' + periodStartLabel + ' ' + tr("to your snapshot","حتى لقطتك") + '</div>';
       html += renderItemsBreakdown(row.paidItems || [], "paid", paidItemsGrouped, "paid expense");
     }
   } else {
-    html += '<div class="chart-items-hint">Select a bar or dot above for a full income and expense breakdown of that period.</div>';
+    html += '<div class="chart-items-hint">' + tr("Select a bar or dot above for a full income and expense breakdown of that period.","اختر عموداً أو نقطة أعلاه لعرض تفصيل كامل للدخل والمصروفات لتلك الفترة.") + '</div>';
   }
   el("chart-detail").innerHTML = html;
   bindChartItemsControls();
 }
 
 function renderItemsBreakdown(items, sectionKey, isGrouped, noun){
-  if (items.length === 0) return '<div class="chart-items-hint">No ' + noun + 's here.</div>';
+  if (items.length === 0) return '<div class="chart-items-hint">' + tr("Nothing here.","لا يوجد شيء هنا.") + '</div>';
   var total = items.reduce(function(s,it){ return s + it.amount; }, 0);
   var toggleId = "chart-items-group-toggle-" + sectionKey;
 
   var html = '<div class="chart-items">'
     + '<div class="chart-items-header">'
-    + '<div class="chart-items-title">All ' + items.length + " " + noun + (items.length===1?"":"s") + ' &mdash; ' + fmt(total) + '</div>'
-    + '<button type="button" id="' + toggleId + '" class="link-btn" data-section="' + sectionKey + '">' + (isGrouped ? "Show as list" : "Group by category") + "</button>"
+    + '<div class="chart-items-title">' + tr("All ","كل ") + toArabicDigits(items.length) + " " + tr(noun + (items.length===1?"":"s"), noun==='expense' ? 'مصروف' : (noun==='paid expense' ? 'مصروف مدفوع' : noun)) + ' &mdash; ' + fmt(total) + '</div>'
+    + '<button type="button" id="' + toggleId + '" class="link-btn" data-section="' + sectionKey + '">' + (isGrouped ? tr("Show as list","عرض كقائمة") : tr("Group by category","تجميع حسب الفئة")) + "</button>"
     + "</div>";
 
   if (!isGrouped){
     var sorted = items.slice().sort(function(a,b){ return b.amount - a.amount; });
-    html += "<div class=\"table-scroll\"><table><thead><tr><th>Expense</th><th>Category</th><th>Due</th><th class=\"num\">Amount</th></tr></thead><tbody>";
+    html += "<div class=\"table-scroll\"><table><thead><tr><th>" + tr("Expense","\u0627\u0644\u0645\u0635\u0631\u0648\u0641") + "</th><th>" + tr("Category","\u0627\u0644\u0641\u0626\u0629") + "</th><th>" + tr("Due","\u0627\u0644\u0627\u0633\u062a\u062d\u0642\u0627\u0642") + "</th><th class=\"num\">" + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + "</th></tr></thead><tbody>";
     sorted.forEach(function(it){
       html += "<tr>"
         + "<td>" + escapeHtml(it.name) + "</td>"
@@ -2975,7 +3074,7 @@ function monthSelectInline(id, idx, kind, val){
   var field = kind + "-month";
   var html = '<select class="exp-' + kind + '-month" data-id="' + escapeAttr(id) + '" data-idx="' + idx + '" data-field="' + field + '">';
   MONTHS.forEach(function(m,i){
-    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + m.slice(0,3) + "</option>";
+    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + monthShort(i+1) + "</option>";
   });
   html += "</select>";
   return html;
@@ -2984,7 +3083,7 @@ function monthSelectInline(id, idx, kind, val){
 function mainMonthSelect(id, val){
   var html = '<select class="exp-month" data-id="' + escapeAttr(id) + '" data-field="dueMonth">';
   MONTHS.forEach(function(m,i){
-    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + m.slice(0,3) + "</option>";
+    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + monthShort(i+1) + "</option>";
   });
   html += "</select>";
   return html;
@@ -3000,7 +3099,7 @@ function categorySelect(exp){
   return html;
 }
 function frequencySelect(exp){
-  var freqs = [["monthly","Monthly"],["yearly","Yearly"],["onetime","Onetime"],["custom","Custom"]];
+  var freqs = [["monthly",tr("Monthly","شهري")],["yearly",tr("Yearly","سنوي")],["onetime",tr("Onetime","مرة واحدة")],["custom",tr("Custom","مخصص")]];
   var html = '<select class="exp-frequency" data-id="' + escapeAttr(exp.id) + '" data-field="frequency">';
   freqs.forEach(function(f){
     html += '<option value="' + f[0] + '"' + (f[0]===exp.frequency?" selected":"") + ">" + f[1] + "</option>";
@@ -3020,7 +3119,7 @@ function customDatesEditor(exp){
       + '<button type="button" class="remove-date-btn" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" title="Remove date">\u2715</button>'
       + "</div>";
   });
-  html += '<button type="button" class="add-date-btn" data-id="' + escapeAttr(exp.id) + '">+ Add date</button></div>';
+  html += '<button type="button" class="add-date-btn" data-id="' + escapeAttr(exp.id) + '">' + tr("+ Add date","+ إضافة تاريخ") + '</button></div>';
   return html;
 }
 
@@ -3032,7 +3131,7 @@ function dueDateCell(exp){
     html = mainMonthSelect(exp.id, exp.dueMonth)
       + ' <input type="number" min="1" max="31" class="exp-dueday" data-id="' + escapeAttr(exp.id) + '" data-field="dueDay" value="' + (exp.dueDay||1) + '">';
   } else if (exp.frequency === "onetime"){
-    html = '<div class="onetime-note">won\u2019t recur</div>'
+    html = '<div class="onetime-note">' + tr("won\u2019t recur","لا يتكرر") + '</div>'
       + mainMonthSelect(exp.id, exp.dueMonth)
       + ' <input type="number" min="1" max="31" class="exp-dueday" data-id="' + escapeAttr(exp.id) + '" data-field="dueDay" value="' + (exp.dueDay||1) + '">'
       + ' <input type="number" class="exp-dueyear" data-id="' + escapeAttr(exp.id) + '" data-field="dueYear" placeholder="year" value="' + (exp.dueYear!=null?exp.dueYear:"") + '">';
@@ -3048,7 +3147,7 @@ function dueDateCell(exp){
 }
 
 function overridesCell(exp){
-  if (exp.frequency !== "monthly") return '<span class="muted-placeholder">only for monthly</span>';
+  if (exp.frequency !== "monthly") return '<span class="muted-placeholder">' + tr("only for monthly","للشهري فقط") + '</span>';
   var overrides = exp.overrides || [];
   var html = '<div class="overrides-editor">';
   overrides.forEach(function(o,i){
@@ -3059,7 +3158,7 @@ function overridesCell(exp){
       + '<button type="button" class="remove-override-btn" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" title="Remove override">\u2715</button>'
       + "</div>";
   });
-  html += '<button type="button" class="add-override-btn" data-id="' + escapeAttr(exp.id) + '">+ Add override</button></div>';
+  html += '<button type="button" class="add-override-btn" data-id="' + escapeAttr(exp.id) + '">' + tr("+ Add override","+ إضافة تجاوز") + '</button></div>';
   return html;
 }
 
@@ -3084,7 +3183,7 @@ function renderExpenseRow(exp, isFirst, isLast){
 
 function behaviorSelectOptions(cat){
   var current = getCategoryBehavior(cat);
-  var opts = [["", "No special logic"], ["statementBilling","Statement billing"], ["deficitCutSuggestion","Deficit-cut suggestion"], ["finiteTerm","Finite term (end date)"]];
+  var opts = [["", tr("No special logic","بلا منطق خاص")], ["statementBilling",tr("Statement billing","فوترة كشف حساب")], ["deficitCutSuggestion",tr("Deficit-cut suggestion","اقتراح خفض العجز")], ["finiteTerm",tr("Finite term (end date)","مدة محددة (تاريخ انتهاء)")]];
   var html = '<select class="cat-behavior-select" data-category="' + escapeAttr(cat) + '">';
   opts.forEach(function(o){
     html += '<option value="' + o[0] + '"' + ((o[0]||null)===(current||null)?" selected":"") + ">" + o[1] + "</option>";
@@ -3161,13 +3260,252 @@ function p2pStatusLabel(loan){
   return "no schedule set";
 }
 
+/* ===== Language (English / Arabic) ======================================
+   Arabic mode sets dir="rtl" on <html>; the layout follows because it is
+   built on flex/grid rather than hard-coded left/right offsets.
+
+   Numbers deliberately stay in WESTERN digits and stay LTR even in
+   Arabic -- that is the finance convention across the Gulf, and it keeps
+   figures directly comparable with a bank statement. Arabic-Indic digits
+   were considered and rejected for that reason.
+
+   Only chrome is translated: section titles, group headings, buttons and
+   explanatory copy. User-entered content (an expense called "Marina", a
+   person's name) is never touched -- translating someone's own data
+   would be both wrong and destructive.
+   ======================================================================= */
+var I18N = {
+  ar: {
+    eyebrow: "\u062f\u0641\u062a\u0631 \u0627\u0644\u0623\u0633\u0631\u0629 \u00b7 \u062f.\u0625",
+    title: "\u0644\u0648\u062d\u0629 \u0645\u064a\u0632\u0627\u0646\u064a\u0629 \u0627\u0644\u0623\u0633\u0631\u0629",
+    forecastYear: "\u0633\u0646\u0629 \u0627\u0644\u062a\u0648\u0642\u0639",
+    g_stand: "\u0645\u0648\u0642\u0641\u0643 \u0627\u0644\u062d\u0627\u0644\u064a",
+    g_stand_sub: "\u0639\u0631\u0636 \u0644\u0644\u0627\u0637\u0644\u0627\u0639 \u0641\u0642\u0637 \u2014 \u0644\u0627 \u064a\u0645\u0643\u0646 \u062a\u0639\u062f\u064a\u0644 \u0634\u064a\u0621 \u0647\u0646\u0627 \u0645\u0628\u0627\u0634\u0631\u0629.",
+    g_driving: "\u0645\u0627 \u064a\u064f\u0643\u0648\u0651\u0646 \u0647\u0630\u0647 \u0627\u0644\u0623\u0631\u0642\u0627\u0645",
+    g_driving_sub: "\u0643\u0644 \u0645\u0627 \u062a\u062f\u062e\u0644\u0647. \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a \u0647\u0646\u0627 \u062a\u0646\u0639\u0643\u0633 \u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0623\u0639\u0644\u0627\u0647.",
+    s_cashflow: "\u0627\u0644\u062a\u062f\u0641\u0642 \u0627\u0644\u0646\u0642\u062f\u064a \u0627\u0644\u0634\u0647\u0631\u064a",
+    s_chart: "\u0627\u0644\u0633\u0646\u0629 \u0641\u064a \u0644\u0645\u062d\u0629",
+    s_summary: "\u0627\u0644\u0645\u0644\u062e\u0635 \u0627\u0644\u0634\u0647\u0631\u064a",
+    s_income: "\u0633\u062c\u0644 \u0627\u0644\u062f\u062e\u0644",
+    s_expense: "\u0633\u062c\u0644 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a",
+    s_p2p: "\u0627\u0644\u0625\u0642\u0631\u0627\u0636 \u0627\u0644\u0634\u062e\u0635\u064a",
+    s_adhoc: "\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a",
+    btn_reset: "\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0636\u0628\u0637",
+    btn_export: "\u062a\u0635\u062f\u064a\u0631 \u0646\u0633\u062e\u0629",
+    btn_import: "\u0627\u0633\u062a\u064a\u0631\u0627\u062f \u0646\u0633\u062e\u0629",
+    btn_lent: "+ \u0645\u0628\u0644\u063a \u0623\u0642\u0631\u0636\u062a\u0647",
+    btn_borrowed: "+ \u0645\u0628\u0644\u063a \u0627\u0642\u062a\u0631\u0636\u062a\u0647",
+    h_summary: "توقع متدرج لاثنتي عشرة فترة. كل رقم هنا محسوب من مدخلات الدخل والمصروفات — لا يُعدّل شيء في هذا الجدول مباشرة.",
+    h_chart: "اختر أي عمود أو نقطة لعرض أرقام تلك الفترة، مع تفصيل كامل للدخل المستلم، والدخل المتوقع، والمصروفات المدفوعة، والمستحقة.",
+    l_payday: "تبدأ فترة الراتب في يوم",
+    l_reconcile: "أريد مطابقة رصيد نقدي فعلي",
+    l_coh: "النقد المتوفر",
+    l_rec: "بتاريخ",
+    l_snapshot: "لقطة",
+    l_viewing: "العرض بتاريخ",
+    h_coh: "أداة مطابقة وليست رصيداً متغيراً: هذا الرقم لا يؤثر على أي إجمالي مباشرة. أدخل رصيدك الفعلي والتاريخ الذي كان صحيحاً فيه. إذا اختلف عمّا تتوقعه مدخلات الدخل والمصروفات، تقترح اللوحة تسجيل الفرق كسطر جديد في سجل الدخل أو المصروفات، حيث يُعامل كأي إدخال آخر.",
+    h_snapshot: "كل ما يظهر أدناه يعكس هذا التاريخ تحديداً، كما لو انتقلت إليه — أي فترة أنت فيها، وما حدث بالفعل، وما لا يزال قادماً. غيّر التاريخ ويتحدث القسم بالكامل. أما مصروفات البطاقة الائتمانية فتتبع تواريخ كشف الحساب والسداد الخاصة بها، المحددة لكل فئة في سجل المصروفات.",
+    h_defer: "يعامل كل مصروفات البطاقة الائتمانية المستحقة في هذه الفترة كدفعة واحدة في هذا التاريخ، متجاوزاً أيام كشف الحساب والسداد المعتادة. استخدم هذا عندما تعلم أنك ستسدد البطاقة قبل أو بعد موعدها المعتاد هذه الدورة.",
+    h_income: "كل مصدر دخل يدخل في تدفقك النقدي — الراتب (مع إمكانية زيادة مستقبلية)، أو دفعة لمرة واحدة كمكافأة، أو دخل إيجار من عقد مستأجر.",
+    h_p2p: "قروض غير رسمية بينك وبين شخص آخر، في أي من الاتجاهين. القرض نفسه وأقساطه يدخلان في توقعاتك: المال الذي تقترضه يصل كدخل في تاريخ القرض وتصبح أقساطه مصروفات، بينما المال الذي تقرضه يخرج كمصروف ويعود كدخل. الدفعات التي تسجلها فعلياً هي وحدها التي تخفض الرصيد — لا يُفترض السداد لمجرد مرور التاريخ.",
+    h_adhoc: "مشتريات لمرة واحدة تُدفع من المدخرات بدلاً من الدخل المعتاد. كل إدخال يخفض رصيد حساب التوفير من تاريخه فصاعداً، ولا يمس الدخل أو المصروفات أو المبلغ المخصص للادخار.",
+    h_payday: "— اليوم الذي يصلك فيه راتبك، وهو بداية فترة الميزانية لكل شهر",
+    k_totinc: "إجمالي الدخل",
+    k_totexp: "إجمالي المصروفات",
+    k_totcash: "إجمالي النقد",
+    k_remcash: "النقد المتبقي",
+    k_amtsave: "المبلغ للادخار",
+    k_collapse: "طي الكل",
+    k_expand: "توسيع الكل",
+    k_addinc: "+ إضافة مصدر دخل",
+    k_addexp: "+ إضافة مصروف",
+    k_mancat: "إدارة الفئات",
+    k_backupnow: "احفظ نسخة الآن",
+    k_later: "لاحقاً",
+    k_recalc: "إعادة الحساب",
+    k_redo: "إعادة آخر تراجع",
+    k_expcsv: "تصدير السجل (CSV)",
+    k_addledger: "أضف إلى السجل",
+    k_notnow: "ليس الآن",
+    k_autocorr: "صحّح هذا تلقائياً",
+    k_onlyupto: "حتى حد",
+    k_flat: "مبلغ ثابت",
+    k_pct: "% من الرصيد",
+    k_limithint: "— الفروق الأكبر يتم تنبيهك بها بدلاً من ذلك (٠ = بلا حد)",
+    c_period: "الفترة",
+    c_name: "الاسم",
+    c_type: "النوع",
+    c_details: "التفاصيل",
+    c_amount: "المبلغ",
+    c_cat: "الفئة",
+    c_logic: "المنطق",
+    c_freq: "التكرار",
+    c_due: "تواريخ الاستحقاق",
+    c_ovr: "التجاوزات",
+    c_date: "التاريخ",
+    c_income: "الدخل",
+    c_leftover: "المرحّل",
+    c_totalcash: "إجمالي النقد",
+    c_expenses: "المصروفات",
+    c_remaining: "النقد المتبقي",
+    c_tosave: "المبلغ للادخار",
+    c_savingbal: "رصيد التوفير",
+    o_none: "بلا منطق خاص",
+    o_stmt: "فوترة كشف حساب (مثل البطاقة الائتمانية)",
+    o_def: "اقتراح خفض العجز (مثل مصروف المنزل)",
+    o_fin: "مدة محددة — لها تاريخ انتهاء (قروض، إيجارات)",
+    k_assumed: "مفترض",
+    k_see: "انظر",
+    k_inledger: "في السجل",
+    k_add: "إضافة",
+    k_curhint: "— العملة التي تُعرض بها كل الأرقام في هذه اللوحة",
+    k_basecur: "العملة الأساسية",
+    k_addadhoc: "+ إضافة مصروف من المدخرات",
+    l_defer: "تأجيل سداد البطاقة إلى",
+    k_close: "إغلاق",
+    k_copy: "نسخ",
+    k_load: "تحميل هذه النسخة"
+  }
+};
+
+function currentLang(){ return (state && state.lang === "ar") ? "ar" : "en"; }
+
+var AR_DIGITS = ["\u0660","\u0661","\u0662","\u0663","\u0664","\u0665","\u0666","\u0667","\u0668","\u0669"];
+var AR_MONTHS = ["\u064a\u0646\u0627\u064a\u0631","\u0641\u0628\u0631\u0627\u064a\u0631","\u0645\u0627\u0631\u0633","\u0623\u0628\u0631\u064a\u0644","\u0645\u0627\u064a\u0648","\u064a\u0648\u0646\u064a\u0648","\u064a\u0648\u0644\u064a\u0648","\u0623\u063a\u0633\u0637\u0633","\u0633\u0628\u062a\u0645\u0628\u0631","\u0623\u0643\u062a\u0648\u0628\u0631","\u0646\u0648\u0641\u0645\u0628\u0631","\u062f\u064a\u0633\u0645\u0628\u0631"];
+
+function useArabicDigits(){
+  // Separate from the language choice on purpose: Gulf finance commonly
+  // uses Western digits even in Arabic text, so the user may want Arabic
+  // copy with Western figures. Defaults ON when Arabic is selected, but
+  // can be turned off independently.
+  return currentLang() === "ar" && state.arabicDigits !== false;
+}
+
+function toArabicDigits(str){
+  // Applied only at the DISPLAY layer, never to stored values or to
+  // anything parsed back. Every parse path in this file reads Western
+  // digits, so converting at source would corrupt the data -- this is
+  // the one rule that matters here.
+  if (!useArabicDigits()) return str;
+  return String(str).replace(/[0-9]/g, function(d){ return AR_DIGITS[+d]; });
+}
+
+function monthName(m1){
+  // m1 is 1-based.
+  return currentLang() === "ar" ? AR_MONTHS[m1-1] : MONTHS[m1-1];
+}
+function tr(en, ar){
+  // Inline translation for strings BUILT IN JS (warnings, badges,
+  // reminders). data-i18n only covers static markup; anything assembled
+  // at runtime needs this instead.
+  return currentLang() === "ar" ? ar : en;
+}
+
+function monthShort(m1){
+  return currentLang() === "ar" ? AR_MONTHS[m1-1] : MONTHS[m1-1].slice(0,3);
+}
+
+function applyLanguage(){
+  var lang = currentLang();
+  var html = document.documentElement;
+  html.setAttribute("lang", lang === "ar" ? "ar" : "en");
+  html.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+  // Native date inputs render their placeholder/picker in the element's
+  // own language. Setting lang on them (rather than relying on the
+  // document) makes the browser present dd/mm/yyyy ordering and Arabic
+  // month names in the picker. The VALUE stays ISO either way -- that is
+  // browser behaviour we depend on, since every parse path reads ISO.
+  var dateInputs = document.querySelectorAll('input[type=date]');
+  for (var di = 0; di < dateInputs.length; di++){
+    dateInputs[di].setAttribute("lang", lang === "ar" ? "ar-AE" : "en-GB");
+  }
+  var nodes = document.querySelectorAll("[data-i18n]");
+  for (var i = 0; i < nodes.length; i++){
+    var n = nodes[i], key = n.getAttribute("data-i18n");
+    // Stash the original English once, so switching back is lossless
+    // rather than depending on a second dictionary.
+    if (!n.hasAttribute("data-i18n-en")) n.setAttribute("data-i18n-en", n.innerHTML);
+    if (lang === "ar" && I18N.ar[key]) n.textContent = I18N.ar[key];
+    else n.innerHTML = n.getAttribute("data-i18n-en");
+  }
+  var enBtn = el("lang-en"), arBtn = el("lang-ar");
+  if (enBtn) enBtn.classList.toggle("active", lang === "en");
+  if (arBtn) arBtn.classList.toggle("active", lang === "ar");
+  // The digit choice is only meaningful in Arabic, so the control only
+  // appears there rather than sitting inert in English.
+  var dw = el("digit-toggle-wrap");
+  if (dw){
+    dw.style.display = (lang === "ar") ? "" : "none";
+    var dAr = el("digit-ar"), dEn = el("digit-en");
+    if (dAr) dAr.classList.toggle("active", state.arabicDigits !== false);
+    if (dEn) dEn.classList.toggle("active", state.arabicDigits === false);
+  }
+}
+
+/* ===== Backup reminder ===================================================
+   Browser storage is the only place this dashboard's data lives. On iOS,
+   Safari can clear it after roughly seven days without opening the app,
+   and installing to the home screen reduces but does not remove that
+   risk. If it happens the app still loads -- just empty. That is the one
+   failure the tool cannot recover from by itself, so it earns a visible
+   prompt.
+
+   Deliberately NOT nagging: dismissing snoozes for three days, and the
+   prompt only escalates in tone once the data is genuinely at risk.
+   ======================================================================= */
+var BACKUP_REMIND_AFTER_DAYS = 5;   // gentle nudge: before iOS's ~7-day window
+var BACKUP_URGENT_AFTER_DAYS = 14;  // stronger wording once well overdue
+var BACKUP_SNOOZE_DAYS = 3;
+
+function daysSince(iso){
+  if (!iso) return null;
+  var d = parseISODate(String(iso).slice(0,10));
+  if (!d) return null;
+  return toAbsDay(todayYear(), todayMonthNum(), todayDayNum()) - toAbsDay(d.y, d.m, d.d);
+}
+
+function markBackupTaken(){
+  state.lastBackupAt = todayISO();
+  state.backupReminderSnoozedUntil = null;
+  saveState();
+}
+
+function renderBackupReminder(){
+  var box = el("backup-reminder");
+  if (!box) return;
+  var snoozed = state.backupReminderSnoozedUntil;
+  if (snoozed){
+    var sd = daysSince(snoozed);
+    // snoozedUntil is a future date; daysSince is negative until it passes.
+    if (sd !== null && sd < 0){ box.classList.add("hidden"); return; }
+  }
+  var since = daysSince(state.lastBackupAt);
+  var never = (since === null);
+  if (!never && since < BACKUP_REMIND_AFTER_DAYS){ box.classList.add("hidden"); return; }
+
+  var urgent = never ? false : (since >= BACKUP_URGENT_AFTER_DAYS);
+  box.classList.toggle("urgent", urgent);
+  if (never){
+    el("backup-reminder-title").textContent = tr("Back up your data", "\u0627\u062d\u0641\u0638 \u0646\u0633\u062e\u0629 \u0645\u0646 \u0628\u064a\u0627\u0646\u0627\u062a\u0643");
+    el("backup-reminder-body").textContent = tr("Your figures live only on this device. If the browser clears its storage \u2014 which can happen on a phone after about a week unused \u2014 they are gone. A backup takes a few seconds and restores in one paste.", "\u0623\u0631\u0642\u0627\u0645\u0643 \u0645\u062d\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632 \u0641\u0642\u0637. \u0625\u0630\u0627 \u0645\u0633\u062d \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0630\u0627\u0643\u0631\u062a\u0647 \u2014 \u0648\u0647\u0630\u0627 \u0648\u0627\u0631\u062f \u0639\u0644\u0649 \u0627\u0644\u0647\u0627\u062a\u0641 \u0628\u0639\u062f \u0646\u062d\u0648 \u0623\u0633\u0628\u0648\u0639 \u062f\u0648\u0646 \u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u2014 \u0641\u0633\u062a\u0636\u064a\u0639. \u0627\u0644\u0646\u0633\u062e \u064a\u0633\u062a\u063a\u0631\u0642 \u062b\u0648\u0627\u0646\u064a \u0648\u0627\u0644\u0627\u0633\u062a\u0639\u0627\u062f\u0629 \u0628\u0644\u0635\u0642\u0629 \u0648\u0627\u062d\u062f\u0629.");
+  } else {
+    el("backup-reminder-title").textContent = urgent
+      ? "It has been " + since + " days since your last backup"
+      : "Last backed up " + since + " day" + (since === 1 ? "" : "s") + " ago";
+    el("backup-reminder-body").textContent = urgent
+      ? "Your figures live only on this device and are overdue for a copy. If the browser clears its storage, they cannot be recovered."
+      : "Worth taking a fresh copy, especially if you have changed anything since.";
+  }
+  box.classList.remove("hidden");
+}
+
 function renderP2P(){
   if (document.activeElement !== el("base-currency-input")) el("base-currency-input").value = baseCurrency();
   var t = p2pTotals();
   el("p2p-summary").innerHTML =
-    '<div class="p2p-sum-box"><div class="p2p-sum-label">Owed to me</div><div class="p2p-sum-val" style="color:var(--emerald)">' + fmt(t.lentOut) + '</div><div class="p2p-sum-sub">' + t.lentCount + ' open ' + (t.lentCount===1?'loan':'loans') + '</div></div>'
-    + '<div class="p2p-sum-box"><div class="p2p-sum-label">I owe</div><div class="p2p-sum-val" style="color:var(--rust)">' + fmt(t.borrowed) + '</div><div class="p2p-sum-sub">' + t.borrowedCount + ' open ' + (t.borrowedCount===1?'loan':'loans') + '</div></div>'
-    + '<div class="p2p-sum-box"><div class="p2p-sum-label">Net position</div><div class="p2p-sum-val" style="color:' + (t.net>0.005?'var(--emerald)':(t.net<-0.005?'var(--rust)':'inherit')) + '">' + fmt(t.net) + '</div><div class="p2p-sum-sub">' + (t.net>0.005?'owed to you overall':(t.net<-0.005?'you owe overall':'all square')) + '</div></div>';
+    '<div class="p2p-sum-box"><div class="p2p-sum-label">' + tr("Owed to me","مستحق لي") + '</div><div class="p2p-sum-val" style="color:var(--emerald)">' + fmt(t.lentOut) + '</div><div class="p2p-sum-sub">' + t.lentCount + ' ' + tr('open loans','قرض مفتوح') + '</div></div>'
+    + '<div class="p2p-sum-box"><div class="p2p-sum-label">' + tr("I owe","عليّ") + '</div><div class="p2p-sum-val" style="color:var(--rust)">' + fmt(t.borrowed) + '</div><div class="p2p-sum-sub">' + t.borrowedCount + ' ' + tr('open loans','قرض مفتوح') + '</div></div>'
+    + '<div class="p2p-sum-box"><div class="p2p-sum-label">' + tr("Net position","الصافي") + '</div><div class="p2p-sum-val" style="color:' + (t.net>0.005?'var(--emerald)':(t.net<-0.005?'var(--rust)':'inherit')) + '">' + fmt(t.net) + '</div><div class="p2p-sum-sub">' + (t.net>0.005?tr('owed to you overall','مستحق لك إجمالاً'):(t.net<-0.005?tr('you owe overall','عليك إجمالاً'):tr('all square','متعادل'))) + '</div></div>';
 
   var loans = p2pLoans();
   if (loans.length === 0){
@@ -3183,42 +3521,42 @@ function renderP2P(){
     html += '<div class="p2p-loan">'
       + '<button type="button" class="p2p-loan-head" data-p2p-toggle="' + escapeAttr(loan.id) + '">'
       + '<span class="cat-arrow">' + (open ? "\u25BE" : "\u25B8") + '</span>'
-      + '<span class="p2p-dir ' + (loan.direction === "lent" ? "lent" : "borrowed") + '">' + (loan.direction === "lent" ? "Lent" : "Borrowed") + '</span>'
+      + '<span class="p2p-dir ' + (loan.direction === "lent" ? "lent" : "borrowed") + '">' + (loan.direction === "lent" ? tr("Lent","\u0623\u0642\u0631\u0636\u062a") : tr("Borrowed","\u0627\u0642\u062a\u0631\u0636\u062a")) + '</span>'
       + '<span class="p2p-name">' + escapeHtml(loan.counterparty || "(unnamed)") + '</span>'
-      + (!p2pIncludedInForecast(loan) ? '<span class="p2p-excluded">Not in forecast</span>' : '')
-      + (settled ? '<span class="p2p-settled">Settled</span>' : '<span class="p2p-bal" style="color:' + (loan.direction==="lent"?"var(--emerald)":"var(--rust)") + '">' + fmt(outstanding) + (p2pIsForeign(loan) ? ' ' + escapeHtml((loan.currency||"").toUpperCase()) : '') + '</span>')
+      + (!p2pIncludedInForecast(loan) ? '<span class="p2p-excluded">' + tr("Not in forecast","\u062e\u0627\u0631\u062c \u0627\u0644\u062a\u0648\u0642\u0639") + '</span>' : '')
+      + (settled ? '<span class="p2p-settled">' + tr("Settled","\u0645\u0633\u062f\u062f") + '</span>' : '<span class="p2p-bal" style="color:' + (loan.direction==="lent"?"var(--emerald)":"var(--rust)") + '">' + fmt(outstanding) + (p2pIsForeign(loan) ? ' ' + escapeHtml((loan.currency||"").toUpperCase()) : '') + '</span>')
       + '</button>';
 
     if (open){
       html += '<div class="p2p-body">'
         + '<div class="p2p-fields">'
-        + '<label class="p2p-field">Person<input type="text" data-p2p-field="counterparty" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.counterparty || "") + '"></label>'
-        + '<label class="p2p-field">Principal<input type="text" inputmode="decimal" data-p2p-field="principal" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.principal)||0) + '"></label>'
-        + '<label class="p2p-field">Interest<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
-          + '<option value="flat"' + (loan.interestMode !== "rate" ? " selected" : "") + '>Flat agreed amount</option>'
-          + '<option value="rate"' + (loan.interestMode === "rate" ? " selected" : "") + '>Annual rate (compounds)</option>'
+        + '<label class="p2p-field">' + tr("Person","الشخص") + '<input type="text" data-p2p-field="counterparty" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.counterparty || "") + '"></label>'
+        + '<label class="p2p-field">' + tr("Principal","أصل المبلغ") + '<input type="text" inputmode="decimal" data-p2p-field="principal" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.principal)||0) + '"></label>'
+        + '<label class="p2p-field">' + tr("Interest","الفائدة") + '<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
+          + '<option value="flat"' + (loan.interestMode !== "rate" ? " selected" : "") + '>' + tr("Flat agreed amount","مبلغ متفق عليه") + '</option>'
+          + '<option value="rate"' + (loan.interestMode === "rate" ? " selected" : "") + '>' + tr("Annual rate (compounds)","نسبة سنوية (مركبة)") + '</option>'
         + '</select></label>'
         + (loan.interestMode === "rate"
-            ? '<label class="p2p-field">Rate % / year<input type="text" inputmode="decimal" data-p2p-field="interestRatePct" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (Number(loan.interestRatePct)||0) + '"></label>'
-            : '<label class="p2p-field">Interest amount<input type="text" inputmode="decimal" data-p2p-field="interestAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(p2pInterestAmount(loan)) + '"></label>')
-        + '<label class="p2p-field">Currency<input type="text" maxlength="6" data-p2p-field="currency" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.currency || baseCurrency()) + '"></label>'
+            ? '<label class="p2p-field">' + tr("Rate % / year","النسبة % سنوياً") + '<input type="text" inputmode="decimal" data-p2p-field="interestRatePct" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (Number(loan.interestRatePct)||0) + '"></label>'
+            : '<label class="p2p-field">' + tr("Interest amount","مبلغ الفائدة") + '<input type="text" inputmode="decimal" data-p2p-field="interestAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(p2pInterestAmount(loan)) + '"></label>')
+        + '<label class="p2p-field">' + tr("Currency","العملة") + '<input type="text" maxlength="6" data-p2p-field="currency" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.currency || baseCurrency()) + '"></label>'
         + (p2pIsForeign(loan)
             ? '<label class="p2p-field">1 ' + escapeHtml((loan.currency||"").toUpperCase()) + ' = ? ' + escapeHtml(baseCurrency()) + '<input type="text" inputmode="decimal" data-p2p-field="fxRate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.fxRate !== undefined && loan.fxRate !== null && loan.fxRate !== "" ? loan.fxRate : "") + '" placeholder="e.g. 3.67"></label>'
             : '')
-        + '<label class="p2p-field">Date of loan<input type="date" data-p2p-field="date" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.date || "") + '"></label>'
-        + '<label class="p2p-field">Repayment<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
-          + '<option value="lump"' + (loan.repayType==="lump"?" selected":"") + '>Lump sum on a date</option>'
-          + '<option value="monthly"' + (loan.repayType==="monthly"?" selected":"") + '>Fixed monthly</option>'
-          + '<option value="open"' + (loan.repayType==="open"?" selected":"") + '>Open-ended (no schedule)</option>'
+        + '<label class="p2p-field">' + tr("Date of loan","تاريخ القرض") + '<input type="date" data-p2p-field="date" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.date || "") + '"></label>'
+        + '<label class="p2p-field">' + tr("Repayment","السداد") + '<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
+          + '<option value="lump"' + (loan.repayType==="lump"?" selected":"") + '>' + tr("Lump sum on a date","دفعة واحدة بتاريخ") + '</option>'
+          + '<option value="monthly"' + (loan.repayType==="monthly"?" selected":"") + '>' + tr("Fixed monthly","قسط شهري ثابت") + '</option>'
+          + '<option value="open"' + (loan.repayType==="open"?" selected":"") + '>' + tr("Open-ended (no schedule)","مفتوح (بلا جدول)") + '</option>'
         + '</select></label>';
 
       if (loan.repayType === "lump"){
-        html += '<label class="p2p-field">Due date<input type="date" data-p2p-field="repayDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayDate || "") + '"></label>';
+        html += '<label class="p2p-field">' + tr("Due date","تاريخ الاستحقاق") + '<input type="date" data-p2p-field="repayDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayDate || "") + '"></label>';
       } else if (loan.repayType === "monthly"){
-        html += '<label class="p2p-field">Amount / month<input type="text" inputmode="decimal" data-p2p-field="repayAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.repayAmount)||0) + '"></label>'
-          + '<label class="p2p-field">Day of month<input type="number" min="1" max="31" data-p2p-field="repayDay" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.repayDay || 1) + '"></label>'
-          + '<label class="p2p-field">First payment<input type="date" data-p2p-field="repayStartDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayStartDate || "") + '"></label>'
-          + '<label class="p2p-field">End date (optional)<input type="date" data-p2p-field="repayEndDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayEndDate || "") + '"></label>';
+        html += '<label class="p2p-field">' + tr("Amount / month","المبلغ شهرياً") + '<input type="text" inputmode="decimal" data-p2p-field="repayAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.repayAmount)||0) + '"></label>'
+          + '<label class="p2p-field">' + tr("Day of month","يوم الشهر") + '<input type="number" min="1" max="31" data-p2p-field="repayDay" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.repayDay || 1) + '"></label>'
+          + '<label class="p2p-field">' + tr("First payment","أول دفعة") + '<input type="date" data-p2p-field="repayStartDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayStartDate || "") + '"></label>'
+          + '<label class="p2p-field">' + tr("End date (optional)","تاريخ الانتهاء (اختياري)") + '<input type="date" data-p2p-field="repayEndDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayEndDate || "") + '"></label>';
       }
       html += '</div>';
 
@@ -3227,20 +3565,20 @@ function renderP2P(){
       }
 
       // Payment log
-      html += '<div class="p2p-pay-head">Payments received / made</div>';
+      html += '<div class="p2p-pay-head">' + tr("Payments received / made","الدفعات المستلمة / المدفوعة") + '</div>';
       var pays = (loan.payments || []).slice().sort(function(a,b){ return (a.date||"").localeCompare(b.date||""); });
       if (pays.length === 0){
-        html += '<p class="p2p-empty">Nothing logged yet.</p>';
+        html += '<p class="p2p-empty">' + tr("Nothing logged yet.","لا توجد دفعات مسجلة بعد.") + '</p>';
       } else {
         html += '<table class="p2p-pay-table">'
           + '<colgroup><col class="c-date"><col class="c-amount"><col class="c-note"><col class="c-action"></colgroup>'
-          + '<thead><tr><th>Date</th><th class="num">Amount</th><th>Note</th><th></th></tr></thead><tbody>';
+          + '<thead><tr><th>' + tr("Date","التاريخ") + '</th><th class="num">' + tr("Amount","المبلغ") + '</th><th>' + tr("Note","ملاحظة") + '</th><th></th></tr></thead><tbody>';
         pays.forEach(function(pp){
           html += '<tr>'
             + '<td data-label="Date"><input type="date" data-p2p-pay="date" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + escapeAttr(pp.date || "") + '"></td>'
             + '<td class="num" data-label="Amount"><input type="text" inputmode="decimal" data-p2p-pay="amount" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + fmt(Number(pp.amount)||0) + '"></td>'
             + '<td data-label="Note"><input type="text" data-p2p-pay="note" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" placeholder="optional" value="' + escapeAttr(pp.note || "") + '"></td>'
-            + '<td><button type="button" class="link-btn" data-p2p-delpay="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '">Remove</button></td>'
+            + '<td><button type="button" class="link-btn" data-p2p-delpay="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '">' + tr("Remove","إزالة") + '</button></td>'
             + '</tr>';
         });
         html += '</tbody></table>';
@@ -3248,10 +3586,10 @@ function renderP2P(){
 
       var cur = (loan.currency || baseCurrency()).trim().toUpperCase() || baseCurrency();
       var interest = p2pInterestAmount(loan);
-      html += '<p class="p2p-note">Paid so far: <strong>' + fmt(p2pPaidTotal(loan)) + '</strong> of ' + fmt(p2pTotalDue(loan))
-        + (interest > 0.005 ? ' (' + fmt(Number(loan.principal)||0) + ' principal + ' + fmt(interest) + ' interest)' : '')
-        + ' &mdash; outstanding <strong>' + fmt(outstanding) + '</strong> ' + escapeHtml(cur) + '.'
-        + (settled ? ' This loan is fully settled and no longer affects your forecast.' : '')
+      html += '<p class="p2p-note">' + tr("Paid so far: ","المدفوع حتى الآن: ") + '<strong>' + fmt(p2pPaidTotal(loan)) + '</strong>' + tr(" of "," من ") + fmt(p2pTotalDue(loan))
+        + (interest > 0.005 ? ' (' + fmt(Number(loan.principal)||0) + tr(' principal + ',' أصل المبلغ + ') + fmt(interest) + tr(' interest)',' فائدة)') : '')
+        + tr(' &mdash; outstanding <strong>',' — المتبقي <strong>') + fmt(outstanding) + '</strong> ' + escapeHtml(cur) + '.'
+        + (settled ? tr(' This loan is fully settled and no longer affects your forecast.',' هذا القرض مسدد بالكامل ولم يعد يؤثر على توقعاتك.') : '')
         + '</p>';
 
       // Warnings. Each describes a real data problem the user would
@@ -3259,7 +3597,7 @@ function renderP2P(){
       var warns = [];
       var over = p2pOverpaid(loan);
       if (over > 0.005){
-        warns.push('Logged payments exceed the total owed by <strong>' + fmt(over) + '</strong>. Check for a duplicated entry or a typo &mdash; the extra amount is still counted as real money leaving your account.');
+        warns.push(tr("Logged payments exceed the total owed by <strong>","الدفعات المسجلة تتجاوز المستحق بمقدار <strong>") + fmt(over) + '</strong>. Check for a duplicated entry or a typo &mdash; the extra amount is still counted as real money leaving your account.');
       }
       if (p2pIsForeign(loan)){
         if (p2pFxRate(loan) === null){
@@ -3292,9 +3630,9 @@ function renderP2P(){
       }
 
       html += '<div class="p2p-actions">'
-        + '<button type="button" class="btn-small" data-p2p-addpay="' + escapeAttr(loan.id) + '">+ Log a payment</button>'
-        + (settled ? '' : '<button type="button" class="link-btn" data-p2p-settle="' + escapeAttr(loan.id) + '">Mark fully settled</button>')
-        + '<button type="button" class="link-btn" data-p2p-delete="' + escapeAttr(loan.id) + '">Delete loan</button>'
+        + '<button type="button" class="btn-small" data-p2p-addpay="' + escapeAttr(loan.id) + '">' + tr("+ Log a payment","+ تسجيل دفعة") + '</button>'
+        + (settled ? '' : '<button type="button" class="link-btn" data-p2p-settle="' + escapeAttr(loan.id) + '">' + tr("Mark fully settled","وضع علامة مسدد بالكامل") + '</button>')
+        + '<button type="button" class="link-btn" data-p2p-delete="' + escapeAttr(loan.id) + '">' + tr("Delete loan","حذف القرض") + '</button>'
         + '</div>';
 
       html += '</div>';
@@ -3427,7 +3765,7 @@ function bindP2PControls(){
 function incTierMonthSelect(srcId, idx, val){
   var html = '<select class="inc-tier-month" data-id="' + escapeAttr(srcId) + '" data-idx="' + idx + '" data-field="tier-month">';
   MONTHS.forEach(function(m,i){
-    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + m.slice(0,3) + "</option>";
+    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + monthShort(i+1) + "</option>";
   });
   html += "</select>";
   return html;
@@ -3627,6 +3965,8 @@ function render(){
   renderLedgerTable();
   renderAdHocTable();
   renderP2P();
+  renderBackupReminder();
+  applyLanguage();
   fitForecastTable();
 }
 
@@ -3669,6 +4009,29 @@ function bindStaticListeners(){
   });
   el("cashonhand-autocorrect-checkbox").addEventListener("change", function(e){
     state.cashOnHandAutoCorrect = e.target.checked;
+    saveState(); render();
+  });
+  el("lang-en").addEventListener("click", function(){
+    state.lang = "en"; saveState(); render();
+  });
+  el("lang-ar").addEventListener("click", function(){
+    state.lang = "ar"; saveState(); render();
+  });
+  el("digit-ar").addEventListener("click", function(){
+    state.arabicDigits = true; saveState(); render();
+  });
+  el("digit-en").addEventListener("click", function(){
+    state.arabicDigits = false; saveState(); render();
+  });
+  el("backup-reminder-export").addEventListener("click", function(){
+    openBackupModal("export");
+    render();
+  });
+  el("backup-reminder-dismiss").addEventListener("click", function(){
+    // Snooze rather than dismiss forever: the risk does not go away
+    // because the user is busy today.
+    var d = absToYMD(toAbsDay(todayYear(), todayMonthNum(), todayDayNum()) + BACKUP_SNOOZE_DAYS);
+    state.backupReminderSnoozedUntil = d.y + "-" + String(d.m).padStart(2,"0") + "-" + String(d.d).padStart(2,"0");
     saveState(); render();
   });
   el("cashonhand-autolimit-mode").addEventListener("change", function(e){
@@ -4214,21 +4577,26 @@ function openBackupModal(mode){
   var ta = el("backup-textarea");
   el("backup-feedback").textContent = "";
   if (mode === "export"){
-    el("backup-modal-title").textContent = "Export backup";
-    el("backup-modal-hint").textContent = "Tap inside the box, select all, and copy. Paste it into Notes to save it, or paste it back to Claude in chat.";
+    // Opening the export is the moment the data becomes copyable, so that
+    // is what counts as "backed up". Not the dismiss button -- treating a
+    // dismissal as a backup would silence the warning without protecting
+    // anything.
+    markBackupTaken();
+    el("backup-modal-title").textContent = tr("Export backup","تصدير نسخة");
+    el("backup-modal-hint").textContent = tr("Tap inside the box, select all, and copy. Paste it into Notes to save it, or paste it back to Claude in chat.","اضغط داخل المربع، حدد الكل، وانسخ. الصقه في الملاحظات لحفظه، أو أعده إلى المحادثة.");
     ta.value = JSON.stringify(state, null, 2);
     ta.readOnly = true;
     el("backup-copy-btn").classList.remove("hidden");
     el("backup-load-btn").classList.add("hidden");
-    el("backup-secondary-btn").textContent = "Try downloading as a file instead";
+    el("backup-secondary-btn").textContent = tr("Try downloading as a file instead","جرّب التنزيل كملف بدلاً من ذلك");
   } else {
-    el("backup-modal-title").textContent = "Import backup";
-    el("backup-modal-hint").textContent = "Paste backup JSON below, then tap Load.";
+    el("backup-modal-title").textContent = tr("Import backup","استيراد نسخة");
+    el("backup-modal-hint").textContent = tr("Paste backup JSON below, then tap Load.","الصق نسخة JSON أدناه ثم اضغط تحميل.");
     ta.value = "";
     ta.readOnly = false;
     el("backup-copy-btn").classList.add("hidden");
     el("backup-load-btn").classList.remove("hidden");
-    el("backup-secondary-btn").textContent = "Choose a file instead";
+    el("backup-secondary-btn").textContent = tr("Choose a file instead","اختر ملفاً بدلاً من ذلك");
   }
   el("backup-modal").classList.remove("hidden");
   ta.focus();
@@ -4243,13 +4611,13 @@ function openBackupModalWith(text, hint, filename){
   backupModalText = text;
   var ta = el("backup-textarea");
   el("backup-feedback").textContent = "";
-  el("backup-modal-title").textContent = "Export";
+  el("backup-modal-title").textContent = tr("Export","تصدير");
   el("backup-modal-hint").textContent = hint || "Tap inside the box, select all, and copy.";
   ta.value = text;
   ta.readOnly = true;
   el("backup-copy-btn").classList.remove("hidden");
   el("backup-load-btn").classList.add("hidden");
-  el("backup-secondary-btn").textContent = "Try downloading as a file instead";
+  el("backup-secondary-btn").textContent = tr("Try downloading as a file instead","جرّب التنزيل كملف بدلاً من ذلك");
   el("backup-modal").classList.remove("hidden");
   ta.focus(); ta.select();
 }
@@ -4298,7 +4666,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-29)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-37)";
 }
 
 loadStateAndInit();
@@ -4368,7 +4736,35 @@ loadStateAndInit();
   // a missing optional file must never break the app.
   if (!("serviceWorker" in navigator)) return;
   if (location.protocol === "file:") return; // not installable from disk; page still works
-  navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(function(){
+  navigator.serviceWorker.register("sw.js", { scope: "./" }).then(function(reg){
+    // Actively check for a newer build on every launch. Without this an
+    // installed PWA can keep running an old version for a long time --
+    // the user uploads a new file, opens the app, and sees no change,
+    // which is exactly the confusing failure this guards against.
+    try { reg.update(); } catch(e){}
+
+    // When a new worker takes control, the page is holding stale markup
+    // and stale strings. Reload once (guarded against a loop) so the
+    // user actually gets the update instead of a half-old page.
+    var reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if (reloading) return;
+      reloading = true;
+      location.reload();
+    });
+
+    reg.addEventListener("updatefound", function(){
+      var nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener("statechange", function(){
+        // "installed" with an existing controller means: a NEW version is
+        // ready and an OLD one is currently running.
+        if (nw.state === "installed" && navigator.serviceWorker.controller){
+          try { nw.postMessage({ type: "SKIP_WAITING" }); } catch(e){}
+        }
+      });
+    });
+  }).catch(function(){
     // No sw.js present, or the host disallows it. Nothing to tell the user:
     // there is no action they can take from here, and the app works.
   });

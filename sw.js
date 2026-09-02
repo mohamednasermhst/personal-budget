@@ -5,9 +5,19 @@
    build after an update would be worse than one that needs a connection --
    you could be reading last month's logic against this month's data. So:
    try the network, fall back to the cache only when genuinely offline. */
-var CACHE = "household-budget-v1";
+/* Bump this on every release. Changing the value is what makes the
+   activate handler below delete the previous cache -- without a bump an
+   installed app can keep serving old files even though the server has
+   new ones. */
+var CACHE = "household-budget-v37";
 
 self.addEventListener("install", function(){ self.skipWaiting(); });
+
+// The page asks the waiting worker to take over immediately, rather than
+// waiting for every tab to close (which on an installed PWA may be never).
+self.addEventListener("message", function(e){
+  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
+});
 
 self.addEventListener("activate", function(e){
   e.waitUntil(
