@@ -818,65 +818,25 @@ td.positive{ color:var(--emerald); }
      [contractStart, contractEnd] -- { contractStart, contractEnd,
      numberOfCheques, totalAmount }. Per-cheque amount = totalAmount /
      numberOfCheques; see rentalChequeDates(). */
-var DEFAULT_INCOME_SOURCES = [
-  { name: "Salary", type: "salary", incomeDay: 24, tiers: [ { amount: 46266.67, startMonth: null, startYear: null } ] },
-  { name: "Security Deposit", type: "onetime", date: "2026-10-01", amount: 7000 },
-  { name: "Cash on Hand Adjustment", type: "onetime", date: "2026-09-02", amount: 25400.74 }
-];
+// Ships EMPTY. A first-time user on a new device gets a blank dashboard;
+// anyone who already has data keeps it, because loadStateAndInit() reads
+// localStorage first and applyLoadedState() lets every saved key win over
+// these defaults. Do NOT put personal data here again -- it would only
+// appear for brand-new installs anyway, and it leaks whoever's numbers
+// into every copy of the file.
+var DEFAULT_INCOME_SOURCES = [];
 
-var DEFAULT_CASH_ON_HAND = 36954.41; // real bank balance as of today -- ask, don't invent
+var DEFAULT_CASH_ON_HAND = 0; // real bank balance as of today -- ask, don't invent
 var DEFAULT_CASH_ON_HAND_ASSUMED = false; // set false once a real figure is entered above
-var DEFAULT_CASH_ON_HAND_DATE = "2026-09-02"; // the date DEFAULT_CASH_ON_HAND was actually checked/accurate -- see "Cash on hand as a dated snapshot" below
-var DEFAULT_HAS_CASH_ON_HAND = true; // false hides the Cash on Hand/Recorded On fields entirely -- see "Optional cash-on-hand tracking" below
+// Left blank on purpose rather than calling todayISO() here: this line
+// runs before that function is reached in source order (it only works at
+// all because function declarations hoist), and a hard-coded date would
+// go stale. makeDefaultState() fills in today when it builds the state.
+var DEFAULT_CASH_ON_HAND_DATE = "";
+var DEFAULT_HAS_CASH_ON_HAND = false; // false hides the Cash on Hand/Recorded On fields entirely -- see "Optional cash-on-hand tracking" below
 
-var DEFAULT_EXPENSES = [
-  { name: "Electricity & Water & Net", category: "Utilities", frequency: "monthly", amount: 1450, dueDay: 17, overrides: [], assumed: true },
-  { name: "House Expense", category: "Household", frequency: "monthly", amount: 7000, dueDay: 24, overrides: [ { month: 8, year: 2026, amount: 6000 } ], assumed: true },
-  { name: "School Tuition (Term 1)", category: "Education", frequency: "yearly", amount: 12800, dueMonth: 8, dueDay: 5, assumed: true },
-  { name: "Shifting", category: "Home Expense", frequency: "onetime", amount: 2000, dueMonth: 9, dueDay: 15, dueYear: 2026, assumed: true },
+var DEFAULT_EXPENSES = [];
 
-  /* Credit card installment plans -- modeled as "custom" frequency, one
-     explicit occurrence per remaining month, ending at each plan's expiry
-     date. This is deliberate: "monthly" frequency in this file recurs
-     forever, which installment plans do not -- they stop once the
-     remaining tenure is used up. Real figures from the cardholder's
-     statement, so these are NOT marked assumed. */
-  { name: "CREDIT CARD CHEQUE", category: "Credit Card", frequency: "custom", amount: 3000.00, dates: [ { month: 8, day: 25, year: 2026 }, { month: 9, day: 25, year: 2026 }, { month: 10, day: 25, year: 2026 }, { month: 11, day: 25, year: 2026 }, { month: 12, day: 25, year: 2026 }, { month: 1, day: 25, year: 2027 }, { month: 2, day: 25, year: 2027 }, { month: 3, day: 25, year: 2027 }, { month: 4, day: 25, year: 2027 }, { month: 5, day: 25, year: 2027 }, { month: 6, day: 25, year: 2027 } ] },
-  { name: "GEIDEA*TABBY FZ LLC (Jul '26)", category: "Credit Card", frequency: "custom", amount: 112.83, dates: [ { month: 8, day: 23, year: 2026 }, { month: 9, day: 23, year: 2026 }, { month: 10, day: 23, year: 2026 }, { month: 11, day: 23, year: 2026 }, { month: 12, day: 23, year: 2026 }, { month: 1, day: 23, year: 2027 }, { month: 2, day: 23, year: 2027 }, { month: 3, day: 23, year: 2027 }, { month: 4, day: 23, year: 2027 }, { month: 5, day: 23, year: 2027 }, { month: 6, day: 23, year: 2027 } ] },
-  { name: "IMPERIAL SPECTRA GAS S", category: "Credit Card", frequency: "custom", amount: 227.90, dates: [ { month: 9, day: 3, year: 2026 }, { month: 10, day: 3, year: 2026 }, { month: 11, day: 3, year: 2026 }, { month: 12, day: 3, year: 2026 }, { month: 1, day: 3, year: 2027 }, { month: 2, day: 3, year: 2027 }, { month: 3, day: 3, year: 2027 }, { month: 4, day: 3, year: 2027 }, { month: 5, day: 3, year: 2027 }, { month: 6, day: 3, year: 2027 } ] },
-  { name: "TABBY (Jul '26)", category: "Credit Card", frequency: "custom", amount: 137.62, dates: [ { month: 9, day: 1, year: 2026 }, { month: 10, day: 1, year: 2026 }, { month: 11, day: 1, year: 2026 }, { month: 12, day: 1, year: 2026 }, { month: 1, day: 1, year: 2027 }, { month: 2, day: 1, year: 2027 }, { month: 3, day: 1, year: 2027 }, { month: 4, day: 1, year: 2027 }, { month: 5, day: 1, year: 2027 }, { month: 6, day: 1, year: 2027 } ] },
-  { name: "Xsolla*MLords", category: "Credit Card", frequency: "custom", amount: 187.01, dates: [ { month: 8, day: 30, year: 2026 }, { month: 9, day: 30, year: 2026 }, { month: 10, day: 30, year: 2026 }, { month: 11, day: 30, year: 2026 }, { month: 12, day: 30, year: 2026 }, { month: 1, day: 30, year: 2027 }, { month: 2, day: 30, year: 2027 }, { month: 3, day: 30, year: 2027 }, { month: 4, day: 30, year: 2027 }, { month: 5, day: 30, year: 2027 } ] },
-  { name: "AMAZON", category: "Credit Card", frequency: "custom", amount: 187.61, dates: [ { month: 8, day: 28, year: 2026 }, { month: 9, day: 28, year: 2026 }, { month: 10, day: 28, year: 2026 }, { month: 11, day: 28, year: 2026 }, { month: 12, day: 28, year: 2026 }, { month: 1, day: 28, year: 2027 }, { month: 2, day: 28, year: 2027 }, { month: 3, day: 28, year: 2027 }, { month: 4, day: 28, year: 2027 }, { month: 5, day: 28, year: 2027 } ] },
-  { name: "EMIRATES (Jun '26)", category: "Credit Card", frequency: "custom", amount: 286.57, dates: [ { month: 8, day: 10, year: 2026 }, { month: 9, day: 10, year: 2026 }, { month: 10, day: 10, year: 2026 }, { month: 11, day: 10, year: 2026 }, { month: 12, day: 10, year: 2026 }, { month: 1, day: 10, year: 2027 }, { month: 2, day: 10, year: 2027 }, { month: 3, day: 10, year: 2027 }, { month: 4, day: 10, year: 2027 }, { month: 5, day: 10, year: 2027 } ] },
-  { name: "GEIDEA*TABBY FZ LLC (Jun '26)", category: "Credit Card", frequency: "custom", amount: 112.82, dates: [ { month: 8, day: 8, year: 2026 }, { month: 9, day: 8, year: 2026 }, { month: 10, day: 8, year: 2026 }, { month: 11, day: 8, year: 2026 }, { month: 12, day: 8, year: 2026 }, { month: 1, day: 8, year: 2027 }, { month: 2, day: 8, year: 2027 }, { month: 3, day: 8, year: 2027 }, { month: 4, day: 8, year: 2027 }, { month: 5, day: 8, year: 2027 } ] },
-  { name: "Game Center (Apr '26 A)", category: "Credit Card", frequency: "custom", amount: 171.76, dates: [ { month: 9, day: 4, year: 2026 }, { month: 10, day: 4, year: 2026 }, { month: 11, day: 4, year: 2026 }, { month: 12, day: 4, year: 2026 }, { month: 1, day: 4, year: 2027 }, { month: 2, day: 4, year: 2027 }, { month: 3, day: 4, year: 2027 } ] },
-  { name: "TABBY (Apr '26)", category: "Credit Card", frequency: "custom", amount: 112.82, dates: [ { month: 9, day: 4, year: 2026 }, { month: 10, day: 4, year: 2026 }, { month: 11, day: 4, year: 2026 }, { month: 12, day: 4, year: 2026 }, { month: 1, day: 4, year: 2027 }, { month: 2, day: 4, year: 2027 }, { month: 3, day: 4, year: 2027 } ] },
-  { name: "GEIDEA*TABBY FZ LLC (Apr '26)", category: "Credit Card", frequency: "custom", amount: 112.82, dates: [ { month: 9, day: 4, year: 2026 }, { month: 10, day: 4, year: 2026 }, { month: 11, day: 4, year: 2026 }, { month: 12, day: 4, year: 2026 }, { month: 1, day: 4, year: 2027 }, { month: 2, day: 4, year: 2027 }, { month: 3, day: 4, year: 2027 } ] },
-  { name: "Game Center (Apr '26 B)", category: "Credit Card", frequency: "custom", amount: 171.77, dates: [ { month: 9, day: 4, year: 2026 }, { month: 10, day: 4, year: 2026 }, { month: 11, day: 4, year: 2026 }, { month: 12, day: 4, year: 2026 }, { month: 1, day: 4, year: 2027 }, { month: 2, day: 4, year: 2027 }, { month: 3, day: 4, year: 2027 } ] },
-  { name: "Game Center (Mar '26)", category: "Credit Card", frequency: "custom", amount: 171.77, dates: [ { month: 8, day: 11, year: 2026 }, { month: 9, day: 11, year: 2026 }, { month: 10, day: 11, year: 2026 }, { month: 11, day: 11, year: 2026 }, { month: 12, day: 11, year: 2026 }, { month: 1, day: 11, year: 2027 }, { month: 2, day: 11, year: 2027 } ] },
-  { name: "AWR ELECTRIC MOBILITY", category: "Credit Card", frequency: "custom", amount: 451.29, dates: [ { month: 9, day: 2, year: 2026 }, { month: 10, day: 2, year: 2026 }, { month: 11, day: 2, year: 2026 }, { month: 12, day: 2, year: 2026 }, { month: 1, day: 2, year: 2027 } ] },
-  { name: "Game Center (Dec '25)", category: "Credit Card", frequency: "custom", amount: 171.75, dates: [ { month: 8, day: 21, year: 2026 }, { month: 9, day: 21, year: 2026 }, { month: 10, day: 21, year: 2026 }, { month: 11, day: 21, year: 2026 } ] },
-  { name: "EMIRATES6220199 3895-2", category: "Credit Card", frequency: "custom", amount: 454.00, dates: [ { month: 8, day: 11, year: 2026 }, { month: 9, day: 11, year: 2026 }, { month: 10, day: 11, year: 2026 } ] },
-
-  { name: "Tuition 2", category: "Education", frequency: "yearly", amount: 9600, dueMonth: 11, dueDay: 11, assumed: true },
-  { name: "Tuition 3", category: "Education", frequency: "yearly", amount: 8000, dueMonth: 2, dueDay: 5, assumed: true },
-  { name: "School bus", category: "Education", frequency: "yearly", amount: 5000, dueMonth: 10, dueDay: 1, assumed: true },
-  { name: "House Maid", category: "Household", frequency: "monthly", amount: 2000, dueDay: 24, overrides: [], assumed: true },
-  { name: "Car Loan", category: "Loan", frequency: "monthly", amount: 3200, dueDay: 19, overrides: [], assumed: true },
-  { name: "Marina", category: "Loan", frequency: "monthly", amount: 6200, dueDay: 25, overrides: [], assumed: true },
-  { name: "Damac", category: "Loan", frequency: "monthly", amount: 4400, dueDay: 24, overrides: [], assumed: true },
-  { name: "Commission & Security Deposit", category: "Home Expense", frequency: "onetime", amount: 15613, dueMonth: 9, dueDay: 2, dueYear: 2026, assumed: true },
-  { name: "Rental 1", category: "Home Expense", frequency: "yearly", amount: 36250, dueMonth: 9, dueDay: 18, assumed: true },
-  /* dueMonth was missing for this row in the exported backup -- likely from
-     switching this row to "yearly" without the month dropdown being
-     touched (a real bug, now fixed below in the frequency-change handler
-     and in monthOccurrences()'s fallback). Defaulted to January so it isn't
-     silently dropped from the forecast -- confirm/correct the real month. */
-  { name: "Rental 2", category: "Home Expense", frequency: "yearly", amount: 36250, dueMonth: 1, dueDay: 1, assumed: true },
-  { name: "Rental 3", category: "Home Expense", frequency: "yearly", amount: 36250, dueMonth: 4, dueDay: 1, assumed: true },
-  { name: "Rental 4", category: "Home Expense", frequency: "yearly", amount: 36250, dueMonth: 7, dueDay: 1, assumed: true },
-  { name: "Claude subscription", category: "Other", frequency: "onetime", amount: 500, dueMonth: 9, dueDay: 1, dueYear: 2026, assumed: true }
-];
 
 var DEFAULT_CUSTOM_CATEGORIES = [
   { name: "Credit Card", color: "#9C6644", behavior: "statementBilling" },
@@ -912,12 +872,8 @@ var DEFAULT_ADHOC_EXPENSES = [];
 //                    repayEndDate optional -- omit for open-ended monthly)
 //   payments:    [{ date, amount, note }] -- REAL logged payments only
 //   note:        free text
-var DEFAULT_P2P_LOANS = [
-  { direction: "borrowed", counterparty: "Ahmad", principal: 12000, date: "2026-09-05",
-    repayType: "lump", repayDate: "2026-09-24", repayAmount: 0, repayDay: 1,
-    repayStartDate: "", repayEndDate: "", note: "",
-    payments: [ { date: "2026-09-24", amount: 12000, note: "" } ] }
-];
+var DEFAULT_P2P_LOANS = [];
+
 
 // Credit card statement day -- see "Credit card statement cycles" note
 // below computeForecast(). Charges made after this day of the month
@@ -2066,8 +2022,8 @@ function makeDefaultState(){
     hasCashOnHand: DEFAULT_HAS_CASH_ON_HAND,
     cashOnHand: DEFAULT_CASH_ON_HAND,
     cashOnHandAssumed: DEFAULT_CASH_ON_HAND_ASSUMED,
-    cashOnHandAdjustmentRef: { type: "income", id: "inc_2" },
-    cashOnHandDate: DEFAULT_CASH_ON_HAND_DATE,
+    cashOnHandAdjustmentRef: null,
+    cashOnHandDate: DEFAULT_CASH_ON_HAND_DATE || todayISO(),
     expenses: DEFAULT_EXPENSES.map(function(e, i){
       var copy = {};
       for (var k in e) if (e.hasOwnProperty(k)) copy[k] = e[k];
@@ -4655,7 +4611,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-47)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-48)";
 }
 
 loadStateAndInit();
