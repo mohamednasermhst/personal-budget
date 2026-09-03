@@ -546,7 +546,7 @@ td.positive{ color:var(--emerald); }
     <!-- TEMPORARY deployment test banner. Purpose: give the user a change
        they can SEE from across the room, so a successful auto-update is
        unambiguous. Remove once the pipeline is confirmed. -->
-  <div class="deploy-test-banner">TESTING DEPLOYMENT AND AUTO UPDATE &mdash; v1</div>
+  <div class="deploy-test-banner">TESTING DEPLOYMENT AND AUTO UPDATE &mdash; v2 (auto-updated!)</div>
 
   <div id="backup-reminder" class="backup-reminder hidden">
     <div class="backup-reminder-text">
@@ -4663,7 +4663,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-45)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-46)";
 }
 
 loadStateAndInit();
