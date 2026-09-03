@@ -146,7 +146,10 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
 .unlock-card input{ width:100%; margin-bottom:12px; }
 .unlock-card button{ width:100%; }
 .unlock-error{ margin:10px 0 0 !important; color:var(--rust); font-size:12.5px; min-height:1em; }
-.lock-controls{ float:right; margin-left:12px; display:inline-flex; align-items:center; gap:9px; }
+/* Its own row beneath the text, never floated into it: floating made the
+   paragraph wrap around the badge mid-sentence and read as broken on a
+   narrow screen (user-reported). */
+.lock-controls{ display:flex; align-items:center; gap:10px; margin-top:9px; flex-wrap:wrap; }
 .lock-status{ font-size:11px; font-weight:600; color:var(--emerald); background:#DDEBE2;
   padding:2px 8px; border-radius:4px; white-space:nowrap; }
 .privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
@@ -576,11 +579,11 @@ td.positive{ color:var(--emerald); }
     <span class="privacy-icon" aria-hidden="true">&#9737;</span>
     <div>
       <strong data-i18n="pv_title">Your figures stay on this device</strong>
+      <span data-i18n="pv_body">Nothing you enter is sent anywhere, and no account is used &mdash; the numbers live in this browser&rsquo;s private storage on this phone alone, reachable only by this app. Anyone who can unlock your phone can open it, so keep your screen lock on. Clearing your browser data will erase it, so keep a backup.</span>
       <span class="lock-controls">
         <span id="lock-status" class="lock-status hidden"></span>
         <button type="button" id="lock-toggle-btn" class="link-btn"></button>
       </span>
-      <span data-i18n="pv_body">Nothing you enter is sent anywhere, and no account is used &mdash; the numbers live in this browser&rsquo;s private storage on this phone alone, reachable only by this app. Anyone who can unlock your phone can open it, so keep your screen lock on. Clearing your browser data will erase it, so keep a backup.</span>
     </div>
   </div>
 
@@ -4182,9 +4185,12 @@ function bindStaticListeners(){
       "Set a passphrase?\n\nYour figures will be encrypted on this device. You will type this passphrase every time you open the app.\n\nIF YOU FORGET IT, THE DATA CANNOT BE RECOVERED — not by anyone. Export a backup FIRST and keep it somewhere safe.",
       "تعيين عبارة مرور؟\n\nستُشفَّر أرقامك على هذا الجهاز. ستُدخل هذه العبارة في كل مرة تفتح فيها التطبيق.\n\nإذا نسيتها فلا يمكن استرجاع البيانات إطلاقاً — من أي أحد. صدّر نسخة احتياطية أولاً واحتفظ بها في مكان آمن.");
     if (!window.confirm(warn)) return;
-    var p1 = window.prompt(tr("Choose a passphrase (at least 8 characters):","اختر عبارة مرور (٨ أحرف على الأقل):"));
+    // No minimum length, at the user's explicit request. Note the security
+    // trade-off is real: PBKDF2 at 250k iterations slows brute-forcing but
+    // cannot rescue a passphrase short enough to guess. Kept as the user's
+    // decision rather than enforced -- it is their device and their data.
+    var p1 = window.prompt(tr("Choose a passphrase:","اختر عبارة مرور:"));
     if (!p1) return;
-    if (p1.length < 8){ window.alert(tr("Too short — use at least 8 characters.","قصيرة جداً — استخدم ٨ أحرف على الأقل.")); return; }
     var p2 = window.prompt(tr("Type it again to confirm:","أعد كتابتها للتأكيد:"));
     if (p1 !== p2){ window.alert(tr("They did not match. Nothing was changed.","غير متطابقتين. لم يتم تغيير شيء.")); return; }
     var salt = window.crypto.getRandomValues(new Uint8Array(16));
@@ -4843,7 +4849,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-51)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-53)";
 }
 
 loadStateAndInit();
