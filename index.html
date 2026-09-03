@@ -4105,7 +4105,53 @@ function applySnapshotToRows(rows, snapView){
   return patched;
 }
 
+function describeFocus(){
+  // A stable, content-independent description of whichever field is
+  // focused, so it can be found again in the freshly-rebuilt DOM.
+  // Matched on the data-* attributes the render functions emit, NOT on
+  // element order -- rows get re-sorted and re-keyed constantly.
+  var e = document.activeElement;
+  if (!e || (e.tagName !== "INPUT" && e.tagName !== "SELECT" && e.tagName !== "TEXTAREA")) return null;
+  var d = { id: e.id || null, cls: e.className || null, tag: e.tagName };
+  ["data-id","data-idx","data-field","data-p2p-id","data-p2p-field","data-p2p-pay","data-pay-id","data-label"]
+    .forEach(function(a){ if (e.hasAttribute(a)) d[a] = e.getAttribute(a); });
+  try {
+    if (typeof e.selectionStart === "number"){ d.selStart = e.selectionStart; d.selEnd = e.selectionEnd; }
+  } catch(err){ /* number/date inputs throw on selectionStart in some browsers */ }
+  return d;
+}
+
+function restoreFocus(d){
+  if (!d) return;
+  var sel;
+  if (d.id){
+    sel = "#" + CSS.escape(d.id);
+  } else {
+    sel = d.tag;
+    ["data-id","data-idx","data-field","data-p2p-id","data-p2p-field","data-p2p-pay","data-pay-id","data-label"]
+      .forEach(function(a){ if (d[a] !== undefined && d[a] !== null) sel += '[' + a + '="' + String(d[a]).replace(/"/g,'\\"') + '"]'; });
+  }
+  var el2 = null;
+  try { el2 = document.querySelector(sel); } catch(err){ return; }
+  if (!el2) return;
+  try {
+    el2.focus({ preventScroll: true });
+    // Put the caret back where it was, so typing continues mid-word
+    // instead of jumping to the start or end of the value.
+    if (d.selStart !== undefined && typeof el2.selectionStart === "number"){
+      el2.setSelectionRange(d.selStart, d.selEnd);
+    }
+  } catch(err){ /* not focusable any more -- harmless */ }
+}
+
 function render(){
+  // Every render rebuilds the whole page via innerHTML, which drops the
+  // scroll position and blurs the focused field -- so typing a value or
+  // picking a date visibly "pulled" the screen (user-reported). Capture
+  // both before the rebuild and restore them after.
+  var scrollX = window.pageXOffset, scrollY = window.pageYOffset;
+  var focusDesc = describeFocus();
+
   renderYearSelect();
   var rows = computeForecast();
   var snapView = computeSnapshotView(rows);
@@ -4122,6 +4168,11 @@ function render(){
   renderLockToggle();
   applyLanguage();
   fitForecastTable();
+
+  // Restore synchronously: doing this in a timeout lets the browser paint
+  // the scrolled-to-top state first, which is the visible "jump".
+  window.scrollTo(scrollX, scrollY);
+  restoreFocus(focusDesc);
 }
 
 /* =========================================================================
@@ -4849,7 +4900,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-53)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-54)";
 }
 
 loadStateAndInit();
