@@ -254,6 +254,10 @@ input[type=number], input[inputmode=decimal]{ text-align:right; }
    They were rendering centred because no rule claimed them and the
    surrounding context won -- visible immediately on a phone. */
 input[type=date]{ text-align:left; }
+/* Keep a focused field clear of the viewport edges when the browser
+   scrolls it into view, and never animate that scroll. */
+input, select, textarea{ scroll-margin-top:90px; scroll-margin-bottom:90px; }
+html{ scroll-behavior:auto; }
 html[dir=rtl] input[type=date]{ text-align:left; direction:ltr; }
 /* iOS Safari renders a date input's value inside an internal element and
    CENTRES it there; `text-align` on the input itself never reaches it, so
@@ -4144,6 +4148,16 @@ function restoreFocus(d){
   } catch(err){ /* not focusable any more -- harmless */ }
 }
 
+/* The browser scrolls a partly-off-screen field into view when it gains
+   focus. That is standard behaviour and usually helpful -- but combined
+   with a long ledger it reads as the page "pulling" the moment you tap a
+   field, which is what the user reported. `scroll-margin` gives the
+   browser room so the field it scrolls to sits comfortably in view
+   instead of snapping to the very edge, and CSS `scroll-behavior:auto`
+   keeps it instant rather than animated. This is handled in CSS (see
+   the rule added next to the field normalisation block) rather than by
+   fighting the browser in JS -- cancelling the scroll outright would
+   break the genuinely useful case where the field IS off-screen. */
 function render(){
   // Every render rebuilds the whole page via innerHTML, which drops the
   // scroll position and blurs the focused field -- so typing a value or
@@ -4367,8 +4381,14 @@ function bindStaticListeners(){
   });
 
   el("add-category-toggle-btn").addEventListener("click", function(){
-    el("add-category-panel").classList.toggle("hidden");
-    el("new-category-name").focus();
+    var panel = el("add-category-panel");
+    panel.classList.toggle("hidden");
+    // Focus only when opening, and with preventScroll: a bare focus()
+    // makes the browser scroll the field into view, which yanked the
+    // page while the user was editing elsewhere (user-reported jump).
+    if (!panel.classList.contains("hidden")){
+      try { el("new-category-name").focus({ preventScroll: true }); } catch(e){}
+    }
   });
 
   el("category-manager-tbody").addEventListener("change", function(e){
@@ -4900,7 +4920,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-54)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-55)";
 }
 
 loadStateAndInit();
