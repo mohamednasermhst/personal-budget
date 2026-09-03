@@ -156,6 +156,8 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
   flex-wrap:wrap; background:var(--navy); color:#fff; border-radius:8px;
   padding:10px 14px; margin:6px 2px 14px; font-size:12.5px; }
 .update-banner .btn-small{ background:#fff; color:var(--navy); border:none; }
+.actuals-verdict{ margin-top:12px; background:var(--card-tint); border:1px solid var(--rule);
+  border-radius:7px; padding:10px 13px; font-size:12.5px; color:var(--ink); line-height:1.55; }
 .actuals-table{ width:100%; border-collapse:collapse; font-size:13px; }
 .actuals-table th{ font-size:10px; text-transform:uppercase; letter-spacing:.05em;
   color:var(--ink-faint); font-weight:500; padding:6px 8px; text-align:left; }
@@ -645,7 +647,9 @@ td.positive{ color:var(--emerald); }
     </div>
   </header>
 
-    <div id="ending-soon" class="ending-soon hidden"></div>
+    <div id="sanity-panel" class="sanity-panel hidden"></div>
+
+  <div id="ending-soon" class="ending-soon hidden"></div>
 
   <div id="update-banner" class="update-banner hidden">
     <span data-i18n="upd_text">A new version of the dashboard is ready.</span>
@@ -677,7 +681,7 @@ td.positive{ color:var(--emerald); }
 
   <div class="group-heading">
     <span data-i18n="g_stand">Where you stand</span>
-    <p data-i18n="g_stand_sub">A read-only view of your position &mdash; nothing here is edited directly.</p>
+    <p data-i18n="g_stand_sub">A read-only view of your position right now and the year ahead. Check this often.</p>
   </div>
 
 <section class="card" id="section1">
@@ -781,6 +785,16 @@ td.positive{ color:var(--emerald); }
         <tbody id="forecast-tbody"></tbody>
       </table>
     </div>
+  </section>
+
+  <div class="group-heading">
+    <span data-i18n="g_understand">Understanding your money</span>
+    <p data-i18n="g_understand_sub">Where your money actually goes, and how close your estimates turn out to be. Worth a look once a month.</p>
+  </div>
+
+  <section class="card" id="section-where">
+    <h2 data-i18n="s_where">Where the money goes</h2>
+    <div id="cat-breakdown"></div>
   </section>
 
   <section class="card" id="section-actuals">
@@ -1679,7 +1693,14 @@ function monthIncomeOccurrences(y, m){
   var out = [];
   (state.incomeSources || []).forEach(function(src){
     if (src.type === "salary"){
-      out.push({ day: clampDay(src.incomeDay || 1), amount: tieredAmountFor(src.tiers, y, m), name: src.name });
+      // endDate: income can STOP, not just rise. A rental contract runs
+      // out, a job changes. Without this the forecast optimistically
+      // assumed a salary continued for ever, which is the wrong direction
+      // for a budgeting tool to be wrong in.
+      var stop = src.endDate ? parseISODate(src.endDate) : null;
+      if (!stop || toAbsDay(y, m, clampDay(src.incomeDay || 1)) <= toAbsDay(stop.y, stop.m, stop.d)){
+        out.push({ day: clampDay(src.incomeDay || 1), amount: tieredAmountFor(src.tiers, y, m), name: src.name });
+      }
     } else if (src.type === "onetime"){
       var d = parseISODate(src.date);
       if (d && d.y === y && d.m === m){
@@ -3436,9 +3457,9 @@ function renderLedgerTable(){
     var collapsed = ledgerFilter ? false : !!state.collapsedCategories[cat];
     var sum = items.reduce(function(s,e){ return s + (Number(e.amount)||0); }, 0);
     var trailingCell = categoryHasBehavior(cat, "statementBilling")
-      ? '<td colspan="3" class="cc-statement-cell">Statement day <input type="number" min="1" max="31" class="cc-statement-day-input" data-category="' + escapeAttr(cat) + '" value="' + getCategoryStatementDay(cat) + '" title="Charges after this day aren\u2019t billed until next month\u2019s statement -- affects the \u2018Only show what\u2019s still due\u2019 check in Monthly Cash Flow">'
+      ? '<td colspan="4" class="cc-statement-cell">Statement day <input type="number" min="1" max="31" class="cc-statement-day-input" data-category="' + escapeAttr(cat) + '" value="' + getCategoryStatementDay(cat) + '" title="Charges after this day aren\u2019t billed until next month\u2019s statement -- affects the \u2018Only show what\u2019s still due\u2019 check in Monthly Cash Flow">'
         + ' &nbsp; Payment day <input type="number" min="1" max="31" class="cc-payment-day-input" data-category="' + escapeAttr(cat) + '" value="' + getCategoryPaymentDay(cat) + '" title="The day you actually pay off the statement -- this is when the charge really leaves your account, not the statement day itself"></td>'
-      : '<td colspan="3"></td>';
+      : '<td colspan="4"></td>';
     html += '<tr class="category-header-row" data-category="' + escapeAttr(cat) + '">'
       + '<td colspan="4"><button type="button" class="category-toggle" data-category="' + escapeAttr(cat) + '">'
       + '<span class="cat-arrow">' + (collapsed?"\u25B8":"\u25BE") + "</span>"
@@ -3500,6 +3521,8 @@ var I18N = {
     g_stand_sub: "\u0639\u0631\u0636 \u0644\u0644\u0627\u0637\u0644\u0627\u0639 \u0641\u0642\u0637 \u2014 \u0644\u0627 \u064a\u0645\u0643\u0646 \u062a\u0639\u062f\u064a\u0644 \u0634\u064a\u0621 \u0647\u0646\u0627 \u0645\u0628\u0627\u0634\u0631\u0629.",
     g_driving: "\u0645\u0627 \u064a\u064f\u0643\u0648\u0651\u0646 \u0647\u0630\u0647 \u0627\u0644\u0623\u0631\u0642\u0627\u0645",
     g_driving_sub: "\u0643\u0644 \u0645\u0627 \u062a\u062f\u062e\u0644\u0647. \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a \u0647\u0646\u0627 \u062a\u0646\u0639\u0643\u0633 \u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0623\u0639\u0644\u0627\u0647.",
+    g_understand: "فهم أموالك",
+    g_understand_sub: "أين تذهب أموالك فعلاً، ومدى دقة تقديراتك. تستحق نظرة مرة في الشهر.",
     s_cashflow: "\u0627\u0644\u062a\u062f\u0641\u0642 \u0627\u0644\u0646\u0642\u062f\u064a \u0627\u0644\u0634\u0647\u0631\u064a",
     s_chart: "\u0627\u0644\u0633\u0646\u0629 \u0641\u064a \u0644\u0645\u062d\u0629",
     s_summary: "\u0627\u0644\u0645\u0644\u062e\u0635 \u0627\u0644\u0634\u0647\u0631\u064a",
@@ -3508,6 +3531,7 @@ var I18N = {
     s_p2p: "\u0627\u0644\u0625\u0642\u0631\u0627\u0636 \u0627\u0644\u0634\u062e\u0635\u064a",
     s_adhoc: "\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a",
     s_actuals: "المخطط مقابل الفعلي",
+    s_where: "أين يذهب مالك",
     h_actuals: "سجّل ما كلّفته الفترة فعلياً بعد أن تبدأ. لا شيء هنا يغيّر توقعاتك — إنه سجل مقارنة، لترى أين تنحرف تقديراتك وتضبطها مع الوقت.",
     btn_reset: "\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0636\u0628\u0637",
     btn_forceupdate: "التحقق من التحديثات",
@@ -3853,6 +3877,39 @@ function renderActuals(rows){
       + "</tr>";
   });
   html += "</tbody></table>";
+
+  // Aggregate across everything recorded. A single period's variance is
+  // noise; the PATTERN is what tells you whether your estimates are
+  // systematically optimistic, and that is the whole point of recording
+  // actuals at all.
+  var recorded = 0, overs = 0, sumDiff = 0;
+  rows.forEach(function(r){
+    var a = getActual(r);
+    if (a === null) return;
+    var pl = r.projExpense !== undefined ? r.projExpense : r.expense;
+    recorded++; sumDiff += (a - pl);
+    if (a - pl > 0.005) overs++;
+  });
+  if (recorded >= 2){
+    var avg = sumDiff / recorded;
+    var verdict;
+    if (Math.abs(avg) < 1){
+      verdict = tr("Your estimates are landing almost exactly right.",
+                   "تقديراتك دقيقة تقريباً.");
+    } else if (avg > 0){
+      verdict = tr("On average you spend " + fmt(Math.abs(avg)) + " MORE than planned"
+                   + " (" + overs + " of " + recorded + " periods over). Consider raising your estimates.",
+                   "في المتوسط تنفق " + fmt(Math.abs(avg)) + " أكثر من المخطط"
+                   + " (" + toArabicDigits(overs) + " من " + toArabicDigits(recorded) + " فترات بزيادة). فكّر في رفع تقديراتك.");
+    } else {
+      verdict = tr("On average you spend " + fmt(Math.abs(avg)) + " LESS than planned"
+                   + " (" + (recorded - overs) + " of " + recorded + " periods under). You may be budgeting more cautiously than you need to.",
+                   "في المتوسط تنفق " + fmt(Math.abs(avg)) + " أقل من المخطط"
+                   + " (" + toArabicDigits(recorded - overs) + " من " + toArabicDigits(recorded) + " فترات بأقل). ربما تضع ميزانية أكثر تحفظاً مما تحتاج.");
+    }
+    html += '<div class="actuals-verdict">' + escapeHtml(verdict) + "</div>";
+  }
+
   if (!shown){
     box.innerHTML = '<p class="card-hint">' + tr("Nothing to record yet — periods appear here once they have begun.","لا شيء لتسجيله بعد — تظهر الفترات هنا بعد أن تبدأ.") + "</p>";
     return;
@@ -3872,6 +3929,153 @@ function renderActuals(rows){
       setTimeout(render, 0);
     });
   }
+}
+
+/* ===== Data sanity warnings ==============================================
+   None of these are errors -- the app runs fine with all of them. They
+   are worse than errors: each one silently produces a CONFIDENTLY WRONG
+   forecast, which is the failure this tool should least tolerate.
+
+   Warnings only, never blocks. A half-entered row is the normal state
+   while someone is typing, and refusing input would fight the user.
+   ======================================================================= */
+function sanityIssues(){
+  var out = [];
+  var exps = state.expenses || [], incs = state.incomeSources || [];
+
+  // Zero-amount entries do nothing but look like they are working.
+  var zeroExp = exps.filter(function(e){ return !(Number(e.amount) > 0); });
+  if (zeroExp.length){
+    out.push(tr("", "") + (zeroExp.length === 1
+      ? tr("\u201c" + (zeroExp[0].name || "An expense") + "\u201d has no amount, so it is not counted anywhere.",
+           "«" + (zeroExp[0].name || "مصروف") + "» بلا مبلغ، فلا يُحتسب في أي مكان.")
+      : tr(zeroExp.length + " expenses have no amount, so they are not counted anywhere.",
+           toArabicDigits(zeroExp.length) + " مصروفات بلا مبالغ، فلا تُحتسب في أي مكان.")));
+  }
+
+  var zeroInc = incs.filter(function(x){ return !(incomeSourceAmount(x) > 0); });
+  if (zeroInc.length){
+    out.push(zeroInc.length === 1
+      ? tr("\u201c" + (zeroInc[0].name || "An income source") + "\u201d has no amount. Every period will look worse than it is.",
+           "«" + (zeroInc[0].name || "مصدر دخل") + "» بلا مبلغ. ستبدو كل فترة أسوأ مما هي عليه.")
+      : tr(zeroInc.length + " income sources have no amount. Every period will look worse than it is.",
+           toArabicDigits(zeroInc.length) + " مصادر دخل بلا مبالغ. ستبدو كل فترة أسوأ مما هي عليه."));
+  }
+
+  // Day 29-31 on a monthly expense: silently clamped in short months, so
+  // the charge moves and the user is never told.
+  var lateDay = exps.filter(function(e){
+    return e.frequency === "monthly" && Number(e.dueDay) > 28;
+  });
+  if (lateDay.length){
+    out.push(tr("A monthly expense is due after the 28th. In February it will be charged on the last day of the month instead.",
+                "مصروف شهري مستحق بعد يوم ٢٨. في فبراير سيُحتسب في آخر يوم من الشهر بدلاً من ذلك."));
+  }
+
+  // Probable accidental duplicates: same name AND same amount.
+  var seen = {}, dupes = [];
+  exps.forEach(function(e){
+    var k = (e.name || "").trim().toLowerCase() + "|" + (Number(e.amount) || 0);
+    if (!(e.name || "").trim()) return;
+    if (seen[k] && dupes.indexOf(e.name) === -1) dupes.push(e.name);
+    seen[k] = true;
+  });
+  if (dupes.length){
+    out.push(tr("\u201c" + dupes[0] + "\u201d appears more than once with the same amount. If that is not deliberate, one may be a leftover duplicate.",
+                "«" + dupes[0] + "» مكرر بنفس المبلغ. إن لم يكن ذلك مقصوداً فقد تكون إحداهما نسخة زائدة."));
+  }
+
+  // Ad-hoc spending drawn from savings that do not exist. A negative
+  // saving balance is meaningless -- you cannot spend from an account
+  // holding nothing -- and it silently produced figures like -863,000
+  // with no indication anything was wrong.
+  if (renderedRows){
+    var worst = null;
+    renderedRows.forEach(function(r){
+      var bal = r.excessCash;
+      if (bal < -0.005 && (worst === null || bal < worst.bal)){
+        worst = { bal: bal, period: periodLabel(r) };
+      }
+    });
+    if (worst){
+      out.push(tr("Your ad-hoc spending exceeds what you will have saved by " + worst.period
+                  + ", leaving a saving balance of " + fmt(worst.bal)
+                  + ". A savings account cannot go below zero \u2014 either reduce that spending or move it later.",
+                  "إنفاقك من المدخرات يتجاوز ما ستكون قد ادخرته بحلول " + worst.period
+                  + "\u060c ما يترك رصيد توفير قدره " + fmt(worst.bal)
+                  + ". لا يمكن أن يقل حساب التوفير عن الصفر \u2014 قلّل ذلك الإنفاق أو أخّره."));
+    }
+  }
+
+  // An expense with no name is hard to identify later in a breakdown.
+  var noName = exps.filter(function(e){ return !(e.name || "").trim(); });
+  if (noName.length){
+    out.push(tr("An expense has no name. It will be hard to recognise in the breakdowns.",
+                "مصروف بلا اسم. سيصعب تمييزه في التفاصيل."));
+  }
+
+  return out;
+}
+
+/* ===== Where the money goes ==============================================
+   A per-period breakdown answers "what is due this month". It cannot
+   answer "what proportion of my year goes to loans" -- a question that
+   changes decisions rather than just informing them.
+
+   Totals use each period's FULL committed expense (the same projected
+   figures the chart bars use), not the as-of filtered ones, so the shares
+   describe the year as planned rather than the year so far.
+   ======================================================================= */
+function categoryTotals(rows){
+  var byCat = {}, grand = 0;
+  rows.forEach(function(r){
+    var items = (r.items || []).concat(r.paidItems || []);
+    items.forEach(function(it){
+      var c = it.category || tr("Other","أخرى");
+      byCat[c] = (byCat[c] || 0) + (Number(it.amount) || 0);
+      grand += (Number(it.amount) || 0);
+    });
+  });
+  var list = Object.keys(byCat).map(function(c){
+    return { cat: c, total: byCat[c], pct: grand > 0 ? (byCat[c] / grand * 100) : 0 };
+  });
+  list.sort(function(a,b){ return b.total - a.total; });
+  return { list: list, grand: grand };
+}
+
+function renderCategoryBreakdown(rows){
+  var box = el("cat-breakdown");
+  if (!box) return;
+  var t = categoryTotals(rows);
+  if (!t.list.length || t.grand <= 0){
+    box.innerHTML = '<p class="card-hint">' + tr("Add some expenses to see where your money goes.","أضف بعض المصروفات لترى أين يذهب مالك.") + "</p>";
+    return;
+  }
+  var html = '<p class="card-hint">' + tr("Across all twelve periods shown, totalling ","عبر الفترات الاثنتي عشرة المعروضة، بإجمالي ")
+    + "<strong>" + fmt(t.grand) + "</strong>.</p>";
+  html += '<div class="catbar-list">';
+  t.list.forEach(function(x){
+    html += '<div class="catbar-row">'
+      + '<div class="catbar-label"><span class="cat-dot" style="background:' + getCategoryColor(x.cat) + '"></span>'
+      + escapeHtml(x.cat) + "</div>"
+      + '<div class="catbar-track"><div class="catbar-fill" style="width:' + x.pct.toFixed(1)
+        + '%;background:' + getCategoryColor(x.cat) + '"></div></div>'
+      + '<div class="catbar-val">' + fmt(x.total) + '<span class="catbar-pct">' + toArabicDigits(x.pct.toFixed(1)) + "%</span></div>"
+      + "</div>";
+  });
+  html += "</div>";
+  box.innerHTML = html;
+}
+
+function renderSanity(){
+  var box = el("sanity-panel");
+  if (!box) return;
+  var issues = sanityIssues();
+  if (!issues.length){ box.classList.add("hidden"); return; }
+  box.innerHTML = '<div class="sanity-head">' + tr("Worth checking","يستحق المراجعة") + "</div><ul>"
+    + issues.map(function(t){ return "<li>" + escapeHtml(t) + "</li>"; }).join("")
+    + "</ul>";
+  box.classList.remove("hidden");
 }
 
 function renderEndingSoon(){
@@ -4235,7 +4439,10 @@ function incomeDetailsCell(src){
   if (src.type === "salary"){
     var tiers = src.tiers || [];
     var increments = tiers.slice(1);
-    var html = '<label class="field-inline"><span>' + tr("Day","اليوم") + '</span><input type="number" min="1" max="31" class="inc-day" data-id="' + escapeAttr(src.id) + '" data-field="incomeDay" value="' + (src.incomeDay||1) + '"></label>';
+    var html = '<div class="field-inline-row">'
+      + '<label class="field-inline"><span>' + tr("Day","اليوم") + '</span><input type="number" min="1" max="31" class="inc-day" data-id="' + escapeAttr(src.id) + '" data-field="incomeDay" value="' + (src.incomeDay||1) + '"></label>'
+      + '<label class="field-inline"><span>' + tr("Stops after (optional)","يتوقف بعد (اختياري)") + '</span><input type="date" class="inc-enddate" data-id="' + escapeAttr(src.id) + '" data-field="endDate" value="' + escapeAttr(src.endDate||"") + '"></label>'
+      + '</div>';
     html += '<div class="income-tiers">';
     increments.forEach(function(t, i){
       var realIdx = i + 1;
@@ -4319,7 +4526,7 @@ function renderIncomeTable(){
     var collapsed = incomeFilter ? false : !!state.collapsedIncomeTypes[type];
     var sum = items.reduce(function(s,src){ return s + incomeSourceAmount(src); }, 0);
     html += '<tr class="category-header-row" data-income-type="' + type + '">'
-      + '<td colspan="3"><button type="button" class="category-toggle income-type-toggle" data-income-type="' + type + '">'
+      + '<td colspan="4"><button type="button" class="category-toggle income-type-toggle" data-income-type="' + type + '">'
       + '<span class="cat-arrow">' + (collapsed?"\u25B8":"\u25BE") + "</span>"
       + '<span class="cat-name">' + INCOME_TYPE_LABEL[type] + "</span>"
       + '<span class="cat-count">' + items.length + "</span>"
@@ -4530,8 +4737,10 @@ function render(){
   renderAdHocTable();
   renderP2P();
   renderedRows = syncedRows;
+  renderCategoryBreakdown(syncedRows);
   renderActuals(syncedRows);
   renderBackupReminder();
+  renderSanity();
   renderEndingSoon();
   renderLockToggle();
   applyLanguage();
@@ -4948,6 +5157,7 @@ function bindStaticListeners(){
       switch(field){
         case "name": src.name = t.value; break;
         case "note": src.note = t.value; break;
+        case "endDate": src.endDate = t.value; break;
         case "type":
           src.type = t.value;
           if (t.value === "salary"){
@@ -5251,6 +5461,9 @@ function openBackupModal(mode){
     // anything.
     markBackupTaken();
     cashDataDirty = false;
+    // Re-render behind the modal so the backup reminder reflects that a
+    // backup has now been taken.
+    setTimeout(render, 0);
     el("backup-modal-title").textContent = tr("Export backup","تصدير نسخة");
     el("backup-modal-hint").textContent = tr("Tap inside the box, select all, and copy. Paste it into Notes to save it, or paste it back to Claude in chat.","اضغط داخل المربع، حدد الكل، وانسخ. الصقه في الملاحظات لحفظه، أو أعده إلى المحادثة.");
     ta.value = JSON.stringify(state, null, 2);
@@ -5336,7 +5549,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-61)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-64)";
 }
 
 loadStateAndInit();
