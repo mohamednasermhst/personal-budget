@@ -9,7 +9,7 @@
    activate handler below delete the previous cache -- without a bump an
    installed app can keep serving old files even though the server has
    new ones. */
-var CACHE = "household-budget-v64";
+var CACHE = "household-budget-v65";
 
 self.addEventListener("install", function(){ self.skipWaiting(); });
 

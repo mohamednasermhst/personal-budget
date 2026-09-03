@@ -166,6 +166,31 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
 .actual-input{ width:110px; text-align:right; }
 html[dir=rtl] .actuals-table th{ text-align:right; }
 html[dir=rtl] .actuals-table .num{ text-align:left; direction:ltr; }
+/* --- Category breakdown ------------------------------------------------
+   Stacked, not a 3-column grid. The grid needed ~330px of fixed columns
+   and collapsed on a phone -- the bar vanished and the amount ran into
+   the percentage ("165,600.0042.9%"), which reads as a corrupted number
+   rather than two values. Stacking works at every width, no breakpoint. */
+.catbar-list{ margin-top:12px; }
+.catbar-row{ margin-bottom:13px; }
+.catbar-top{ display:flex; align-items:baseline; justify-content:space-between;
+  gap:12px; margin-bottom:5px; }
+.catbar-label{ font-size:13px; color:var(--ink); display:flex; align-items:center; gap:7px;
+  min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.catbar-track{ height:9px; background:var(--card-tint); border-radius:5px; overflow:hidden; }
+.catbar-fill{ height:100%; border-radius:5px; }
+.catbar-val{ font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+  color:var(--ink); white-space:nowrap; flex:none; }
+.catbar-pct{ color:var(--ink-faint); font-size:11.5px; margin-left:8px; }
+html[dir=rtl] .catbar-val{ direction:ltr; }
+html[dir=rtl] .catbar-pct{ margin-left:0; margin-right:8px; }
+/* --- Sanity warnings --------------------------------------------------- */
+.sanity-panel{ background:#FDF4E3; border:1px solid var(--gold); border-radius:8px;
+  padding:11px 14px; margin:6px 2px 14px; font-size:12.5px; color:var(--ink-soft); }
+.sanity-head{ font-weight:600; color:var(--gold-deep); margin-bottom:5px; }
+.sanity-panel ul{ margin:0; padding-left:20px; }
+.sanity-panel li{ margin-bottom:3px; }
+html[dir=rtl] .sanity-panel ul{ padding-left:0; padding-right:20px; }
 .ending-soon{ background:#E8F0EA; border:1px solid var(--emerald); border-radius:8px;
   padding:11px 14px; margin:6px 2px 14px; font-size:12.5px; color:var(--ink-soft); }
 .ending-soon-head{ font-weight:600; color:var(--emerald); margin-bottom:5px; }
@@ -4056,11 +4081,14 @@ function renderCategoryBreakdown(rows){
   html += '<div class="catbar-list">';
   t.list.forEach(function(x){
     html += '<div class="catbar-row">'
-      + '<div class="catbar-label"><span class="cat-dot" style="background:' + getCategoryColor(x.cat) + '"></span>'
-      + escapeHtml(x.cat) + "</div>"
+      + '<div class="catbar-top">'
+        + '<div class="catbar-label"><span class="cat-dot" style="background:' + getCategoryColor(x.cat) + '"></span>'
+        + escapeHtml(x.cat) + "</div>"
+        + '<div class="catbar-val">' + fmt(x.total)
+          + '<span class="catbar-pct">' + toArabicDigits(x.pct.toFixed(1)) + "%</span></div>"
+      + "</div>"
       + '<div class="catbar-track"><div class="catbar-fill" style="width:' + x.pct.toFixed(1)
         + '%;background:' + getCategoryColor(x.cat) + '"></div></div>'
-      + '<div class="catbar-val">' + fmt(x.total) + '<span class="catbar-pct">' + toArabicDigits(x.pct.toFixed(1)) + "%</span></div>"
       + "</div>";
   });
   html += "</div>";
@@ -5549,7 +5577,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-64)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-65)";
 }
 
 loadStateAndInit();
