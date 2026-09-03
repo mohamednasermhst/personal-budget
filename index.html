@@ -628,6 +628,18 @@ td.positive{ color:var(--emerald); }
    field sat 17px lower than its neighbours -- measured, and visible as
    the stagger the user circled. */
 #ledger-table tbody td, #income-table tbody td{ vertical-align:top; padding-top:10px; }
+/* A due-date cell can hold a bare day input OR a month select PLUS a
+   labelled day. Reserving the label height only on :first-child left the
+   labelled day 8px high when a sibling select preceded it. Reserve it on
+   any leading control instead. */
+.due-date-cell{ vertical-align:top; white-space:nowrap; }
+/* A leading <select> must reserve the same label height as the labelled
+   day input beside it, or the day sits 8px high. NOT display:flex on the
+   td -- that leaves table layout and breaks the row's bottom border. */
+/* Align the month select's BOTTOM with the labelled day input's bottom.
+   vertical-align:bottom on both is enough; a margin-top guess only
+   happened to work for one of the two due-date shapes. */
+.due-date-cell > select, .due-date-cell > .field-inline{ vertical-align:bottom; }
 #ledger-table tbody td > input:first-child,
 #ledger-table tbody td > select:first-child,
 #income-table tbody td > input:first-child,
@@ -659,7 +671,7 @@ td.positive{ color:var(--emerald); }
 .income-details-cell input[type=number]{ width:52px; }
 .income-tiers{ display:flex; flex-direction:column; gap:4px; margin-top:6px; }
 .tier-row{ display:flex; gap:4px; align-items:center; }
-.tier-row input[type=number].inc-tier-year{ width:56px; }
+.tier-row input[type=number].inc-tier-year{ width:70px; }
 .tier-row input[type=number].inc-tier-amount{ width:80px; }
 .add-tier-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; margin-top:2px; }
 .rental-percheque{ color:var(--ink-faint); font-size:11px; font-style:italic; margin-top:4px; }
@@ -5288,7 +5300,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-70)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-71)";
 }
 
 loadStateAndInit();
