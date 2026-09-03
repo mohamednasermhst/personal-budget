@@ -52,6 +52,62 @@
   --shadow: 0 1px 2px rgba(42,36,24,0.05), 0 6px 20px rgba(42,36,24,0.06);
   --radius: 10px;
 }
+/* ---- Night mode --------------------------------------------------------
+   NOTE: an earlier note above warns that two dark themes were tried and
+   rejected as "too stark/heavy". That was a decision about the DEFAULT
+   look; the user has since asked for night mode as an explicit choice,
+   which is a different thing. This palette answers the old objection --
+   warm charcoal rather than near-black, gold kept as the accent, and
+   contrast tuned so the ivory character survives rather than inverting
+   into a generic dark app.
+   ---------------------------------------------------------------------- */
+html[data-theme=dark]{
+  --bg:#1A1815;
+  --bg-soft:#211E1A;
+  --card:#232019;
+  --card-tint:#2A261E;
+  --ink:#EFE8D8;
+  --ink-soft:#BDB4A0;
+  --ink-faint:#8B8371;
+  --rule:#3A342A;
+  --rule-strong:#4E4636;
+  --gold:#D9A93F;
+  --gold-light:#E9CB7E;
+  --gold-deep:#E0B75A;
+  --emerald:#5FBF95;
+  --navy:#6FA3C7;
+  --rust:#E08A6E;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+/* Panels that use literal colours need explicit dark equivalents --
+   a light tint on a dark card is unreadable. */
+html[data-theme=dark] .sanity-panel{ background:#2E2718; border-color:var(--gold); }
+html[data-theme=dark] .p2p-warn{ background:#33221C; border-color:var(--rust); }
+html[data-theme=dark] .p2p-warn p{ color:#F0B49A; }
+html[data-theme=dark] .reconciled-badge.reconciled-stale{ background:#33221C; border-color:var(--rust); }
+html[data-theme=dark] .reconciled-badge.reconciled-stale span{ color:#F0B49A; }
+html[data-theme=dark] .cashonhand-stale-note{ color:#F0B49A; }
+html[data-theme=dark] .lock-status{ background:#1F3328; color:var(--emerald); }
+html[data-theme=dark] .p2p-dir.lent{ background:#1F3328; color:var(--emerald); }
+html[data-theme=dark] .p2p-dir.borrowed{ background:#33221C; color:#F0B49A; }
+html[data-theme=dark] .p2p-settled{ background:#1F3328; color:var(--emerald); }
+html[data-theme=dark] .p2p-excluded{ background:#33221C; color:#F0B49A; }
+html[data-theme=dark] .update-banner{ background:#2A3B47; }
+html[data-theme=dark] .update-banner .btn-small{ background:var(--gold); color:#1A1815; }
+html[data-theme=dark] .undo-toast{ background:#2A3B47; }
+html[data-theme=dark] .undo-toast .btn-small{ background:var(--gold); color:#1A1815; }
+html[data-theme=dark] .chart-detail-note{ background:#33221C; color:#F0B49A; }
+html[data-theme=dark] .primary-btn{ color:#1A1815; }
+html[data-theme=dark] .empty-required{ background:#33221C; }
+/* The mark has an ivory plate baked into its SVG. Dimming it slightly
+   stops it glaring against the charcoal without redrawing the logo. */
+html[data-theme=dark] .app-mark svg{ opacity:.88; border-color:var(--rule); }
+/* Amount to Save is the one stat rendered in gold rather than ink. At
+   19px on a dark card the mid-gold sat too close to the background to
+   read comfortably -- lift it to the light gold, which is what the eye
+   expects a highlighted figure to look like here. */
+html[data-theme=dark] .s1-stat.highlight strong{ color:var(--gold-light); }
+
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
@@ -105,7 +161,7 @@ h1{ font-family:'Newsreader',serif; font-weight:500; font-size:34px; margin:0; l
    be re-ordered to the wrong end of the number by the bidi algorithm --
    the classic RTL money bug where -1,234 renders as 1,234-.
    -------------------------------------------------------------------------- */
-.header-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.header-top{ display:flex; gap:8px; align-items:center; justify-content:space-between; gap:12px; }
 .lang-toggle{ display:flex; border:1px solid var(--rule-strong); border-radius:6px; overflow:hidden; }
 .lang-btn{ background:transparent; border:none; padding:5px 11px; font-size:12px; cursor:pointer;
   font-family:'IBM Plex Sans',sans-serif; color:var(--ink-soft); }
@@ -192,6 +248,8 @@ html[dir=rtl] .sanity-panel ul{ padding-left:0; padding-right:20px; }
 .privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
   border:1px solid var(--rule); border-radius:8px; padding:10px 13px; margin:6px 2px 16px;
   font-size:12px; line-height:1.5; color:var(--ink-soft); }
+.privacy-dismiss{ float:right; margin-left:10px; }
+html[dir=rtl] .privacy-dismiss{ float:left; margin-left:0; margin-right:10px; }
 .privacy-notice strong{ display:block; color:var(--ink); margin-bottom:2px; font-size:12.5px; }
 .privacy-icon{ color:var(--emerald); font-size:15px; line-height:1.3; flex:none; }
 .title-with-mark{ display:flex; align-items:center; gap:12px; }
@@ -640,6 +698,10 @@ td.positive{ color:var(--emerald); }
   <header class="ledger-header">
     <div class="header-top">
       <div class="eyebrow" data-i18n="eyebrow">Household Ledger &middot; AED</div>
+      <div class="lang-toggle" role="group" aria-label="Theme">
+        <button type="button" id="theme-light" class="lang-btn" title="Light">☀</button>
+        <button type="button" id="theme-dark" class="lang-btn" title="Night">☽</button>
+      </div>
       <div class="lang-toggle" role="group" aria-label="Language">
         <button type="button" id="lang-en" class="lang-btn">EN</button>
         <button type="button" id="lang-ar" class="lang-btn">عربي</button>
@@ -671,11 +733,12 @@ td.positive{ color:var(--emerald); }
     <button type="button" id="update-now-btn" class="btn-small" data-i18n="upd_btn">Refresh now</button>
   </div>
 
-  <div class="privacy-notice">
+  <div class="privacy-notice" id="privacy-notice">
     <span class="privacy-icon" aria-hidden="true">&#9737;</span>
     <div>
       <strong data-i18n="pv_title">Your figures stay on this device</strong>
       <span data-i18n="pv_body">Nothing is sent anywhere and no account is used. Anyone who can unlock your phone can open it. Clearing browser data erases it &mdash; keep a backup.</span>
+      <button type="button" id="privacy-dismiss" class="link-btn privacy-dismiss" data-i18n="k_gotit">Got it</button>
       <span class="lock-controls">
         <span id="lock-status" class="lock-status hidden"></span>
         <button type="button" id="lock-toggle-btn" class="link-btn"></button>
@@ -783,11 +846,6 @@ td.positive{ color:var(--emerald); }
       </table>
     </div>
   </section>
-
-  <div class="group-heading">
-    <span data-i18n="g_understand">Understanding your money</span>
-    <p data-i18n="g_understand_sub">Where your money actually goes. Worth a look once a month.</p>
-  </div>
 
   <section class="card" id="section-where">
     <h2 data-i18n="s_where">Where the money goes</h2>
@@ -2256,6 +2314,8 @@ function makeDefaultState(){
     // actually opens the export -- not when they merely dismiss the
     // prompt, which would defeat the point.
     lang: "en",
+    theme: "light",
+    privacyAcked: false,
     arabicDigits: true,
     lastBackupAt: null,
     backupReminderSnoozedUntil: null,
@@ -3399,6 +3459,7 @@ var I18N = {
     c_date: "التاريخ",
     c_note: "ملاحظة",
     k_undo: "تراجع",
+    k_gotit: "فهمت",
     c_income: "الدخل",
     c_leftover: "المرحّل",
     c_totalcash: "إجمالي النقد",
@@ -3470,6 +3531,16 @@ function tr(en, ar){
 
 function monthShort(m1){
   return currentLang() === "ar" ? AR_MONTHS[m1-1] : MONTHS[m1-1].slice(0,3);
+}
+
+function applyTheme(){
+  var dark = state && state.theme === "dark";
+  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  var l = el("theme-light"), d = el("theme-dark");
+  if (l) l.classList.toggle("active", !dark);
+  if (d) d.classList.toggle("active", dark);
+  var meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute("content", dark ? "#1A1815" : "#FAF6EC");
 }
 
 function applyLanguage(){
@@ -3615,8 +3686,17 @@ function renderCategoryBreakdown(rows){
     box.innerHTML = '<p class="card-hint">' + tr("Add some expenses to see where your money goes.","\u0623\u0636\u0641 \u0628\u0639\u0636 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0644\u062a\u0631\u0649 \u0623\u064a\u0646 \u064a\u0630\u0647\u0628 \u0645\u0627\u0644\u0643.") + "</p>";
     return;
   }
-  var html = '<p class="card-hint">' + tr("Across twelve periods, totalling ","\u0639\u0628\u0631 \u0627\u062b\u0646\u062a\u064a \u0639\u0634\u0631\u0629 \u0641\u062a\u0631\u0629\u060c \u0628\u0625\u062c\u0645\u0627\u0644\u064a ")
-    + "<strong>" + fmt(t.grand) + "</strong>.</p>";
+  // Describe the ACTUAL window, not a hardcoded twelve -- the range is
+  // user-chosen now, so "across twelve periods" was wrong whenever they
+  // picked anything else.
+  var n = rows.length;
+  var span = n === 1 ? periodLabel(rows[0]) : (periodLabel(rows[0]) + " \u2013 " + periodLabel(rows[n-1]));
+  var html = '<p class="card-hint">'
+    + toArabicDigits(n) + " " + tr(n === 1 ? "period" : "periods", "\u0641\u062a\u0631\u0629") + " ("
+    + escapeHtml(span) + "), " + tr("totalling ","\u0628\u0625\u062c\u0645\u0627\u0644\u064a ")
+    + "<strong>" + fmt(t.grand) + "</strong>. "
+    + tr("Average ","\u0627\u0644\u0645\u062a\u0648\u0633\u0637 ") + "<strong>" + fmt(t.grand / Math.max(1, n)) + "</strong> "
+    + tr("per period.","\u0644\u0643\u0644 \u0641\u062a\u0631\u0629.") + "</p>";
   html += '<div class="catbar-list">';
   t.list.forEach(function(x){
     html += '<div class="catbar-row">'
@@ -3690,6 +3770,25 @@ function sanityIssues(){
                   "\u0627\u0644\u0625\u0646\u0641\u0627\u0642 \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a \u064a\u062a\u062c\u0627\u0648\u0632 \u0631\u0635\u064a\u062f\u0643 \u0628\u062d\u0644\u0648\u0644 " + worst.period + "\u060c \u0645\u0627 \u064a\u062a\u0631\u0643 " + fmt(worst.bal) + ". \u0642\u0644\u0644\u0647 \u0623\u0648 \u0623\u062e\u0651\u0631\u0647."));
     }
   }
+
+  // A formal loan entered BOTH as a recurring expense and as a P2P loan
+  // is counted twice in the forecast, and nothing else in the app would
+  // ever tell you. Matched on the counterparty name appearing in an
+  // expense name -- deliberately loose, because a false prompt costs a
+  // glance while a missed double-count corrupts every projection.
+  (state.p2pLoans || []).forEach(function(loan){
+    var who = (loan.counterparty || "").trim().toLowerCase();
+    if (!who || who.length < 3) return;
+    var hit = exps.filter(function(e){
+      return (e.name || "").toLowerCase().indexOf(who) !== -1;
+    })[0];
+    if (hit){
+      out.push(tr("\u201c" + hit.name + "\u201d in the Expense Ledger looks like the same debt as the \u201c"
+                  + loan.counterparty + "\u201d loan below. If so it is counted twice \u2014 keep one.",
+                  "\u00ab" + hit.name + "\u00bb \u0641\u064a \u0633\u062c\u0644 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u064a\u0628\u062f\u0648 \u0623\u0646\u0647 \u0646\u0641\u0633 \u062f\u064a\u0646 \u0642\u0631\u0636 \u00ab"
+                  + loan.counterparty + "\u00bb \u0623\u062f\u0646\u0627\u0647. \u0625\u0646 \u0643\u0627\u0646 \u0643\u0630\u0644\u0643 \u0641\u0647\u0648 \u0645\u062d\u0633\u0648\u0628 \u0645\u0631\u062a\u064a\u0646 \u2014 \u0623\u0628\u0642\u0650 \u0648\u0627\u062d\u062f\u0627\u064b."));
+    }
+  });
 
   var noName = exps.filter(function(e){ return !(e.name || "").trim(); });
   if (noName.length){
@@ -4397,9 +4496,14 @@ function render(){
   renderedRows = syncedRows;
   renderCategoryBreakdown(syncedRows);
   renderBackupReminder();
+  // Dismissible: the privacy notice is a one-time explanation, not a
+  // standing alert. Shown until acknowledged, then the passphrase
+  // control moves into the footer where settings live.
+  if (el("privacy-notice")) el("privacy-notice").classList.toggle("hidden", !!state.privacyAcked);
   renderCcSettings();
   renderSanity();
   renderLockToggle();
+  applyTheme();
   applyLanguage();
   fitForecastTable();
 
@@ -4499,6 +4603,15 @@ function bindStaticListeners(){
   el("income-search").addEventListener("input", function(e){
     incomeFilter = e.target.value || "";
     renderIncomeTable();
+  });
+  el("privacy-dismiss").addEventListener("click", function(){
+    state.privacyAcked = true; saveState(); render();
+  });
+  el("theme-light").addEventListener("click", function(){
+    state.theme = "light"; saveState(); render();
+  });
+  el("theme-dark").addEventListener("click", function(){
+    state.theme = "dark"; saveState(); render();
   });
   el("lang-en").addEventListener("click", function(){
     state.lang = "en"; saveState(); render();
@@ -5175,7 +5288,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-68)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-70)";
 }
 
 loadStateAndInit();
