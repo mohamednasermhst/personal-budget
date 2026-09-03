@@ -499,6 +499,9 @@ td.positive{ color:var(--emerald); }
 .date-row input[type=number], .override-row input[type=number]{ width:66px; }
 .date-row .exp-date-day, .override-row .exp-ov-month{ width:52px; }
 .override-row .exp-ov-amount{ width:92px; }
+.del-cell{ white-space:nowrap; }
+.dup-row-btn{ background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:13px; padding:2px 4px; }
+.dup-row-btn:hover{ color:var(--gold-deep); }
 .remove-date-btn, .remove-override-btn, .del-row-btn{ background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:12px; padding:2px 4px; }
 .remove-date-btn:hover, .remove-override-btn:hover, .del-row-btn:hover{ color:var(--rust); }
 .add-date-btn, .add-override-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; }
@@ -3298,7 +3301,9 @@ function renderExpenseRow(exp, isFirst, isLast){
   row += '<td class="num"><input type="number" step="0.01" class="exp-amount" data-id="' + escapeAttr(exp.id) + '" data-field="amount" value="' + (exp.amount!=null?exp.amount:0) + '"></td>';
   row += '<td class="due-date-cell">' + dueDateCell(exp) + "</td>";
   row += '<td class="overrides-cell">' + overridesCell(exp) + "</td>";
-  row += '<td class="del-cell"><button type="button" class="del-row-btn" data-id="' + escapeAttr(exp.id) + '" title="Delete">\u2715</button></td>';
+  row += '<td class="del-cell">'
+    + '<button type="button" class="dup-row-btn" data-dup-exp="' + escapeAttr(exp.id) + '" title="' + escapeAttr(tr("Duplicate","تكرار")) + '">\u29C9</button>'
+    + '<button type="button" class="del-row-btn" data-id="' + escapeAttr(exp.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></td>';
   row += "</tr>";
   return row;
 }
@@ -3990,7 +3995,9 @@ function renderIncomeRow(src){
   row += "<td>" + incomeTypeSelect(src) + "</td>";
   row += '<td class="income-details-cell">' + incomeDetailsCell(src) + "</td>";
   row += '<td class="num">' + incomeAmountCell(src) + "</td>";
-  row += '<td><button type="button" class="del-row-btn inc-del-btn" data-id="' + escapeAttr(src.id) + '" title="Delete">\u2715</button></td>';
+  row += '<td class="del-cell">'
+    + '<button type="button" class="dup-row-btn" data-dup-inc="' + escapeAttr(src.id) + '" title="' + escapeAttr(tr("Duplicate","تكرار")) + '">\u29C9</button>'
+    + '<button type="button" class="del-row-btn inc-del-btn" data-id="' + escapeAttr(src.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></td>';
   row += "</tr>";
   return row;
 }
@@ -4109,6 +4116,51 @@ function applySnapshotToRows(rows, snapView){
   return patched;
 }
 
+/* Selecting the whole value on focus means tapping a figure and typing
+   replaces it, instead of appending to what is already there -- the
+   normal expectation for a number you are correcting.
+
+   Guarded by suppressAutoSelect: render() refocuses the field after
+   every keystroke, and re-selecting there would wipe the caret position
+   the user is mid-edit at. So this only fires on a genuine user focus,
+   never on the programmatic restore. */
+var suppressAutoSelect = false;
+
+function attachAutoSelect(){
+  // Also on click: a click that lands INSIDE an already-focused field
+  // places the caret and would otherwise beat the focusin select().
+  document.addEventListener("click", function(e){
+    if (suppressAutoSelect) return;
+    var t = e.target;
+    if (!t || t.tagName !== "INPUT") return;
+    if (!(t.getAttribute("inputmode") === "decimal" || t.type === "number")) return;
+    setTimeout(function(){
+      try { if (document.activeElement === t) t.select(); } catch(err){}
+    }, 0);
+  });
+  document.addEventListener("focusin", function(e){
+    if (suppressAutoSelect) return;
+    var t = e.target;
+    if (!t || t.tagName !== "INPUT") return;
+    var isMoney = t.getAttribute("inputmode") === "decimal" || t.type === "number";
+    var isDate  = t.type === "date";
+    if (!isMoney && !isDate) return;
+    // Deferred a tick: iOS moves the caret itself after focusin, which
+    // would undo an immediate select().
+    setTimeout(function(){
+      try {
+        if (document.activeElement !== t) return;
+        if (isDate) return;   // date inputs have no text selection at all
+        // NOTE: type="number" does not support setSelectionRange (it
+        // throws, and selectionStart reads null), but select() DOES work
+        // on it. Use select() only -- an earlier attempt via
+        // setSelectionRange silently did nothing on these fields.
+        t.select();
+      } catch(err){}
+    }, 0);
+  });
+}
+
 function describeFocus(){
   // A stable, content-independent description of whichever field is
   // focused, so it can be found again in the freshly-rebuilt DOM.
@@ -4139,6 +4191,7 @@ function restoreFocus(d){
   try { el2 = document.querySelector(sel); } catch(err){ return; }
   if (!el2) return;
   try {
+    suppressAutoSelect = true;
     el2.focus({ preventScroll: true });
     // Put the caret back where it was, so typing continues mid-word
     // instead of jumping to the start or end of the value.
@@ -4146,6 +4199,8 @@ function restoreFocus(d){
       el2.setSelectionRange(d.selStart, d.selEnd);
     }
   } catch(err){ /* not focusable any more -- harmless */ }
+  // Release on the next tick, after the focusin handler above has run.
+  setTimeout(function(){ suppressAutoSelect = false; }, 0);
 }
 
 /* The browser scrolls a partly-off-screen field into view when it gains
@@ -4619,6 +4674,23 @@ function bindStaticListeners(){
       state.collapsedIncomeTypes[type] = !state.collapsedIncomeTypes[type];
       saveState(); renderIncomeTable(); return;
     }
+    var dupI = e.target.closest("[data-dup-inc]");
+    if (dupI){
+      var sid = dupI.getAttribute("data-dup-inc");
+      var o = (state.incomeSources || []).filter(function(x){ return String(x.id) === sid; })[0];
+      if (o){
+        // Deep clone: salary tiers and rental cheque arrays must not be
+        // shared between the original and the copy.
+        var c = JSON.parse(JSON.stringify(o));
+        state.nextIncomeId = (state.nextIncomeId || 0) + 1;
+        c.id = "inc_" + state.nextIncomeId;
+        c.name = (o.name || "") + tr(" (copy)"," (نسخة)");
+        var idx = state.incomeSources.indexOf(o);
+        state.incomeSources.splice(idx + 1, 0, c);
+        saveState(); render();
+      }
+      return;
+    }
     var delBtn = e.target.closest(".inc-del-btn");
     if (delBtn){
       var id = delBtn.getAttribute("data-id");
@@ -4709,6 +4781,23 @@ function bindLedgerDelegatedEvents(){
   });
 
   table.addEventListener("click", function(e){
+    var dupBtn = e.target.closest("[data-dup-exp]");
+    if (dupBtn){
+      var srcId = dupBtn.getAttribute("data-dup-exp");
+      var orig = state.expenses.filter(function(x){ return String(x.id) === srcId; })[0];
+      if (orig){
+        // Deep clone so nested arrays (dates, overrides) are independent
+        // copies -- a shallow copy would leave the duplicate sharing them,
+        // and editing one row would silently change the other.
+        var copy = JSON.parse(JSON.stringify(orig));
+        copy.id = nextId();
+        copy.name = (orig.name || "") + tr(" (copy)"," (نسخة)");
+        var at = state.expenses.indexOf(orig);
+        state.expenses.splice(at + 1, 0, copy);
+        saveState(); render();
+      }
+      return;
+    }
     var delBtn = e.target.closest(".del-row-btn");
     if (delBtn){
       var id = delBtn.getAttribute("data-id");
@@ -4918,9 +5007,10 @@ function downloadStateAsFile(){
 
 function afterInit(){
   bindStaticListeners();
+  attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-55)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-56)";
 }
 
 loadStateAndInit();
