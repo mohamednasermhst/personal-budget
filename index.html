@@ -232,6 +232,18 @@ input[type=number], input[inputmode=decimal]{ text-align:right; }
    surrounding context won -- visible immediately on a phone. */
 input[type=date]{ text-align:left; }
 html[dir=rtl] input[type=date]{ text-align:left; direction:ltr; }
+/* iOS Safari renders a date input's value inside an internal element and
+   CENTRES it there; `text-align` on the input itself never reaches it, so
+   the field looks centred on iPhone while testing in Chromium shows it
+   correctly left-aligned. This pseudo-element is the only way to reach it.
+   Chromium ignores the rule harmlessly, which is why this class of bug
+   cannot be caught by the automated checks in this project -- it needs a
+   real iOS screenshot. */
+input[type=date]::-webkit-date-and-time-value{ text-align:left; margin:0; }
+input[type=date]::-webkit-datetime-edit{ text-align:left; }
+/* Also stop iOS from shrinking the value box, which is what leaves the
+   text floating in the middle of an otherwise full-width field. */
+input[type=date]{ -webkit-appearance:none; appearance:none; min-height:32px; }
 /* Day-of-month style boxes: short, centred. */
 .exp-dueday, .cc-statement-day-input, .cc-payment-day-input, #s1-payday-input,
 input[data-p2p-field=repayDay]{ text-align:center; }
@@ -285,8 +297,25 @@ td.positive{ color:var(--emerald); }
    "Flat agreed amount" and "Lump sum on a date" were both truncating.
    auto-fill rather than auto-fit keeps the column rhythm steady instead
    of stretching a short final row across the full width. */
-.p2p-fields{ display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px 12px; margin-bottom:12px; align-items:end; }
+/* Two columns on a phone rather than one field per line -- a single
+   column made the card very tall and read as sparse. 132px is the
+   smallest min that still fits a formatted money value ("12,000.00")
+   without clipping; below that the numbers start to truncate. */
+.p2p-fields{ display:grid; grid-template-columns:repeat(auto-fill,minmax(124px,1fr)); gap:10px 10px; margin-bottom:12px; align-items:end; }
 .p2p-fields select{ width:100%; }
+/* The two selects carry long option text ("Lump sum on a date", "Flat
+   agreed amount") and truncate badly in a half-width column, so they take
+   the full row. Same for the person's name, which is free text. */
+/* Only the two long dropdowns and the free-text name take a full row.
+   Everything else (money, currency, dates, day-of-month) pairs up. */
+.p2p-fields label.p2p-span{ grid-column:1 / -1; }
+/* Stacked payment card: date and amount side by side, note full width. */
+@media (max-width:520px){
+  .p2p-pay-table tr{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; align-items:end; }
+  /* Date and Amount pair up; Note and the Remove action take full rows. */
+  .p2p-pay-table td:nth-child(3){ grid-column:1 / -1; }
+  .p2p-pay-table td:last-child{ grid-column:1 / -1; text-align:right; }
+}
 .p2p-field{ display:flex; flex-direction:column; gap:4px; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); }
 .p2p-field input, .p2p-field select{ font-family:'IBM Plex Mono',monospace; font-size:13px; padding:6px 8px; border:1px solid var(--rule-strong); border-radius:6px; background:var(--card); color:var(--ink); text-transform:none; letter-spacing:0; }
 .p2p-pay-head{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--gold-deep); font-weight:600; margin:14px 0 6px; }
@@ -321,7 +350,7 @@ td.positive{ color:var(--emerald); }
   .p2p-pay-table{ table-layout:auto; }
   .p2p-pay-table colgroup, .p2p-pay-table col{ display:none; }
   .p2p-pay-table, .p2p-pay-table tbody, .p2p-pay-table tr, .p2p-pay-table td{ display:block; width:100%; }
-  .p2p-pay-table tr{ border:1px solid var(--rule); border-radius:7px; padding:8px; margin-bottom:8px; }
+  .p2p-pay-table tr{ border:none; border-top:1px solid var(--rule); border-radius:0; padding:10px 0 4px; margin-bottom:2px; }
   .p2p-pay-table td{ border-top:none; padding:3px 0; }
   .p2p-pay-table td::before{ content:attr(data-label); display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:2px; }
   .p2p-pay-table td:last-child{ text-align:right; }
@@ -590,14 +619,6 @@ td.positive{ color:var(--emerald); }
         <input type="date" id="asof-date-input">
       </label>
       <p class="field-hint" data-i18n="h_snapshot">Everything below reflects this exact date, as though you had travelled to it &mdash; which budget period you are in, what has already happened, and what is still ahead. Change the date and the whole section updates. Credit card charges follow their own statement and payment dates instead, set per category in the Expense Ledger.</p>
-      <div id="cc-defer-block" class="hidden">
-        <label class="stilldue-line">
-          <input type="checkbox" id="cc-defer-checkbox">
-          <span data-i18n="l_defer">Defer credit card payment to</span>
-          <input type="date" id="cc-defer-date-input" class="hidden">
-        </label>
-        <p class="field-hint" data-i18n="h_defer">Treats every outstanding credit card charge this period as a single payment due on this date, overriding the usual statement and payment days. Use this when you know you are settling the card earlier or later than normal this cycle.</p>
-      </div>
     </div>
 
     <div id="deficit-banner" class="deficit-banner" style="display:none;"></div>
@@ -916,7 +937,6 @@ function formatDueDate(y, m, d){
   return toArabicDigits((d<10?"0"+d:""+d)) + "-" + monthShort(m) + "-" + toArabicDigits(y);
 }
 function dueColumnLabel(item){
-  if (item.deferredY !== undefined) return formatDueDate(item.deferredY, item.deferredM, item.deferredD);
   if (item.stmtY !== undefined) return formatDueDate(item.stmtY, item.stmtM, item.stmtD);
   return formatDueDate(item.dueY, item.dueM, item.dueD);
 }
@@ -1667,29 +1687,67 @@ function periodIncomeTotal(yearA, monthA, yearB, monthB, incomeDay, sinceAbs, up
   return { income: total, items: items, pendingIncome: pendingTotal, pendingItems: pendingItems };
 }
 
-function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBeforeAbs, deferAbs, deferDate){
-  // deferAbs/deferDate: when set (period0 only, see computeForecast), every
-  // statementBilling item's effective date is OVERRIDDEN to this one date
-  // instead of its normally-computed statement/payment-day date -- an
-  // explicit user decision ("I'm pushing this cycle's card payment to X"),
-  // not a recalculation of the normal cycle. Every other category is
-  // unaffected.
+function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBeforeAbs){
+  // Which period an occurrence belongs to depends on WHEN THE MONEY
+  // ACTUALLY LEAVES, not when the transaction happened.
+  //
+  // For ordinary expenses those are the same date, so they pool by their
+  // own due date as before.
+  //
+  // For statementBilling categories they are NOT the same. A card
+  // transaction is never paid individually: it lands on a statement
+  // (statement day), and the whole statement is settled in one payment
+  // (payment day). So the transaction date only decides WHICH statement
+  // it appears on -- the period it costs you is the period containing
+  // that statement's PAYMENT date. Example with statement day 6 and
+  // payment day 24: a charge on 20 Aug falls on the 6 Sep statement,
+  // which is paid 24 Sep, so it belongs to the 24 Sep - 23 Oct period,
+  // NOT to 24 Aug - 23 Sep. Pooling it by its raw date (the old
+  // behaviour) charged it a full month too early.
+  //
+  // Because a statement item's payment date can be a month or two after
+  // its transaction date, the scan window has to reach further back than
+  // the period itself -- hence the wider walk below for those categories.
+  var periodStartAbs = toAbsDay(yearA, monthA, incomeDay);
+  var periodEndExAbs = toAbsDay(yearB, monthB, incomeDay);
   var occs = [];
   monthOccurrences(yearA, monthA).forEach(function(o){
+    if (categoryHasBehavior(o.category, "statementBilling")) return; // handled below
     if (o.day >= incomeDay) occs.push({ y: yearA, m: monthA, d: o.day, amount: o.amount, category: o.category, name: o.name });
   });
   monthOccurrences(yearB, monthB).forEach(function(o){
+    if (categoryHasBehavior(o.category, "statementBilling")) return; // handled below
     if (o.day < incomeDay) occs.push({ y: yearB, m: monthB, d: o.day, amount: o.amount, category: o.category, name: o.name });
   });
+  // Statement-billed items: include any whose PAYMENT date lands inside
+  // this period, wherever the transaction itself sits. Scanning three
+  // months back and one forward comfortably covers the widest normal
+  // statement-to-payment lag without risking a miss.
+  // Deduplicated by (name, category, actual date): monthOccurrences() for a
+  // "custom"-dates expense can return the same dated entry while scanning
+  // a neighbouring month, so a naive multi-month walk counts it several
+  // times. The key is the occurrence's own identity, not the month we
+  // happened to find it in.
+  var seenStmt = {};
+  for (var so = -3; so <= 1; so++){
+    var sm = addMonths(yearA, monthA, so);
+    monthOccurrences(sm.y, sm.m).forEach(function(o){
+      if (!categoryHasBehavior(o.category, "statementBilling")) return;
+      var key = o.name + "|" + o.category + "|" + sm.y + "-" + sm.m + "-" + o.day + "|" + o.amount;
+      if (seenStmt[key]) return;
+      var eff = statementEffectiveAbs(o.category, sm.y, sm.m, o.day);
+      if (eff >= periodStartAbs && eff < periodEndExAbs){
+        seenStmt[key] = true;
+        occs.push({ y: sm.y, m: sm.m, d: o.day, amount: o.amount, category: o.category, name: o.name });
+      }
+    });
+  }
   var total = 0, home = 0, items = [], paidTotal = 0, paidItems = [];
   occs.forEach(function(o){
     var isStatementItem = categoryHasBehavior(o.category, "statementBilling");
-    var deferred = isStatementItem && deferAbs !== null;
-    var effAbs = deferred ? deferAbs : (isStatementItem ? statementEffectiveAbs(o.category, o.y, o.m, o.d) : toAbsDay(o.y, o.m, o.d));
+    var effAbs = isStatementItem ? statementEffectiveAbs(o.category, o.y, o.m, o.d) : toAbsDay(o.y, o.m, o.d);
     var item = { name: o.name, category: o.category, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d };
-    if (deferred){
-      item.deferredY = deferDate.y; item.deferredM = deferDate.m; item.deferredD = deferDate.d;
-    } else if (isStatementItem){
+    if (isStatementItem){
       var stmt = statementMonthFor(o.category, o.y, o.m, o.d);
       item.stmtY = stmt.y; item.stmtM = stmt.m; item.stmtD = getCategoryStatementDay(o.category);
     }
@@ -1763,80 +1821,6 @@ function walkCalendarMonths(fromY, fromM, toY, toM, cb){
   }
 }
 
-function computeCashOnHandToday(walkToAbs, deferScopeStartAbs, deferScopeEndExAbs){
-  // walkToAbs: the absolute date to derive the balance AS OF. Historically
-  // this was always viewAsOfDate directly; now the snapshot-per-period
-  // rework (see "Snapshot view" in SKILL.md) needs to walk to the START
-  // of whichever period is being viewed, not necessarily all the way to
-  // asOfDate itself -- so this is now an explicit parameter instead of an
-  // implicit global read. Pass null to fall back to viewAsOfDate (used by
-  // the one remaining direct caller that still means "as of the global
-  // as-of date").
-  //
-  // deferScopeStartAbs/deferScopeEndExAbs: the current pay period's own
-  // absolute date range [start, end) -- needed ONLY to correctly scope
-  // the credit card "defer payment to" override (see periodExpenseTotal):
-  // that override must apply exclusively to occurrences that are actually
-  // PART OF the current period's own pool, not to every recurring
-  // instance of a statementBilling item this walk happens to pass over.
-  // Without this scoping, forcing every occurrence's effective date to
-  // the SAME single deferred date would also drag in unrelated instances
-  // from adjacent months/cycles that happen to fall in the wider
-  // snapshot-to-walkTo window, inflating "spent" beyond what Total
-  // Expense actually attributes to this period -- verified this breaks
-  // the Remaining Cash invariant if left unscoped.
-  //
-  // Real cash-on-hand is only ever recorded on some specific date (when the
-  // user last checked their balance) -- it goes stale the moment time
-  // passes and bills clear. Instead of asking the user to keep re-typing
-  // an updated figure, derive today's balance from the last known snapshot
-  // plus whatever's happened since (using the same credit-card-aware
-  // effective date as the "still due" exclusion -- a card charge doesn't
-  // leave the account on its charge date, only on its statement date).
-  //
-  // Boundary convention: same-day inclusive (`<= walkToAbs`), matching the
-  // "still due" exclusion exactly -- explicitly confirmed by the user
-  // (worked examples: a snapshot of 10,000, a 2,000 expense checked as-of
-  // the SAME day it's due should already show 8,000, not wait a day). If
-  // you ever touch this boundary, touch periodExpenseTotal()'s exclusion
-  // together with it and re-verify Remaining Cash stays exactly constant
-  // across the day-of/day-after transition.
-  //
-  // Known limitation: this assumes anything with an effective date in the
-  // window has actually been paid. That's a safe assumption for autopay /
-  // standing instructions, less so for anything the user pays manually and
-  // might be late or early on -- there's no way to know that from the
-  // ledger alone.
-  var snap = parseISODate(state.cashOnHandDate) || parseISODate(todayISO());
-  var walkTo = (walkToAbs !== null && walkToAbs !== undefined) ? absToYMD(walkToAbs) : (parseISODate(viewAsOfDate) || parseISODate(todayISO()));
-  var base = Number(state.cashOnHand) || 0;
-  var snapAbs = toAbsDay(snap.y, snap.m, snap.d);
-  var toAbs = (walkToAbs !== null && walkToAbs !== undefined) ? walkToAbs : toAbsDay(walkTo.y, walkTo.m, walkTo.d);
-  if (toAbs <= snapAbs) return base;
-
-  //
-  // Income is deliberately NOT added back in here, even though it's
-  // received in this same window. Income now lives entirely in
-  // periodIncomeTotal()'s (sinceAbs, uptoAbs] window (see "Income
-  // realized, not projected" in SKILL.md) -- if this function ALSO added
-  // received income, the same money would be counted twice: once here,
-  // once in Total Income. This function's job is now just "the balance
-  // net of what's been spent since the snapshot" -- income is someone
-  // else's job.
-  var spent = 0;
-  var deferAbs = (state.ccDeferEnabled && state.ccDeferDate) ? (function(){ var dd = parseISODate(state.ccDeferDate); return dd ? toAbsDay(dd.y, dd.m, dd.d) : null; })() : null;
-  walkCalendarMonths(snap.y, snap.m, walkTo.y, walkTo.m, function(y, m){
-    monthOccurrences(y, m).forEach(function(o){
-      var isStatementItem = categoryHasBehavior(o.category, "statementBilling");
-      var rawAbs = toAbsDay(y, m, o.day);
-      var inCurrentPeriod = deferScopeStartAbs !== undefined && deferScopeStartAbs !== null && rawAbs >= deferScopeStartAbs && rawAbs < deferScopeEndExAbs;
-      var effAbs = (isStatementItem && deferAbs !== null && inCurrentPeriod) ? deferAbs : (isStatementItem ? statementEffectiveAbs(o.category, y, m, o.day) : rawAbs);
-      if (effAbs > snapAbs && effAbs <= toAbs) spent += o.amount;
-    });
-  });
-  return base - spent;
-}
-
 function computeForecast(){
   var realYear = todayYear();
   var periodOffset = (state.forecastYear - realYear) * 12;
@@ -1882,16 +1866,7 @@ function computeForecast(){
     var periodEffAsOf = periodActive ? Math.min(asOfAbs, periodIEndExAbs - 1) : null;
     var excludeExpAbs = (periodActive && viewExcludeAlreadyPaid) ? periodEffAsOf : null;
     // Credit card defer override (explicit user decision, see the
-    // "Defer credit card payment to" control in Section 1) only applies
-    // to the CURRENT period -- it represents "I'm pushing THIS cycle's
-    // payment to a specific date," not a permanent change to the normal
-    // statement/payment-day cycle used for every other period.
-    var deferAbs = null, deferDateParts = null;
-    if (isCurrent && state.ccDeferEnabled && state.ccDeferDate){
-      deferDateParts = parseISODate(state.ccDeferDate);
-      if (deferDateParts) deferAbs = toAbsDay(deferDateParts.y, deferDateParts.m, deferDateParts.d);
-    }
-    var res = periodExpenseTotal(a.y, a.m, b.y, b.m, incomeDay, excludeExpAbs, deferAbs, deferDateParts);
+    var res = periodExpenseTotal(a.y, a.m, b.y, b.m, incomeDay, excludeExpAbs);
     // Income realized, not projected (explicit user preference, confirmed
     // over the default of counting still-expected income the way expenses
     // count still-due amounts): a source dated later than this period's
@@ -2089,8 +2064,6 @@ function makeDefaultState(){
     }),
     nextIncomeId: DEFAULT_INCOME_SOURCES.length,
     hasCashOnHand: DEFAULT_HAS_CASH_ON_HAND,
-    ccDeferEnabled: true,
-    ccDeferDate: "2026-08-24",
     cashOnHand: DEFAULT_CASH_ON_HAND,
     cashOnHandAssumed: DEFAULT_CASH_ON_HAND_ASSUMED,
     cashOnHandAdjustmentRef: { type: "income", id: "inc_2" },
@@ -2270,13 +2243,8 @@ function computeCashOnHandGap(){
   // (6,070.34 in the reported case). The whole promise of this feature
   // is "accept the suggestion and Total Cash matches what you typed",
   // which only holds if both sides measure the same thing.
-  var deferAbs = null, deferDateParts = null;
-  if (state.ccDeferEnabled && state.ccDeferDate){
-    deferDateParts = parseISODate(state.ccDeferDate);
-    if (deferDateParts) deferAbs = toAbsDay(deferDateParts.y, deferDateParts.m, deferDateParts.d);
-  }
   var incRes = periodIncomeTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, null, snapAbs);
-  var expRes = periodExpenseTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, snapAbs, deferAbs, deferDateParts);
+  var expRes = periodExpenseTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, snapAbs);
   var predicted = incRes.income - expRes.paidExpense;
   var gap = (Number(state.cashOnHand) || 0) - predicted;
   return { predicted: predicted, gap: gap, snapAbs: snapAbs };
@@ -2554,13 +2522,7 @@ function computeSnapshotView(mainRows){
   }
   var leftoverStart = mainIdx !== -1 ? mainRows[mainIdx].leftover : 0;
 
-  var deferAbs = null, deferDateParts = null;
-  if (state.ccDeferEnabled && state.ccDeferDate){
-    deferDateParts = parseISODate(state.ccDeferDate);
-    if (deferDateParts) deferAbs = toAbsDay(deferDateParts.y, deferDateParts.m, deferDateParts.d);
-  }
-
-  var expRes = periodExpenseTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, asOfAbs, deferAbs, deferDateParts);
+  var expRes = periodExpenseTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, asOfAbs);
   // No sinceAbs floor needed -- see the matching note in computeForecast().
   var incRes = periodIncomeTotal(pStart.y, pStart.m, pEnd.y, pEnd.m, incomeDay, null, asOfAbs);
 
@@ -2775,12 +2737,6 @@ function renderSection1(rows){
   renderCashOnHandReconciliation();
 
   var hasStatementCategory = categoriesWithBehavior("statementBilling").length > 0;
-  el("cc-defer-block").classList.toggle("hidden", !hasStatementCategory);
-  el("cc-defer-checkbox").checked = !!state.ccDeferEnabled;
-  el("cc-defer-date-input").classList.toggle("hidden", !state.ccDeferEnabled);
-  if (state.ccDeferEnabled){
-    el("cc-defer-date-input").value = state.ccDeferDate || todayISO();
-  }
 
   el("s1-period-label").textContent = periodLabel(row0);
   el("s1-period-days").textContent = formatDayRange(row0, getPrimaryIncomeDay());
@@ -3554,28 +3510,28 @@ function renderP2P(){
     if (open){
       html += '<div class="p2p-body">'
         + '<div class="p2p-fields">'
-        + '<label class="p2p-field">' + tr("Person","الشخص") + '<input type="text" data-p2p-field="counterparty" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.counterparty || "") + '"></label>'
-        + '<label class="p2p-field">' + tr("Principal","أصل المبلغ") + '<input type="text" inputmode="decimal" data-p2p-field="principal" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.principal)||0) + '"></label>'
-        + '<label class="p2p-field">' + tr("Interest","الفائدة") + '<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
+        + '<label class="p2p-field p2p-span">' + tr("Person","الشخص") + '<input type="text" data-p2p-field="counterparty" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.counterparty || "") + '"></label>'
+        + '<label class="p2p-field p2p-half">' + tr("Principal","أصل المبلغ") + '<input type="text" inputmode="decimal" data-p2p-field="principal" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.principal)||0) + '"></label>'
+        + '<label class="p2p-field p2p-half">' + tr("Currency","العملة") + '<input type="text" maxlength="6" data-p2p-field="currency" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.currency || baseCurrency()) + '"></label>'
+        + (p2pIsForeign(loan)
+            ? '<label class="p2p-field p2p-half">1 ' + escapeHtml((loan.currency||"").toUpperCase()) + ' = ? ' + escapeHtml(baseCurrency()) + '<input type="text" inputmode="decimal" data-p2p-field="fxRate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.fxRate !== undefined && loan.fxRate !== null && loan.fxRate !== "" ? loan.fxRate : "") + '" placeholder="e.g. 3.67"></label>'
+            : '')
+        + '<label class="p2p-field p2p-span">' + tr("Interest","الفائدة") + '<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
           + '<option value="flat"' + (loan.interestMode !== "rate" ? " selected" : "") + '>' + tr("Flat agreed amount","مبلغ متفق عليه") + '</option>'
           + '<option value="rate"' + (loan.interestMode === "rate" ? " selected" : "") + '>' + tr("Annual rate (compounds)","نسبة سنوية (مركبة)") + '</option>'
         + '</select></label>'
         + (loan.interestMode === "rate"
-            ? '<label class="p2p-field">' + tr("Rate % / year","النسبة % سنوياً") + '<input type="text" inputmode="decimal" data-p2p-field="interestRatePct" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (Number(loan.interestRatePct)||0) + '"></label>'
-            : '<label class="p2p-field">' + tr("Interest amount","مبلغ الفائدة") + '<input type="text" inputmode="decimal" data-p2p-field="interestAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(p2pInterestAmount(loan)) + '"></label>')
-        + '<label class="p2p-field">' + tr("Currency","العملة") + '<input type="text" maxlength="6" data-p2p-field="currency" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.currency || baseCurrency()) + '"></label>'
-        + (p2pIsForeign(loan)
-            ? '<label class="p2p-field">1 ' + escapeHtml((loan.currency||"").toUpperCase()) + ' = ? ' + escapeHtml(baseCurrency()) + '<input type="text" inputmode="decimal" data-p2p-field="fxRate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.fxRate !== undefined && loan.fxRate !== null && loan.fxRate !== "" ? loan.fxRate : "") + '" placeholder="e.g. 3.67"></label>'
-            : '')
-        + '<label class="p2p-field">' + tr("Date of loan","تاريخ القرض") + '<input type="date" data-p2p-field="date" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.date || "") + '"></label>'
-        + '<label class="p2p-field">' + tr("Repayment","السداد") + '<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
+            ? '<label class="p2p-field p2p-half">' + tr("Rate % / year","النسبة % سنوياً") + '<input type="text" inputmode="decimal" data-p2p-field="interestRatePct" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (Number(loan.interestRatePct)||0) + '"></label>'
+            : '<label class="p2p-field p2p-half">' + tr("Interest amount","مبلغ الفائدة") + '<input type="text" inputmode="decimal" data-p2p-field="interestAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(p2pInterestAmount(loan)) + '"></label>')
+        + '<label class="p2p-field p2p-half">' + tr("Date of loan","تاريخ القرض") + '<input type="date" data-p2p-field="date" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.date || "") + '"></label>'
+        + '<label class="p2p-field p2p-span">' + tr("Repayment","السداد") + '<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
           + '<option value="lump"' + (loan.repayType==="lump"?" selected":"") + '>' + tr("Lump sum on a date","دفعة واحدة بتاريخ") + '</option>'
           + '<option value="monthly"' + (loan.repayType==="monthly"?" selected":"") + '>' + tr("Fixed monthly","قسط شهري ثابت") + '</option>'
           + '<option value="open"' + (loan.repayType==="open"?" selected":"") + '>' + tr("Open-ended (no schedule)","مفتوح (بلا جدول)") + '</option>'
         + '</select></label>';
 
       if (loan.repayType === "lump"){
-        html += '<label class="p2p-field">' + tr("Due date","تاريخ الاستحقاق") + '<input type="date" data-p2p-field="repayDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayDate || "") + '"></label>';
+        html += '<label class="p2p-field p2p-half">' + tr("Due date","تاريخ الاستحقاق") + '<input type="date" data-p2p-field="repayDate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.repayDate || "") + '"></label>';
       } else if (loan.repayType === "monthly"){
         html += '<label class="p2p-field">' + tr("Amount / month","المبلغ شهرياً") + '<input type="text" inputmode="decimal" data-p2p-field="repayAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(Number(loan.repayAmount)||0) + '"></label>'
           + '<label class="p2p-field">' + tr("Day of month","يوم الشهر") + '<input type="number" min="1" max="31" data-p2p-field="repayDay" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.repayDay || 1) + '"></label>'
@@ -4096,15 +4052,6 @@ function bindStaticListeners(){
   el("cashonhand-log-toggle").addEventListener("click", function(){
     cashOnHandLogOpen = !cashOnHandLogOpen;
     render();
-  });
-  el("cc-defer-checkbox").addEventListener("change", function(e){
-    state.ccDeferEnabled = e.target.checked;
-    if (e.target.checked && !state.ccDeferDate) state.ccDeferDate = todayISO();
-    saveState(); render();
-  });
-  el("cc-defer-date-input").addEventListener("change", function(e){
-    state.ccDeferDate = e.target.value || todayISO();
-    saveState(); render();
   });
   el("s1-payday-input").addEventListener("change", function(e){
     var day = clampDay(e.target.value);
@@ -4708,7 +4655,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-39)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-43)";
 }
 
 loadStateAndInit();
