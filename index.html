@@ -137,6 +137,16 @@ html[dir=rtl] #forecast-table td, html[dir=rtl] .chart-detail-line strong{
 }
 html[dir=rtl] .num, html[dir=rtl] td.num{ text-align:left; }
 html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-align:left; }
+.unlock-overlay{ position:fixed; inset:0; z-index:9999; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; padding:24px; }
+.unlock-card{ background:var(--card); border:1px solid var(--rule); border-radius:12px;
+  padding:26px 24px; max-width:380px; width:100%; box-shadow:var(--shadow); }
+.unlock-card h2{ margin:0 0 8px; font-size:19px; }
+.unlock-card p{ margin:0 0 16px; font-size:13px; color:var(--ink-soft); line-height:1.55; }
+.unlock-card input{ width:100%; margin-bottom:12px; }
+.unlock-card button{ width:100%; }
+.unlock-error{ margin:10px 0 0 !important; color:var(--rust); font-size:12.5px; min-height:1em; }
+.lock-toggle{ float:right; margin-left:10px; }
 .privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
   border:1px solid var(--rule); border-radius:8px; padding:10px 13px; margin:6px 2px 16px;
   font-size:12px; line-height:1.5; color:var(--ink-soft); }
@@ -525,6 +535,15 @@ td.positive{ color:var(--emerald); }
 </style>
 </head>
 <body>
+<div id="unlock-overlay" class="unlock-overlay hidden">
+  <div class="unlock-card">
+    <h2 data-i18n="lk_title">Enter your passphrase</h2>
+    <p data-i18n="lk_body">Your figures are encrypted on this device. Without the passphrase they cannot be read &mdash; not by this app, not by anyone.</p>
+    <input type="password" id="unlock-input" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button type="button" id="unlock-submit" class="primary-btn" data-i18n="lk_unlock">Unlock</button>
+    <p id="unlock-error" class="unlock-error"></p>
+  </div>
+</div>
 <div class="page">
 
   <header class="ledger-header">
@@ -555,6 +574,7 @@ td.positive{ color:var(--emerald); }
     <span class="privacy-icon" aria-hidden="true">&#9737;</span>
     <div>
       <strong data-i18n="pv_title">Your figures stay on this device</strong>
+      <button type="button" id="lock-toggle-btn" class="link-btn lock-toggle"></button>
       <span data-i18n="pv_body">Nothing you enter is sent anywhere, and no account is used &mdash; the numbers live in this browser&rsquo;s private storage on this phone alone, reachable only by this app. Anyone who can unlock your phone can open it, so keep your screen lock on. Clearing your browser data will erase it, so keep a backup.</span>
     </div>
   </div>
@@ -785,7 +805,6 @@ td.positive{ color:var(--emerald); }
   
 
   <footer class="page-footer">
-    <button id="force-update-btn" class="ghost-btn" type="button" data-i18n="btn_forceupdate">Check for updates</button>
     <button id="reset-btn" class="ghost-btn" type="button" data-i18n="btn_reset">Reset to defaults</button>
     <button id="export-btn" class="ghost-btn" type="button" data-i18n="btn_export">Export backup</button>
     <button id="import-btn" class="ghost-btn" type="button" data-i18n="btn_import">Import backup</button>
@@ -918,6 +937,10 @@ function dueColumnLabel(item){
 var MAX_YEARS_AHEAD = 6;
 var MIN_FORECAST_SCALE = 0.72;
 var STORAGE_KEY = "household-budget-dashboard-state-v3";
+// True once state has changed since the last export. Declared here, above
+// saveState(), so it does not depend on var hoisting.
+var cashDataDirty = false;
+var sessionSalt = null; // salt for the current session key; not secret
 
 var BUILTIN_CATEGORIES = ["Education","Property","Transport","Household","Utilities","Home Expense","Lending"];
 // The category P2P borrowed-money repayments are filed under. A real,
@@ -2103,18 +2126,111 @@ function makeDefaultState(){
 
 var state = makeDefaultState();
 
+/* ===== Optional passphrase encryption =====================================
+   REAL encryption, not obfuscation. The key is derived from a passphrase
+   the user types and is NEVER stored anywhere -- so the saved data is
+   genuinely unreadable without it, including to someone holding the
+   unlocked phone.
+
+   That is exactly why forgetting the passphrase means the data is gone:
+   there is no recovery path, by design. If there were one, the
+   encryption would be worthless. The UI says so plainly before the user
+   opts in, and points them at a backup first.
+
+   Crypto choices, all standard Web Crypto:
+     - PBKDF2-SHA256, 250k iterations, 16-byte random salt -> slow to
+       brute-force a weak passphrase.
+     - AES-GCM with a 12-byte random IV -> gives integrity as well as
+       secrecy, so a wrong passphrase fails cleanly instead of returning
+       garbage that might be half-parsed.
+   Salt and IV are stored alongside the ciphertext; neither is secret.
+   ======================================================================= */
+var ENC_PREFIX = "HBDv1:";           // marks a stored blob as encrypted
+var sessionKey = null;               // CryptoKey for this session only
+var encryptionOn = false;
+
+function cryptoAvailable(){
+  return !!(window.crypto && window.crypto.subtle && window.TextEncoder);
+}
+
+function b64(buf){
+  var b = new Uint8Array(buf), s = "";
+  for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+function unb64(str){
+  var s = atob(str), b = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+  return b;
+}
+
+function deriveKey(pass, salt){
+  var enc = new TextEncoder();
+  return window.crypto.subtle.importKey("raw", enc.encode(pass), "PBKDF2", false, ["deriveKey"])
+    .then(function(base){
+      return window.crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: 250000, hash: "SHA-256" },
+        base, { name: "AES-GCM", length: 256 }, false, ["encrypt","decrypt"]);
+    });
+}
+
+function encryptState(json, key, salt){
+  var iv = window.crypto.getRandomValues(new Uint8Array(12));
+  return window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, new TextEncoder().encode(json))
+    .then(function(ct){
+      return ENC_PREFIX + b64(salt) + "." + b64(iv) + "." + b64(ct);
+    });
+}
+
+function decryptState(blob, pass){
+  var body = blob.slice(ENC_PREFIX.length).split(".");
+  if (body.length !== 3) return Promise.reject(new Error("bad format"));
+  var salt = unb64(body[0]), iv = unb64(body[1]), ct = unb64(body[2]);
+  return deriveKey(pass, salt).then(function(key){
+    return window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, ct)
+      .then(function(pt){
+        // AES-GCM verifies integrity, so a wrong passphrase throws here
+        // rather than yielding plausible-looking garbage.
+        return { json: new TextDecoder().decode(pt), key: key, salt: salt };
+      });
+  });
+}
+
+function isEncryptedBlob(raw){
+  return typeof raw === "string" && raw.indexOf(ENC_PREFIX) === 0;
+}
+
 function saveState(){
+  // Every real state change marks the data as differing from the last
+  // exported backup. This is what drives the "changes not backed up yet"
+  // prompt -- the user should never have to remember whether the copy in
+  // their notes is current.
+  cashDataDirty = true;
   var json = JSON.stringify(state);
+  if (encryptionOn && sessionKey && sessionSalt){
+    // Write the ENCRYPTED blob. Deliberately not awaited: saving is
+    // fire-and-forget everywhere else in this file, and blocking every
+    // keystroke on a crypto round-trip would be worse than a few ms of
+    // lag before the write lands.
+    encryptState(json, sessionKey, sessionSalt).then(function(blob){
+      persistRaw(blob);
+    }).catch(function(){ /* leave the previous good blob in place */ });
+    return;
+  }
+  persistRaw(json);
+}
+
+function persistRaw(payload){
   try {
     if (typeof window.storage !== "undefined" && window.storage){
-      window.storage.set(STORAGE_KEY, json, false).catch(function(){});
+      window.storage.set(STORAGE_KEY, payload, false).catch(function(){});
     }
   } catch(e){ /* Claude artifact storage not available here */ }
   try {
     if (typeof window.localStorage !== "undefined" && window.localStorage){
-      window.localStorage.setItem(STORAGE_KEY, json);
+      window.localStorage.setItem(STORAGE_KEY, payload);
     }
-  } catch(e){ /* localStorage unavailable (private mode, disabled, etc.) -- state stays in-memory only */ }
+  } catch(e){ /* localStorage unavailable -- state stays in-memory only */ }
 }
 
 function applyLoadedState(raw){
@@ -2156,8 +2272,48 @@ function loadStateAndInit(){
       return;
     }
   } catch(e){ /* fall through */ }
+  var raw = null;
+  try {
+    if (typeof window.localStorage !== "undefined" && window.localStorage){
+      raw = window.localStorage.getItem(STORAGE_KEY);
+    }
+  } catch(e){}
+  if (isEncryptedBlob(raw)){
+    // Locked: show the unlock screen INSTEAD of the dashboard. Nothing
+    // is rendered from state until the passphrase decrypts it, so a
+    // locked device shows no figures at all.
+    encryptionOn = true;
+    promptUnlock(raw);
+    return;
+  }
   loadFromLocalStorage();
   afterInit();
+}
+
+function promptUnlock(raw, errMsg){
+  var ov = el("unlock-overlay");
+  ov.classList.remove("hidden");
+  el("unlock-error").textContent = errMsg || "";
+  el("unlock-input").value = "";
+  setTimeout(function(){ try { el("unlock-input").focus(); } catch(e){} }, 60);
+  el("unlock-submit").onclick = function(){
+    var pass = el("unlock-input").value || "";
+    if (!pass){ el("unlock-error").textContent = tr("Enter your passphrase.","أدخل عبارة المرور."); return; }
+    el("unlock-submit").disabled = true;
+    el("unlock-error").textContent = tr("Unlocking\u2026","جارٍ الفتح…");
+    decryptState(raw, pass).then(function(res){
+      sessionKey = res.key; sessionSalt = res.salt; encryptionOn = true;
+      applyLoadedState(res.json);
+      ov.classList.add("hidden");
+      el("unlock-submit").disabled = false;
+      afterInit();
+    }).catch(function(){
+      el("unlock-submit").disabled = false;
+      // AES-GCM integrity failure -- almost always a wrong passphrase.
+      promptUnlock(raw, tr("That passphrase did not work. Try again.","عبارة المرور غير صحيحة. حاول مرة أخرى."));
+    });
+  };
+  el("unlock-input").onkeydown = function(e){ if (e.key === "Enter") el("unlock-submit").click(); };
 }
 
 function findExpense(id){
@@ -3316,6 +3472,9 @@ var I18N = {
     k_curhint: "— العملة التي تُعرض بها كل الأرقام في هذه اللوحة",
     k_basecur: "العملة الأساسية",
     pv_title: "أرقامك تبقى على هذا الجهاز",
+    lk_title: "أدخل عبارة المرور",
+    lk_body: "أرقامك مشفّرة على هذا الجهاز. بدون عبارة المرور لا يمكن قراءتها — لا بواسطة هذا التطبيق ولا بواسطة أي أحد.",
+    lk_unlock: "فتح",
     pv_body: "لا يُرسل أي شيء تُدخله إلى أي مكان، ولا يُستخدم أي حساب — الأرقام محفوظة في ذاكرة هذا المتصفح على هذا الهاتف وحده، ولا يصل إليها سوى هذا التطبيق. أي شخص يستطيع فتح هاتفك يستطيع فتحها، لذا أبقِ قفل الشاشة مفعّلاً. مسح بيانات المتصفح سيمحوها، لذا احتفظ بنسخة احتياطية.",
     k_addadhoc: "+ إضافة مصروف من المدخرات",
     l_defer: "تأجيل سداد البطاقة إلى",
@@ -3427,24 +3586,44 @@ function markBackupTaken(){
   saveState();
 }
 
+function renderLockToggle(){
+  var btn = el("lock-toggle-btn");
+  if (!btn) return;
+  if (!cryptoAvailable()){ btn.classList.add("hidden"); return; }
+  btn.classList.remove("hidden");
+  btn.textContent = encryptionOn
+    ? tr("Passphrase on \u2014 turn off","عبارة المرور مفعّلة — إيقاف")
+    : tr("Protect with a passphrase","حماية بعبارة مرور");
+}
+
 function renderBackupReminder(){
   var box = el("backup-reminder");
   if (!box) return;
   var snoozed = state.backupReminderSnoozedUntil;
-  if (snoozed){
+  if (snoozed && !cashDataDirty){
     var sd = daysSince(snoozed);
     // snoozedUntil is a future date; daysSince is negative until it passes.
     if (sd !== null && sd < 0){ box.classList.add("hidden"); return; }
   }
   var since = daysSince(state.lastBackupAt);
   var never = (since === null);
-  if (!never && since < BACKUP_REMIND_AFTER_DAYS){ box.classList.add("hidden"); return; }
+  // Unsaved changes take priority over the day-based schedule: if the
+  // numbers have moved since the last export, the copy in the user's
+  // notes is stale NOW, not in five days.
+  if (!never && since < BACKUP_REMIND_AFTER_DAYS && !cashDataDirty){
+    box.classList.add("hidden"); return;
+  }
 
   var urgent = never ? false : (since >= BACKUP_URGENT_AFTER_DAYS);
   box.classList.toggle("urgent", urgent);
   if (never){
     el("backup-reminder-title").textContent = tr("Back up your data", "\u0627\u062d\u0641\u0638 \u0646\u0633\u062e\u0629 \u0645\u0646 \u0628\u064a\u0627\u0646\u0627\u062a\u0643");
     el("backup-reminder-body").textContent = tr("Your figures live only on this device. If the browser clears its storage \u2014 which can happen on a phone after about a week unused \u2014 they are gone. A backup takes a few seconds and restores in one paste.", "\u0623\u0631\u0642\u0627\u0645\u0643 \u0645\u062d\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632 \u0641\u0642\u0637. \u0625\u0630\u0627 \u0645\u0633\u062d \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0630\u0627\u0643\u0631\u062a\u0647 \u2014 \u0648\u0647\u0630\u0627 \u0648\u0627\u0631\u062f \u0639\u0644\u0649 \u0627\u0644\u0647\u0627\u062a\u0641 \u0628\u0639\u062f \u0646\u062d\u0648 \u0623\u0633\u0628\u0648\u0639 \u062f\u0648\u0646 \u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u2014 \u0641\u0633\u062a\u0636\u064a\u0639. \u0627\u0644\u0646\u0633\u062e \u064a\u0633\u062a\u063a\u0631\u0642 \u062b\u0648\u0627\u0646\u064a \u0648\u0627\u0644\u0627\u0633\u062a\u0639\u0627\u062f\u0629 \u0628\u0644\u0635\u0642\u0629 \u0648\u0627\u062d\u062f\u0629.");
+  } else if (cashDataDirty && since < BACKUP_URGENT_AFTER_DAYS){
+    el("backup-reminder-title").textContent = tr("Changes not backed up yet","تغييرات لم تُحفظ نسخة منها");
+    el("backup-reminder-body").textContent = tr(
+      "You have edited your figures since the last backup. Take a fresh copy so the version you saved matches what is on screen.",
+      "لقد عدّلت أرقامك منذ آخر نسخة احتياطية. خذ نسخة جديدة حتى تطابق النسخة المحفوظة ما تراه الآن.");
   } else {
     el("backup-reminder-title").textContent = urgent
       ? "It has been " + since + " days since your last backup"
@@ -3923,6 +4102,7 @@ function render(){
   renderAdHocTable();
   renderP2P();
   renderBackupReminder();
+  renderLockToggle();
   applyLanguage();
   fitForecastTable();
 }
@@ -3968,23 +4148,39 @@ function bindStaticListeners(){
     state.cashOnHandAutoCorrect = e.target.checked;
     saveState(); render();
   });
-  el("force-update-btn").addEventListener("click", function(){
-    // Nuclear option, deliberately available to the user: unregister every
-    // service worker, delete every cache, then hard-reload with a
-    // cache-busting query. Exists because a stuck cache is otherwise
-    // unrecoverable from inside an installed app -- the user cannot clear
-    // it without deleting and reinstalling, which is a terrible answer.
-    var done = function(){
-      location.replace(location.pathname + "?v=" + Date.now());
-    };
-    if (!("serviceWorker" in navigator)) return done();
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      return Promise.all(regs.map(function(r){ return r.unregister(); }));
-    }).then(function(){
-      return (window.caches ? caches.keys().then(function(ks){
-        return Promise.all(ks.map(function(k){ return caches.delete(k); }));
-      }) : null);
-    }).then(done).catch(done);
+  el("lock-toggle-btn").addEventListener("click", function(){
+    if (!cryptoAvailable()){
+      window.alert(tr("This browser cannot encrypt data.","هذا المتصفح لا يدعم التشفير."));
+      return;
+    }
+    if (encryptionOn){
+      // Turning it OFF requires no passphrase: the session is already
+      // unlocked, so the user has proved they know it.
+      if (!window.confirm(tr(
+        "Turn off the passphrase?\n\nYour figures will be stored unencrypted on this device again.",
+        "إيقاف عبارة المرور؟\n\nستُحفظ أرقامك على هذا الجهاز بدون تشفير مرة أخرى."))) return;
+      encryptionOn = false; sessionKey = null; sessionSalt = null;
+      persistRaw(JSON.stringify(state));
+      render();
+      return;
+    }
+    var warn = tr(
+      "Set a passphrase?\n\nYour figures will be encrypted on this device. You will type this passphrase every time you open the app.\n\nIF YOU FORGET IT, THE DATA CANNOT BE RECOVERED — not by anyone. Export a backup FIRST and keep it somewhere safe.",
+      "تعيين عبارة مرور؟\n\nستُشفَّر أرقامك على هذا الجهاز. ستُدخل هذه العبارة في كل مرة تفتح فيها التطبيق.\n\nإذا نسيتها فلا يمكن استرجاع البيانات إطلاقاً — من أي أحد. صدّر نسخة احتياطية أولاً واحتفظ بها في مكان آمن.");
+    if (!window.confirm(warn)) return;
+    var p1 = window.prompt(tr("Choose a passphrase (at least 8 characters):","اختر عبارة مرور (٨ أحرف على الأقل):"));
+    if (!p1) return;
+    if (p1.length < 8){ window.alert(tr("Too short — use at least 8 characters.","قصيرة جداً — استخدم ٨ أحرف على الأقل.")); return; }
+    var p2 = window.prompt(tr("Type it again to confirm:","أعد كتابتها للتأكيد:"));
+    if (p1 !== p2){ window.alert(tr("They did not match. Nothing was changed.","غير متطابقتين. لم يتم تغيير شيء.")); return; }
+    var salt = window.crypto.getRandomValues(new Uint8Array(16));
+    deriveKey(p1, salt).then(function(key){
+      sessionKey = key; sessionSalt = salt; encryptionOn = true;
+      saveState(); render();
+      window.alert(tr("Passphrase set. Your data on this device is now encrypted.","تم تعيين عبارة المرور. بياناتك على هذا الجهاز مشفّرة الآن."));
+    }).catch(function(){
+      window.alert(tr("Could not set the passphrase. Nothing was changed.","تعذّر تعيين عبارة المرور. لم يتم تغيير شيء."));
+    });
   });
   el("lang-en").addEventListener("click", function(){
     state.lang = "en"; saveState(); render();
@@ -4548,6 +4744,7 @@ function openBackupModal(mode){
     // dismissal as a backup would silence the warning without protecting
     // anything.
     markBackupTaken();
+    cashDataDirty = false;
     el("backup-modal-title").textContent = tr("Export backup","تصدير نسخة");
     el("backup-modal-hint").textContent = tr("Tap inside the box, select all, and copy. Paste it into Notes to save it, or paste it back to Claude in chat.","اضغط داخل المربع، حدد الكل، وانسخ. الصقه في الملاحظات لحفظه، أو أعده إلى المحادثة.");
     ta.value = JSON.stringify(state, null, 2);
@@ -4632,7 +4829,7 @@ function afterInit(){
   bindStaticListeners();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-49)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-50)";
 }
 
 loadStateAndInit();
