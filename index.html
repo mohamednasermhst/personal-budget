@@ -156,6 +156,26 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
   flex-wrap:wrap; background:var(--navy); color:#fff; border-radius:8px;
   padding:10px 14px; margin:6px 2px 14px; font-size:12.5px; }
 .update-banner .btn-small{ background:#fff; color:var(--navy); border:none; }
+.actuals-table{ width:100%; border-collapse:collapse; font-size:13px; }
+.actuals-table th{ font-size:10px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--ink-faint); font-weight:500; padding:6px 8px; text-align:left; }
+.actuals-table td{ padding:6px 8px; border-top:1px solid var(--rule); }
+.actuals-table .num{ text-align:right; font-family:'IBM Plex Mono',monospace; }
+.actual-input{ width:110px; text-align:right; }
+html[dir=rtl] .actuals-table th{ text-align:right; }
+html[dir=rtl] .actuals-table .num{ text-align:left; direction:ltr; }
+.ending-soon{ background:#E8F0EA; border:1px solid var(--emerald); border-radius:8px;
+  padding:11px 14px; margin:6px 2px 14px; font-size:12.5px; color:var(--ink-soft); }
+.ending-soon-head{ font-weight:600; color:var(--emerald); margin-bottom:5px; }
+.ending-soon ul{ margin:0; padding-left:20px; }
+.ending-soon li{ margin-bottom:3px; }
+html[dir=rtl] .ending-soon ul{ padding-left:0; padding-right:20px; }
+.undo-toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9998;
+  display:flex; align-items:center; gap:14px; background:var(--navy); color:#fff;
+  padding:11px 16px; border-radius:9px; box-shadow:0 6px 20px rgba(0,0,0,.22); font-size:13px; }
+.undo-toast .btn-small{ background:#fff; color:var(--navy); border:none; }
+.ledger-search{ width:180px; }
+.exp-note, .inc-note{ width:150px; }
 .privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
   border:1px solid var(--rule); border-radius:8px; padding:10px 13px; margin:6px 2px 16px;
   font-size:12px; line-height:1.5; color:var(--ink-soft); }
@@ -595,6 +615,10 @@ td.positive{ color:var(--emerald); }
     <p id="unlock-error" class="unlock-error"></p>
   </div>
 </div>
+<div id="undo-toast" class="undo-toast hidden">
+  <span id="undo-toast-text"></span>
+  <button type="button" id="undo-toast-btn" class="btn-small" data-i18n="k_undo">Undo</button>
+</div>
 <div class="page">
 
   <header class="ledger-header">
@@ -621,7 +645,9 @@ td.positive{ color:var(--emerald); }
     </div>
   </header>
 
-    <div id="update-banner" class="update-banner hidden">
+    <div id="ending-soon" class="ending-soon hidden"></div>
+
+  <div id="update-banner" class="update-banner hidden">
     <span data-i18n="upd_text">A new version of the dashboard is ready.</span>
     <button type="button" id="update-now-btn" class="btn-small" data-i18n="upd_btn">Refresh now</button>
   </div>
@@ -757,6 +783,12 @@ td.positive{ color:var(--emerald); }
     </div>
   </section>
 
+  <section class="card" id="section-actuals">
+    <h2 data-i18n="s_actuals">Planned vs Actual</h2>
+    <p class="card-hint" data-i18n="h_actuals">Record what a period really cost once it has begun. Nothing here changes your forecast &mdash; it is a scorecard, so you can see where your estimates drift and tighten them over time.</p>
+    <div id="actuals-body"></div>
+  </section>
+
   <div class="group-heading">
     <span data-i18n="g_driving">What's driving it</span>
     <p data-i18n="g_driving_sub">Everything you enter. Changes here flow through the figures above.</p>
@@ -766,6 +798,7 @@ td.positive{ color:var(--emerald); }
     <div class="ledger-header-row">
       <h2 data-i18n="s_income">Income Ledger</h2>
       <div class="ledger-actions">
+        <input type="text" id="income-search" class="ledger-search" placeholder="Search income">
         <button id="income-collapse-all-btn" class="ghost-btn" type="button" data-i18n="k_collapse">Collapse all</button>
         <button id="income-expand-all-btn" class="ghost-btn" type="button" data-i18n="k_expand">Expand all</button>
         <button id="add-income-btn" class="primary-btn" type="button" data-i18n="k_addinc">+ Add income source</button>
@@ -774,7 +807,7 @@ td.positive{ color:var(--emerald); }
     <p class="card-hint" data-i18n="h_income">Every income source that lands in your cash flow &mdash; salary (with room for a future raise), a one-off payment like a bonus, or rental income from a tenant's contract.</p>
     <div class="table-scroll">
       <table id="income-table">
-        <thead><tr><th data-i18n="c_name">Name</th><th data-i18n="c_type">Type</th><th data-i18n="c_details">Details</th><th data-i18n="c_amount">Amount</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="c_name">Name</th><th data-i18n="c_type">Type</th><th data-i18n="c_details">Details</th><th data-i18n="c_amount">Amount</th><th data-i18n="c_note">Note</th><th></th></tr></thead>
         <tbody id="income-tbody"></tbody>
       </table>
     </div>
@@ -784,6 +817,7 @@ td.positive{ color:var(--emerald); }
     <div class="ledger-header-row">
       <h2 data-i18n="s_expense">Expense Ledger</h2>
       <div class="ledger-actions">
+        <input type="text" id="ledger-search" class="ledger-search" placeholder="Search expenses">
         <button id="collapse-all-btn" class="ghost-btn" type="button" data-i18n="k_collapse">Collapse all</button>
         <button id="expand-all-btn" class="ghost-btn" type="button" data-i18n="k_expand">Expand all</button>
         <button id="add-category-toggle-btn" class="ghost-btn" type="button" data-i18n="k_mancat">Manage categories</button>
@@ -812,7 +846,7 @@ td.positive{ color:var(--emerald); }
     <div class="table-scroll">
       <table id="ledger-table">
         <thead><tr>
-          <th></th><th data-i18n="c_name">Name</th><th data-i18n="c_cat">Category</th><th data-i18n="c_freq">Frequency</th><th data-i18n="c_amount">Amount</th><th data-i18n="c_due">Due date(s)</th><th data-i18n="c_ovr">Overrides</th><th></th>
+          <th></th><th data-i18n="c_name">Name</th><th data-i18n="c_cat">Category</th><th data-i18n="c_freq">Frequency</th><th data-i18n="c_amount">Amount</th><th data-i18n="c_due">Due date(s)</th><th data-i18n="c_ovr">Overrides</th><th data-i18n="c_note">Note</th><th></th>
         </tr></thead>
         <tbody id="ledger-tbody"></tbody>
       </table>
@@ -2158,6 +2192,7 @@ function makeDefaultState(){
     }),
     nextP2pId: DEFAULT_P2P_LOANS.length,
     baseCurrency: DEFAULT_BASE_CURRENCY,
+    actuals: {},
     cashOnHandAutoCorrect: true,
     // Auto-correct only drift at or below this size. 0 means no limit.
     // Large drift usually signals something structural changed (a wrong
@@ -3345,6 +3380,8 @@ function renderExpenseRow(exp, isFirst, isLast){
   row += '<td class="num"><input type="number" step="0.01" class="exp-amount" data-id="' + escapeAttr(exp.id) + '" data-field="amount" value="' + (exp.amount!=null?exp.amount:0) + '"></td>';
   row += '<td class="due-date-cell">' + dueDateCell(exp) + "</td>";
   row += '<td class="overrides-cell">' + overridesCell(exp) + "</td>";
+  row += '<td><label class="field-inline"><span>' + tr("Note","ملاحظة") + '</span>'
+    + '<input type="text" class="exp-note" data-id="' + escapeAttr(exp.id) + '" data-field="note" placeholder="' + escapeAttr(tr("optional","اختياري")) + '" value="' + escapeAttr(exp.note||"") + '"></label></td>';
   row += '<td class="del-cell"><div class="del-cell-inner">'
     + '<button type="button" class="dup-row-btn" data-dup-exp="' + escapeAttr(exp.id) + '">' + tr("Duplicate","تكرار") + '</button>'
     + '<button type="button" class="del-row-btn" data-id="' + escapeAttr(exp.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></div></td>';
@@ -3385,9 +3422,18 @@ function renderLedgerTable(){
   var cats = getAllCategories();
   var html = "";
   cats.forEach(function(cat){
-    var items = state.expenses.filter(function(e){ return e.category === cat; });
+    var items = state.expenses.filter(function(e){
+      if (e.category !== cat) return false;
+      // Search matches the name, the category and the note, so a user can
+      // find a row by any of the three.
+      return matchesFilter(e.name, ledgerFilter)
+          || matchesFilter(e.category, ledgerFilter)
+          || matchesFilter(e.note, ledgerFilter);
+    });
     if (items.length === 0) return;
-    var collapsed = !!state.collapsedCategories[cat];
+    // While filtering, force categories OPEN -- a hit hidden inside a
+    // collapsed category looks like no result at all.
+    var collapsed = ledgerFilter ? false : !!state.collapsedCategories[cat];
     var sum = items.reduce(function(s,e){ return s + (Number(e.amount)||0); }, 0);
     var trailingCell = categoryHasBehavior(cat, "statementBilling")
       ? '<td colspan="3" class="cc-statement-cell">Statement day <input type="number" min="1" max="31" class="cc-statement-day-input" data-category="' + escapeAttr(cat) + '" value="' + getCategoryStatementDay(cat) + '" title="Charges after this day aren\u2019t billed until next month\u2019s statement -- affects the \u2018Only show what\u2019s still due\u2019 check in Monthly Cash Flow">'
@@ -3461,6 +3507,8 @@ var I18N = {
     s_expense: "\u0633\u062c\u0644 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a",
     s_p2p: "\u0627\u0644\u0625\u0642\u0631\u0627\u0636 \u0627\u0644\u0634\u062e\u0635\u064a",
     s_adhoc: "\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a",
+    s_actuals: "المخطط مقابل الفعلي",
+    h_actuals: "سجّل ما كلّفته الفترة فعلياً بعد أن تبدأ. لا شيء هنا يغيّر توقعاتك — إنه سجل مقارنة، لترى أين تنحرف تقديراتك وتضبطها مع الوقت.",
     btn_reset: "\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0636\u0628\u0637",
     btn_forceupdate: "التحقق من التحديثات",
     btn_export: "\u062a\u0635\u062f\u064a\u0631 \u0646\u0633\u062e\u0629",
@@ -3515,6 +3563,8 @@ var I18N = {
     c_due: "تواريخ الاستحقاق",
     c_ovr: "التجاوزات",
     c_date: "التاريخ",
+    c_note: "ملاحظة",
+    k_undo: "تراجع",
     c_income: "الدخل",
     c_leftover: "المرحّل",
     c_totalcash: "إجمالي النقد",
@@ -3647,6 +3697,198 @@ function markBackupTaken(){
   state.lastBackupAt = todayISO();
   state.backupReminderSnoozedUntil = null;
   saveState();
+}
+
+/* ===== Undo for deletions =================================================
+   Deleting a ledger row used to be instant and irreversible. On a phone,
+   with the delete button beside Duplicate, a mis-tap could quietly remove
+   a real commitment -- and you would likely only notice weeks later when
+   a figure looked wrong. The toast keeps the deleted object in memory for
+   a short window and restores it to its ORIGINAL index.
+
+   Deliberately in-memory only: persisting an undo buffer would mean a
+   deleted row lives on in the saved file, which is the opposite of what
+   "delete" should mean.
+   ======================================================================= */
+var undoBuffer = null, undoTimer = null;
+// Session-only: a persisted filter would hide rows the next time the app
+// opens, and the user would have no idea why their ledger looked short.
+var ledgerFilter = "", incomeFilter = "";
+
+function matchesFilter(text, filter){
+  if (!filter) return true;
+  return String(text || "").toLowerCase().indexOf(filter.toLowerCase()) !== -1;
+}
+
+function offerUndo(kind, obj, index){
+  undoBuffer = { kind: kind, obj: obj, index: index };
+  var t = el("undo-toast");
+  if (!t) return;
+  el("undo-toast-text").textContent = kind === "income"
+    ? tr("Income source deleted.", "تم حذف مصدر الدخل.")
+    : tr("Expense deleted.", "تم حذف المصروف.");
+  t.classList.remove("hidden");
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = setTimeout(function(){
+    undoBuffer = null;
+    var tt = el("undo-toast"); if (tt) tt.classList.add("hidden");
+  }, 12000);
+}
+
+function performUndo(){
+  if (!undoBuffer) return;
+  var u = undoBuffer;
+  var list = u.kind === "income" ? state.incomeSources : state.expenses;
+  var at = (u.index >= 0 && u.index <= list.length) ? u.index : list.length;
+  list.splice(at, 0, u.obj);
+  undoBuffer = null;
+  if (undoTimer) clearTimeout(undoTimer);
+  var t = el("undo-toast"); if (t) t.classList.add("hidden");
+  saveState(); render();
+}
+
+/* ===== Commitments ending soon ===========================================
+   A finite-term expense, or a custom-dates instalment plan, eventually
+   stops -- and that is good news that changes planning. Nothing surfaced
+   it before: the user had to notice a bar shrink and work out why.
+
+   "Last payment" is the latest occurrence found in the forecast horizon.
+   An expense with no end in the horizon is not listed -- there is nothing
+   to tell the user yet.
+   ======================================================================= */
+function endingSoonList(){
+  var out = [];
+  var todayAbs = toAbsDay(todayYear(), todayMonthNum(), todayDayNum());
+  var horizonAbs = todayAbs + 400;
+  state.expenses.forEach(function(exp){
+    var last = null;
+    // Walk the horizon and remember the LAST date this expense occurs.
+    var cur = { y: todayYear(), m: todayMonthNum() };
+    for (var i = 0; i < 14; i++){
+      monthOccurrences(cur.y, cur.m).forEach(function(o){
+        if (o.name !== exp.name || o.category !== exp.category) return;
+        var a = toAbsDay(cur.y, cur.m, o.day);
+        if (a >= todayAbs && a <= horizonAbs) { if (last === null || a > last) last = a; }
+      });
+      cur = addMonths(cur.y, cur.m, 1);
+    }
+    if (last === null) return;
+    // Only interesting if it stops BEFORE the horizon ends -- a monthly
+    // expense that simply continues would otherwise be listed every time.
+    var nextMonthAfter = addMonths(absToYMD(last).y, absToYMD(last).m, 1);
+    var stillThere = monthOccurrences(nextMonthAfter.y, nextMonthAfter.m).some(function(o){
+      return o.name === exp.name && o.category === exp.category;
+    });
+    if (stillThere) return;
+    var d = absToYMD(last);
+    out.push({ name: exp.name, category: exp.category, amount: exp.amount,
+               y: d.y, m: d.m, d: d.d, abs: last });
+  });
+  out.sort(function(a,b){ return a.abs - b.abs; });
+  return out;
+}
+
+/* ===== Actual vs planned =================================================
+   Everything else in this app is a PROJECTION. This is the one place the
+   user records what really happened, so estimates can be checked against
+   reality instead of being trusted forever.
+
+   Stored as state.actuals keyed "<periodStartAbs>": { planned, actual }.
+   Keyed by the period rather than by expense on purpose: recording a
+   figure per expense per month is a data-entry burden nobody sustains,
+   and the useful question is "did this MONTH cost what I thought", not
+   "was the electricity bill 12 dirhams out".
+
+   Nothing here feeds the forecast. Actuals are a scorecard, not an input
+   -- letting them silently alter projections would make it impossible to
+   tell a plan from a record of the past.
+   ======================================================================= */
+function actualsKey(row){ return String(toAbsDay(row.yearA, row.monthA, getPrimaryIncomeDay())); }
+
+function getActual(row){
+  var a = state.actuals || {};
+  var v = a[actualsKey(row)];
+  return (v && v.actual !== undefined && v.actual !== null && v.actual !== "") ? Number(v.actual) : null;
+}
+
+function setActual(row, val){
+  state.actuals = state.actuals || {};
+  var k = actualsKey(row);
+  if (val === null || val === "" || isNaN(val)){ delete state.actuals[k]; }
+  else { state.actuals[k] = { actual: Number(val), planned: round2(row.projExpense !== undefined ? row.projExpense : row.expense) }; }
+  saveState();
+}
+
+function renderActuals(rows){
+  var box = el("actuals-body");
+  if (!box) return;
+  var todayAbs = toAbsDay(todayYear(), todayMonthNum(), todayDayNum());
+  var html = '<table class="actuals-table"><thead><tr>'
+    + "<th>" + tr("Period","الفترة") + "</th>"
+    + '<th class="num">' + tr("Planned","المخطط") + "</th>"
+    + '<th class="num">' + tr("Actual","الفعلي") + "</th>"
+    + '<th class="num">' + tr("Difference","الفرق") + "</th>"
+    + "</tr></thead><tbody>";
+  var shown = 0;
+  rows.forEach(function(r){
+    // Only periods that have already STARTED can have an actual -- asking
+    // for next month's real spend would be nonsense.
+    var startAbs = toAbsDay(r.yearA, r.monthA, getPrimaryIncomeDay());
+    if (startAbs > todayAbs) return;
+    shown++;
+    var planned = r.projExpense !== undefined ? r.projExpense : r.expense;
+    var act = getActual(r);
+    var diff = act === null ? null : act - planned;
+    var diffTxt = diff === null ? "\u2014"
+      : (diff > 0 ? "+" : "") + fmt(diff);
+    var diffColor = diff === null ? "var(--ink-faint)"
+      : (diff > 0.005 ? "var(--rust)" : (diff < -0.005 ? "var(--emerald)" : "var(--ink-soft)"));
+    html += "<tr>"
+      + "<td>" + escapeHtml(periodLabel(r)) + "</td>"
+      + '<td class="num">' + fmt(planned) + "</td>"
+      + '<td class="num"><input type="text" inputmode="decimal" class="actual-input" data-actual-key="'
+        + escapeAttr(actualsKey(r)) + '" data-idx="' + r.index + '" value="'
+        + (act === null ? "" : fmt(act)) + '" placeholder="\u2014"></td>'
+      + '<td class="num" style="color:' + diffColor + '">' + diffTxt + "</td>"
+      + "</tr>";
+  });
+  html += "</tbody></table>";
+  if (!shown){
+    box.innerHTML = '<p class="card-hint">' + tr("Nothing to record yet — periods appear here once they have begun.","لا شيء لتسجيله بعد — تظهر الفترات هنا بعد أن تبدأ.") + "</p>";
+    return;
+  }
+  box.innerHTML = html;
+  var ins = box.querySelectorAll(".actual-input");
+  for (var i = 0; i < ins.length; i++){
+    ins[i].addEventListener("change", function(){
+      var idx = parseInt(this.getAttribute("data-idx"), 10);
+      var v = String(this.value).replace(/,/g, "").trim();
+      var rowObj = renderedRows && renderedRows[idx] ? renderedRows[idx] : null;
+      if (!rowObj) return;
+      setActual(rowObj, v === "" ? null : parseFloat(v));
+      // Deferred: render() replaces the very table containing this input,
+      // and doing that synchronously inside the change handler makes the
+      // browser throw while unwinding its own blur sequence.
+      setTimeout(render, 0);
+    });
+  }
+}
+
+function renderEndingSoon(){
+  var box = el("ending-soon");
+  if (!box) return;
+  var list = endingSoonList();
+  if (!list.length){ box.classList.add("hidden"); return; }
+  var html = '<div class="ending-soon-head">' + tr("Commitments ending soon","التزامات تنتهي قريباً") + "</div>";
+  html += "<ul>";
+  list.slice(0, 6).forEach(function(x){
+    html += "<li><strong>" + escapeHtml(x.name) + "</strong> \u2014 "
+      + tr("last payment ","آخر دفعة ") + formatDueDate(x.y, x.m, x.d)
+      + " (" + fmt(Number(x.amount)||0) + ")</li>";
+  });
+  html += "</ul>";
+  box.innerHTML = html;
+  box.classList.remove("hidden");
 }
 
 function renderLockToggle(){
@@ -4042,6 +4284,8 @@ function renderIncomeRow(src){
   row += "<td>" + incomeTypeSelect(src) + "</td>";
   row += '<td class="income-details-cell">' + incomeDetailsCell(src) + "</td>";
   row += '<td class="num">' + incomeAmountCell(src) + "</td>";
+  row += '<td><label class="field-inline"><span>' + tr("Note","ملاحظة") + '</span>'
+    + '<input type="text" class="inc-note" data-id="' + escapeAttr(src.id) + '" data-field="note" placeholder="' + escapeAttr(tr("optional","اختياري")) + '" value="' + escapeAttr(src.note||"") + '"></label></td>';
   row += '<td class="del-cell"><div class="del-cell-inner">'
     + '<button type="button" class="dup-row-btn" data-dup-inc="' + escapeAttr(src.id) + '">' + tr("Duplicate","تكرار") + '</button>'
     + '<button type="button" class="del-row-btn inc-del-btn" data-id="' + escapeAttr(src.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></div></td>';
@@ -4067,9 +4311,12 @@ function incomeSourceAmount(src){
 function renderIncomeTable(){
   var html = "";
   INCOME_TYPE_ORDER.forEach(function(type){
-    var items = state.incomeSources.filter(function(s){ return s.type === type; });
+    var items = state.incomeSources.filter(function(s){
+      if (s.type !== type) return false;
+      return matchesFilter(s.name, incomeFilter) || matchesFilter(s.note, incomeFilter);
+    });
     if (items.length === 0) return;
-    var collapsed = !!state.collapsedIncomeTypes[type];
+    var collapsed = incomeFilter ? false : !!state.collapsedIncomeTypes[type];
     var sum = items.reduce(function(s,src){ return s + incomeSourceAmount(src); }, 0);
     html += '<tr class="category-header-row" data-income-type="' + type + '">'
       + '<td colspan="3"><button type="button" class="category-toggle income-type-toggle" data-income-type="' + type + '">'
@@ -4260,6 +4507,8 @@ function restoreFocus(d){
    the rule added next to the field normalisation block) rather than by
    fighting the browser in JS -- cancelling the scroll outright would
    break the genuinely useful case where the field IS off-screen. */
+var renderedRows = null;
+
 function render(){
   // Every render rebuilds the whole page via innerHTML, which drops the
   // scroll position and blurs the focused field -- so typing a value or
@@ -4280,7 +4529,10 @@ function render(){
   renderLedgerTable();
   renderAdHocTable();
   renderP2P();
+  renderedRows = syncedRows;
+  renderActuals(syncedRows);
   renderBackupReminder();
+  renderEndingSoon();
   renderLockToggle();
   applyLanguage();
   fitForecastTable();
@@ -4368,6 +4620,15 @@ function bindStaticListeners(){
     }).catch(function(){
       window.alert(tr("Could not set the passphrase. Nothing was changed.","تعذّر تعيين عبارة المرور. لم يتم تغيير شيء."));
     });
+  });
+  el("undo-toast-btn").addEventListener("click", performUndo);
+  el("ledger-search").addEventListener("input", function(e){
+    ledgerFilter = e.target.value || "";
+    renderLedgerTable();
+  });
+  el("income-search").addEventListener("input", function(e){
+    incomeFilter = e.target.value || "";
+    renderIncomeTable();
   });
   el("lang-en").addEventListener("click", function(){
     state.lang = "en"; saveState(); render();
@@ -4686,6 +4947,7 @@ function bindStaticListeners(){
     } else {
       switch(field){
         case "name": src.name = t.value; break;
+        case "note": src.note = t.value; break;
         case "type":
           src.type = t.value;
           if (t.value === "salary"){
@@ -4737,6 +4999,15 @@ function bindStaticListeners(){
         saveState(); render();
       }
       return;
+    }
+    var delI = e.target.closest(".inc-del-btn");
+    if (delI){
+      var iid = delI.getAttribute("data-id");
+      var goneI = (state.incomeSources||[]).filter(function(x){ return String(x.id) === iid; })[0];
+      var atI = state.incomeSources.indexOf(goneI);
+      state.incomeSources = state.incomeSources.filter(function(x){ return String(x.id) !== iid; });
+      if (goneI) offerUndo("income", goneI, atI);
+      saveState(); render(); return;
     }
     var delBtn = e.target.closest(".inc-del-btn");
     if (delBtn){
@@ -4808,6 +5079,7 @@ function bindLedgerDelegatedEvents(){
     } else {
       switch(field){
         case "name": exp.name = t.value; break;
+        case "note": exp.note = t.value; break;
         case "category": exp.category = t.value; break;
         case "frequency":
           exp.frequency = t.value;
@@ -4848,7 +5120,14 @@ function bindLedgerDelegatedEvents(){
     var delBtn = e.target.closest(".del-row-btn");
     if (delBtn){
       var id = delBtn.getAttribute("data-id");
+      // Remember WHAT was deleted and WHERE it sat, so undo restores it to
+      // its original position rather than appending it to the end -- the
+      // row order is user-controlled and moving it would be a second,
+      // silent change.
+      var gone = state.expenses.filter(function(x){ return String(x.id) === id; })[0];
+      var at = state.expenses.indexOf(gone);
       state.expenses = state.expenses.filter(function(x){ return String(x.id) !== id; });
+      if (gone) offerUndo("expense", gone, at);
       saveState(); render(); return;
     }
     var reBtn = e.target.closest(".reorder-btn");
@@ -5057,7 +5336,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-60)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-61)";
 }
 
 loadStateAndInit();
