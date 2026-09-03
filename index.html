@@ -207,7 +207,7 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
 /* Its own row beneath the text, never floated into it: floating made the
    paragraph wrap around the badge mid-sentence and read as broken on a
    narrow screen (user-reported). */
-.lock-controls{ display:flex; align-items:center; gap:10px; margin-top:9px; flex-wrap:wrap; }
+.lock-controls{ display:inline-flex; align-items:center; gap:9px; margin-right:14px; }
 .lock-status{ font-size:11px; font-weight:600; color:var(--emerald); background:#DDEBE2;
   padding:2px 8px; border-radius:4px; white-space:nowrap; }
 .update-banner{ display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -751,10 +751,6 @@ td.positive{ color:var(--emerald); }
       <strong data-i18n="pv_title">Your figures stay on this device</strong>
       <span data-i18n="pv_body">Nothing is sent anywhere and no account is used. Anyone who can unlock your phone can open it. Clearing browser data erases it &mdash; keep a backup.</span>
       <button type="button" id="privacy-dismiss" class="link-btn privacy-dismiss" data-i18n="k_gotit">Got it</button>
-      <span class="lock-controls">
-        <span id="lock-status" class="lock-status hidden"></span>
-        <button type="button" id="lock-toggle-btn" class="link-btn"></button>
-      </span>
     </div>
   </div>
 
@@ -973,6 +969,10 @@ td.positive{ color:var(--emerald); }
   
 
   <footer class="page-footer">
+    <span class="lock-controls">
+      <span id="lock-status" class="lock-status hidden"></span>
+      <button type="button" id="lock-toggle-btn" class="link-btn"></button>
+    </span>
     <button id="reset-btn" class="ghost-btn" type="button" data-i18n="btn_reset">Reset to defaults</button>
     <button id="export-btn" class="ghost-btn" type="button" data-i18n="btn_export">Export backup</button>
     <button id="import-btn" class="ghost-btn" type="button" data-i18n="btn_import">Import backup</button>
@@ -5300,7 +5300,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-71)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-72)";
 }
 
 loadStateAndInit();
