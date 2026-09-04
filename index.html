@@ -122,6 +122,7 @@ body{
 .page{ max-width:1040px; margin:0 auto; padding:28px 20px 60px; }
 .mono{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
 
+.header-top{ margin-bottom:14px; }
 .ledger-header{ margin-bottom:32px; }
 .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
 .header-row{ display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--rule-strong); padding-bottom:16px; position:relative; }
@@ -172,6 +173,10 @@ h1{ font-family:'Newsreader',Georgia,serif; font-weight:600; line-height:1.15;
    the classic RTL money bug where -1,234 renders as 1,234-.
    -------------------------------------------------------------------------- */
 .header-top{ display:flex; gap:8px; align-items:center; justify-content:space-between; gap:12px; }
+/* Theme and language switches sit together at the right end. Left as
+   separate flex children of a space-between row, they were pushed to
+   opposite thirds of a wide screen. */
+.header-switches{ display:flex; align-items:center; gap:10px; }
 .lang-toggle{ display:flex; border:1px solid var(--rule-strong); border-radius:6px; overflow:hidden; }
 .lang-btn{ background:transparent; border:none; padding:5px 11px; font-size:12px; cursor:pointer;
   font-family:'IBM Plex Sans',sans-serif; color:var(--ink-soft); }
@@ -821,6 +826,7 @@ body.modal-open{ overflow:hidden; }
   <header class="ledger-header">
     <div class="header-top">
       <div class="eyebrow" data-i18n="eyebrow">Household Ledger &middot; AED</div>
+      <div class="header-switches">
       <div class="lang-toggle" role="group" aria-label="Theme">
         <button type="button" id="theme-light" class="lang-btn" title="Light">☀</button>
         <button type="button" id="theme-dark" class="lang-btn" title="Night">☽</button>
@@ -828,6 +834,7 @@ body.modal-open{ overflow:hidden; }
       <div class="lang-toggle" role="group" aria-label="Language">
         <button type="button" id="lang-en" class="lang-btn">EN</button>
         <button type="button" id="lang-ar" class="lang-btn">عربي</button>
+      </div>
       </div>
       <div class="lang-toggle" id="digit-toggle-wrap" style="display:none;">
         <button type="button" id="digit-ar" class="lang-btn" title="Arabic-Indic digits">٩٩</button>
@@ -1234,6 +1241,13 @@ function dueColumnLabel(item){
 }
 var MAX_YEARS_AHEAD = 6;
 var MIN_FORECAST_SCALE = 0.72;
+/* Fit to 97% of the wrapper. Measuring "just fits" in Chromium is not
+   the same as fitting on the device: iOS Safari renders the mono font a
+   little wider, and the user saw the first and last columns clipped on
+   an iPad where this browser reported no overflow. Never size a layout
+   to exactly the space available when the measurement environment
+   differs from the target. */
+var FORECAST_FIT_MARGIN = 0.97;
 var STORAGE_KEY = "household-budget-dashboard-state-v3";
 // True once state has changed since the last export. Declared here, above
 // saveState(), so it does not depend on var hoisting.
@@ -3230,7 +3244,8 @@ function fitForecastTable(){
   var avail = wrapper.clientWidth;
   if (natural <= avail || natural === 0) return; // already fits at full size
 
-  var scale = avail / natural;
+  // 0.97, not 1.0 -- see comment above the constant.
+  var scale = (avail * FORECAST_FIT_MARGIN) / natural;
   if (scale >= MIN_FORECAST_SCALE){
     if (SUPPORTS_ZOOM){
       table.style.zoom = String(scale);
@@ -4196,6 +4211,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "95", items: [
+    ["fix", "Theme and language switches sit together on tablet"],
+    ["fix", "Spacing below the top row"],
+    ["fix", "Monthly Summary no longer clips on tablet"]
+  ]},
   { v: "93", items: [
     ["fix", "Removed the one-line quick add"]
   ]},
@@ -6156,7 +6176,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-94)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-95)";
 }
 
 loadStateAndInit();
