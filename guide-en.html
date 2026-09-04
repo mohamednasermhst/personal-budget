@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Household Budget Dashboard — User Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<div class="eyebrow">Household Ledger · User Guide</div>
+<h1>Household Budget Dashboard</h1>
+<p class="lede">A guide to what each part does, and — more importantly — how the parts fit together to answer one question: <strong>am I going to be short this month, and if so, when?</strong></p>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#big">The big picture</a></li>
+    <li><a href="#period">The one idea that explains everything</a></li>
+    <li><a href="#cashflow">Monthly Cash Flow</a></li>
+    <li><a href="#chart">The Year at a Glance</a></li>
+    <li><a href="#summary">Monthly Summary</a></li>
+    <li><a href="#income">Income Ledger</a></li>
+    <li><a href="#expense">Expense Ledger</a></li>
+    <li><a href="#cards">Credit cards — how they really work here</a></li>
+    <li><a href="#p2p">P2P Lending</a></li>
+    <li><a href="#adhoc">Ad-hoc Savings Spending</a></li>
+    <li><a href="#safety">Your data, backups and privacy</a></li>
+    <li><a href="#workflows">Everyday workflows</a></li>
+  </ol>
+</div>
+
+<h2 id="big">1. The big picture</h2>
+
+<p>Most budgeting tools tell you what you <em>spent</em>. This one tells you what is <em>coming</em>.</p>
+
+<p>You enter your income and your commitments once. From then on the dashboard projects twelve pay periods ahead and shows, for each one, whether the money coming in covers the money going out — and how much is genuinely safe to set aside.</p>
+
+<div class="card key">
+  <h3>How the pieces connect</h3>
+  <p>Everything flows in one direction:</p>
+  <p><strong>Income Ledger</strong> and <strong>Expense Ledger</strong> (plus <strong>P2P Lending</strong>) are what you <em>enter</em>. They are the only places anything is typed.</p>
+  <p>Those entries feed the <strong>calculation engine</strong>, which works out each period's total cash, what is still due, what remains, and what can safely be saved.</p>
+  <p>The results appear in three read-only views: <strong>Monthly Cash Flow</strong> (this period in detail), <strong>The Year at a Glance</strong> (the shape of the year), and <strong>Monthly Summary</strong> (period-by-period figures).</p>
+  <p>That is why the dashboard is ordered the way it is: <em>Where you stand</em> first, <em>What's driving it</em> below. You check the top; you edit the bottom.</p>
+</div>
+
+<h2 id="period">2. The one idea that explains everything</h2>
+
+<p>The dashboard does not think in calendar months. It thinks in <strong>pay periods</strong>.</p>
+
+<p>If your salary arrives on the 24th, your period runs from the 24th of one month to the 23rd of the next. That is the money you actually have to work with, and the window in which your bills have to fit.</p>
+
+<p>This is set once, at the top of Monthly Cash Flow: <strong>Pay period starts on day</strong>.</p>
+
+<div class="card">
+  <h3>Why this matters more than it sounds</h3>
+  <p>A bill due on the 28th and a bill due on the 2nd feel like they are in different months. They are not — if you are paid on the 24th, both are paid out of the <em>same</em> salary. Calendar thinking hides that; pay-period thinking makes it obvious.</p>
+</div>
+
+<h2 id="cashflow">3. Monthly Cash Flow</h2>
+
+<p>The top section. It shows one pay period in full detail.</p>
+
+<table>
+  <tr><th>Figure</th><th>What it means</th></tr>
+  <tr><td><strong>Total Income</strong></td><td>Money that has arrived in this period, up to your viewing date.</td></tr>
+  <tr><td><strong>Total Expense</strong></td><td>What is <em>still due</em> before the period ends. Already-paid items are excluded — they have left your account.</td></tr>
+  <tr><td><strong>Total Cash</strong></td><td>What you have right now: money carried in, plus income received, minus what has already gone out.</td></tr>
+  <tr><td><strong>Remaining Cash</strong></td><td>Total Cash minus what is still due. <strong>This is the number that matters.</strong> If it is negative, you are short.</td></tr>
+  <tr><td><strong>Amount to Save</strong></td><td>What you can set aside <em>without</em> creating a shortfall in any later period. See below.</td></tr>
+</table>
+
+<h3>Amount to Save — the clever bit</h3>
+<p>This is not simply "whatever is left over". Before suggesting a figure, the dashboard looks <em>ahead</em> at every remaining period. If November has a large school fee that would leave you short, it will not tell you to save that money in September.</p>
+<p>In other words: it only calls money "safe to save" if saving it does not create a problem later.</p>
+
+<h3>Viewing as of</h3>
+<p>A date picker that lets you look at the dashboard <em>as if</em> it were a different day — travel forward to see how October looks, or back to check what happened. Everything updates: which period you are in, what has been paid, what is still ahead.</p>
+<p>It resets to today whenever you reopen the app. That is deliberate — you should never open the dashboard weeks later and be silently reading a stale date.</p>
+
+<h3>Cash on hand — a reconciliation check</h3>
+<p>Optional. Tick it, enter your <em>actual</em> bank balance and the date you checked it. The dashboard compares that against what your entries predict.</p>
+<p>If they differ, it offers to record the difference as a new ledger entry, so your projections start from a true figure rather than a theoretical one. It can keep this corrected automatically, and it logs every correction so nothing changes without a record.</p>
+
+<h2 id="chart">4. The Year at a Glance</h2>
+
+<p>A twelve-period chart. Bars are expenses, the line is your projected savings balance, and a dot marks any period that runs short.</p>
+
+<p>Tap any bar for a full breakdown of that period: income received, income still expected, expenses already paid, and expenses still due — each itemised.</p>
+
+<div class="card">
+  <p><strong>Note on the bars:</strong> they always show each period's <em>full</em> commitment, not just what is still unpaid. A month whose bills have all been paid has not become a cheap month, and showing it as one would be misleading. The paid/unpaid split lives in the breakdown below the chart.</p>
+</div>
+
+<h2 id="summary">5. Monthly Summary</h2>
+
+<p>The same twelve periods as a table. Useful when you want exact figures rather than shapes.</p>
+
+<p>Two columns deserve explanation:</p>
+<ul>
+  <li><strong>Leftover</strong> — cash carried in from the previous period. If a period ends short, the shortfall carries forward rather than quietly disappearing.</li>
+  <li><strong>Saving Account Balance</strong> — the running total of everything set aside, less any ad-hoc spending.</li>
+</ul>
+
+<h2 id="income">6. Income Ledger</h2>
+
+<p>Every source of money coming in. Three types:</p>
+
+<table>
+  <tr><th>Type</th><th>Use it for</th></tr>
+  <tr><td><strong>Salary</strong></td><td>Recurring pay. Set the day of the month. You can add future raises — the dashboard applies each from the month you specify, so a raise in March shows up in March and not before.</td></tr>
+  <tr><td><strong>One-off</strong></td><td>A bonus, a transfer, a refund. A single amount on a single date.</td></tr>
+  <tr><td><strong>Rental</strong></td><td>Tenant income paid by cheques. Enter the contract dates, the total, and how many cheques — the dashboard spreads them across the contract automatically.</td></tr>
+</table>
+
+<h2 id="expense">7. Expense Ledger</h2>
+
+<p>Everything going out. Grouped by category so a long list stays navigable.</p>
+
+<h3>Frequency</h3>
+<ul>
+  <li><strong>Monthly</strong> — same amount, same day, every month.</li>
+  <li><strong>Yearly</strong> — once a year on a set date, like school fees or insurance.</li>
+  <li><strong>One-off</strong> — a single dated expense that will not repeat.</li>
+  <li><strong>Custom</strong> — you list the exact dates. Right for instalment plans that end after a set number of payments.</li>
+</ul>
+
+<h3>Overrides</h3>
+<p>For a monthly expense that varies in one particular month. Your household spend might be 7,000 normally but 6,000 in August — an override changes that single month without disturbing the pattern.</p>
+
+<h3>Categories and their behaviour</h3>
+<p>Categories are not just labels. Under <strong>Manage categories</strong> you can give one a behaviour:</p>
+<ul>
+  <li><strong>Statement billing</strong> — for credit cards. See the next section; this one changes the maths.</li>
+  <li><strong>Deficit-cut suggestion</strong> — when a period runs short, the dashboard suggests trimming these first. Use it for discretionary categories, not for a car loan you cannot skip.</li>
+  <li><strong>Finite term</strong> — has an end date, then stops.</li>
+</ul>
+
+<h3>Duplicate</h3>
+<p>Copies a row with everything intact — amount, dates, category, overrides. Faster than re-entering a near-identical expense.</p>
+
+<h2 id="cards">8. Credit cards — how they really work here</h2>
+
+<p>This is the part most budgeting tools get wrong, and it is worth understanding.</p>
+
+<p>You do not pay a card transaction individually. It lands on a statement, and the whole statement is settled in one payment. So a card transaction has <em>two</em> relevant dates:</p>
+
+<ul>
+  <li><strong>Statement day</strong> — decides <em>which statement</em> a transaction appears on.</li>
+  <li><strong>Payment day</strong> — when you actually settle that statement. <strong>This is when the money leaves you.</strong></li>
+</ul>
+
+<div class="card key">
+  <h3>A worked example</h3>
+  <p>Statement day 6, payment day 24, salary on the 24th.</p>
+  <p>You buy something on <strong>20 August</strong>. That is after the 6 August statement, so it lands on the <strong>6 September</strong> statement. You settle that statement on <strong>24 September</strong>.</p>
+  <p>So the dashboard charges it to the period beginning <strong>24 September</strong> — not to the one you were in when you bought it.</p>
+  <p>This is the correct answer: that purchase does not touch your August salary at all.</p>
+</div>
+
+<p>The practical consequence: <strong>the payment day decides which period a card charge falls into.</strong> Set it to 24 and charges land in the next period; set it earlier than your pay day and they land in the current one.</p>
+
+<p>The individual transaction dates only decide which statement each one belongs to. You never pay them separately, and the dashboard never pretends you do.</p>
+
+<h2 id="p2p">9. P2P Lending</h2>
+
+<p>Informal loans between you and another person — money you have lent out, or borrowed. Both directions flow into the forecast.</p>
+
+<table>
+  <tr><th>Direction</th><th>What happens in the forecast</th></tr>
+  <tr><td><strong>Borrowed</strong></td><td>The money arrives as income on the loan date. Repayments become expenses.</td></tr>
+  <tr><td><strong>Lent</strong></td><td>The money leaves as an expense on the loan date. Repayments come back as income.</td></tr>
+</table>
+
+<h3>Three principles worth knowing</h3>
+<ul>
+  <li><strong>Only payments you actually record reduce a balance.</strong> Nothing is assumed settled because a date passed. An overdue loan still shows its full balance — because it is still owed.</li>
+  <li><strong>Partial payments</strong> reduce the balance without changing the agreed plan. The forecast then projects only what remains.</li>
+  <li><strong>Open-ended loans</strong> ("pay me back when you can") are supported, but deliberately stay out of the forecast. With no agreed date there is nothing reliable to project, and inventing one would put money in your projections that may never arrive. The balance still counts in the totals.</li>
+</ul>
+
+<h3>Interest and currency</h3>
+<p>Interest can be a flat agreed amount ("borrow 10,000, repay 11,000") or an annual rate that compounds. A loan in another currency is tracked but stays out of the forecast until you supply an exchange rate — converting at a guessed rate would put an unreliable figure into every total.</p>
+
+<h2 id="adhoc">10. Ad-hoc Savings Spending</h2>
+
+<p>One-off purchases paid from savings rather than regular income. Each entry reduces your Saving Account Balance from its date onward, and leaves your income, expenses and Amount to Save untouched.</p>
+
+<p>Use it when you dip into what you have put aside — so the savings figure stays honest.</p>
+
+<h2 id="safety">11. Your data, backups and privacy</h2>
+
+<div class="card key">
+  <p><strong>Your figures never leave your device.</strong> There is no account and no server. Everything lives in your browser's storage on your own phone, reachable only by this app.</p>
+</div>
+
+<h3>Passphrase protection</h3>
+<p>Optional. Turn it on and your data is encrypted on the device — the key comes from your passphrase and is never stored anywhere. Without it, the data cannot be read by anyone, including this app.</p>
+
+<div class="card warn">
+  <p><strong>If you forget the passphrase, the data cannot be recovered.</strong> Not by us, not by anyone. That is what makes the encryption real — a recovery route would be a second way in. Export a backup before you turn it on.</p>
+</div>
+
+<h3>Backups — please do this</h3>
+<p>Browser storage can be cleared: by you, by the browser reclaiming space, or on a phone left unused for a week or so. If that happens the app still works, but it opens empty.</p>
+<p><strong>Export backup</strong> gives you a block of text. Save it in your notes or email it to yourself. <strong>Import backup</strong> restores everything from it in one paste.</p>
+<p>The dashboard prompts you when your data has changed since the last backup, and again if it has been a while. Those prompts are worth heeding — a backup is the only thing that can bring your figures back.</p>
+
+<h3>Two devices, two sets of data</h3>
+<p>Data lives per device. Your phone and your computer keep separate copies, and two people each keep their own. Export and import is how you move figures between them.</p>
+
+<h2 id="workflows">12. Everyday workflows</h2>
+
+<h3>Setting up for the first time</h3>
+<ol>
+  <li>Set <strong>Pay period starts on day</strong> to the day your salary arrives.</li>
+  <li>Add your salary in the Income Ledger.</li>
+  <li>Add your recurring commitments — rent, loans, utilities, school fees.</li>
+  <li>If you use a credit card, set its statement and payment days under <strong>Manage categories</strong>.</li>
+  <li>Tick <strong>cash on hand</strong>, enter your real balance, and accept the adjustment it suggests.</li>
+  <li>Export a backup.</li>
+</ol>
+
+<h3>The monthly check</h3>
+<ol>
+  <li>Open the app. Look at <strong>Remaining Cash</strong> — negative means you are short.</li>
+  <li>Glance at the chart for the months ahead. A gold bar means expenses exceed income that period.</li>
+  <li>If a period is short, the dashboard names which categories to trim and by how much.</li>
+  <li>Update your cash on hand if the figure has drifted.</li>
+</ol>
+
+<h3>When something changes</h3>
+<p>Add or edit the entry, then export a fresh backup. The prompt will remind you.</p>
+
+<footer>
+  Planning tool only — not financial advice. Figures are projections based on what you enter.
+</footer>
+
+</div>
+</body>
+</html>

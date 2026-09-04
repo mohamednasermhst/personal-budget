@@ -214,6 +214,17 @@ body.modal-open{ overflow:hidden; }
 .unlock-card p{ margin:0 0 16px; font-size:13px; color:var(--ink-soft); line-height:1.55; }
 .unlock-card input{ width:100%; margin-bottom:12px; }
 .unlock-card button{ width:100%; }
+/* Review rows are a DENSE grid, not a stack of full-size fields. Each
+   entry was 217px tall, so three entries filled the screen and the
+   "Add all" button sat below the fold. Fields here are for correcting a
+   value, not for primary entry, so they can be smaller than ledger
+   inputs without hurting anything.
+
+   auto-fit + minmax lets the same rule give 2 columns on a narrow phone
+   and 4 on a tablet with no breakpoint. */
+/* Red = empty, you must fill it. Amber = assumed, worth a glance.
+   Two levels so the red keeps its meaning: if everything unstated were
+   red, the colour would carry no information at all. */
 .snap-row{ display:flex; align-items:center; justify-content:space-between; gap:12px;
   padding:9px 0; border-top:1px solid var(--rule); }
 .snap-row:first-child{ border-top:none; }
@@ -648,13 +659,13 @@ td.positive{ color:var(--emerald); }
 .drag-handle{ cursor:grab; color:var(--ink-faint); padding:0 4px; }
 .reorder-btn{ background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:10px; padding:2px; }
 .reorder-btn:disabled{ opacity:.25; cursor:default; }
-/* User-entered names vary far too much for a fixed width ("GEIDEA*TABBY
+/* User-entered names vary far too much for a fixed width ("MERCHANT*NAME
    FZ LLC (Jul '26)" is real data here). Let the field grow with its
    column instead of clipping, with a floor so it stays usable. */
 /* Fixed width, sized for typical names. Percentage widths collapse here
    because the cell has no intrinsic width to resolve against (measured:
    35px), so a fixed value is the honest choice. Genuinely long entries
-   like "GEIDEA*TABBY FZ LLC (Jul '26)" still scroll horizontally within
+   like "MERCHANT*NAME FZ LLC (Jul '26)" still scroll horizontally within
    the field, which is normal for a text input and preferable to a
    layout that shifts per row. */
 .exp-name{ width:190px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Sans',sans-serif; }
@@ -727,7 +738,10 @@ td.positive{ color:var(--emerald); }
 .add-date-btn, .add-override-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; }
 .muted-placeholder{ color:var(--ink-faint); font-style:italic; font-size:12px; }
 
-.page-footer{ display:flex; align-items:center; gap:14px; margin-top:10px; color:var(--ink-faint); font-size:12px; flex-wrap:wrap; }
+.page-footer{ max-width:1040px; margin:0 auto; padding:0 20px 40px;
+  display:block; }
+.page-footer > p{ display:flex; align-items:center; gap:14px; margin-top:10px;
+  color:var(--ink-faint); font-size:12px; flex-wrap:wrap; }
 
 #adhoc-table{ border-collapse:collapse; width:100%; }
 #adhoc-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600; padding:8px 10px; border-bottom:2px solid var(--ink); font-family:'IBM Plex Sans',sans-serif; }
@@ -1081,7 +1095,9 @@ body.modal-open{ overflow:hidden; }
     </div>
   </section>
 
-  <footer class="page-footer">
+</div><!-- /.page -->
+
+<footer class="page-footer">
     <input type="file" id="import-file-input" accept="application/json" style="display:none;">
     <div class="footer-actions">
       <span data-i18n="wn_note">Updates to this dashboard are listed in the version history.</span>
@@ -2753,6 +2769,64 @@ function promptUnlock(raw, errMsg){
 function findExpense(id){
   return state.expenses.filter(function(e){ return String(e.id) === String(id); })[0];
 }
+/* Quick add: plain-language expense parser ================================
+   Rule-based on purpose. A closed vocabulary ("monthly", "5000", "on the
+   25th") does not need a model to interpret, and a deterministic parser
+   is BETTER here than a probabilistic one: it behaves identically every
+   time, runs offline, and is fully testable. See tests/test_parser.py.
+
+   It never commits. It fills a DRAFT the user confirms -- dictation
+   mishears "fifteen thousand" as "50,000" often enough that a silent
+   commit would put a wrong figure into the forecast.
+
+   Dictation is the phone keyboard's microphone, not the Web Speech API:
+   iOS support for the latter is unreliable inside an installed PWA, and
+   the native engine is better anyway.
+   ======================================================================= */
+/* Universal quick entry: route text to the right section ==================
+   One box. It decides WHAT you described, then hands off to the matching
+   parser. Rule-based throughout -- see tests/test_parser.py.
+
+   It never commits. Every route produces a DRAFT the user confirms,
+   because dictation mishears numbers and a wrong figure entered silently
+   is the worst outcome this tool can produce.
+
+   Known limit, surfaced to the user rather than hidden: a P2P loan can
+   be repaid as a LUMP SUM, MONTHLY, or OPEN-ENDED. There is no way to
+   store an arbitrary schedule ("5000 in October and 7000 in November"),
+   so when several repayment dates are dictated we take the first and say
+   plainly that the others must be added by hand. Silently dropping them
+   would be far worse than saying so.
+   ======================================================================= */
+/* Splitting several entries out of one dictation =========================
+   People do not dictate one tidy clause. They say:
+
+     "I want to add three expenses, one expense which is the tuition fees
+      for fifth of September and that would be only for 5000, and another
+      expense would be tuition number two which is also for 5000 and that
+      would be on 1 of October, and then the last expense will be another
+      tuition fees and that would be on 1 of December"
+
+   That is three entries in one breath, wrapped in filler. Splitting on
+   "and" alone is wrong ("electricity and water" is one name), so we cut
+   only on phrases that clearly START A NEW ITEM.
+
+   Written for someone whose English is a second language or who
+   over-explains: the aim is to be forgiving, not clever.
+   ======================================================================= */
+/* Enumeration splitting =================================================
+   The commonest way people list expenses:
+
+     "3000 dirhams for house, 2000 dirhams on shopping and 500 for my
+      maid and 200 for my internet and 800 for my credit card"
+
+   Every item is AMOUNT (currency)? (for|on) NAME, joined by a comma or a
+   bare "and". This gets its own pass because the general boundary list
+   is wrapped in a prefix group that a self-anchoring alternative fights.
+
+   SAFE because it requires a NUMBER before each for/on. "Electricity and
+   Water" has no number after the "and", so it is never split.
+   ======================================================================= */
 function nextId(){
   state.nextExpenseId = (state.nextExpenseId || 0) + 1;
   return "exp_new_" + state.nextExpenseId;
@@ -3660,7 +3734,7 @@ function p2pStatusLabel(loan){
    were considered and rejected for that reason.
 
    Only chrome is translated: section titles, group headings, buttons and
-   explanatory copy. User-entered content (an expense called "Marina", a
+   explanatory copy. User-entered content (an expense called "Boat Club", a
    person's name) is never touched -- translating someone's own data
    would be both wrong and destructive.
    ======================================================================= */
@@ -4122,6 +4196,49 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "93", items: [
+    ["fix", "Removed the one-line quick add"]
+  ]},
+  { v: "92", items: [
+    ["add", "Reads a whole list of expenses separated by commas or \u201cand\u201d"]
+  ]},
+  { v: "91", items: [
+    ["fix", "Spoken amounts after \u201cand\u201d are now read correctly"],
+    ["fix", "\u201cplus\u201d now separates two entries"]
+  ]},
+  { v: "90", items: [
+    ["add", "Empty fields shown in red, assumed ones in amber, with a count"]
+  ]},
+  { v: "89", items: [
+    ["fix", "Review rows are more compact"]
+  ]},
+  { v: "88", items: [
+    ["fix", "Pasted text with a heading line now reads every entry"]
+  ]},
+  { v: "87", items: [
+    ["add", "Review and edit each entry before adding \u2014 fill in anything missed"],
+    ["fix", "Cleaner names from spoken text"]
+  ]},
+  { v: "86", items: [
+    ["fix", "Entry names no longer include filler words"],
+    ["add", "Recognises more ways of listing several items at once"]
+  ]},
+  { v: "85", items: [
+    ["fix", "Expense Ledger table was rendering outside its card"],
+    ["add", "Several entries in one dictation are added together"],
+    ["add", "Multi-line box, and far more forgiving wording"]
+  ]},
+  { v: "84", items: [
+    ["fix", "Footer alignment at the foot of the page"],
+    ["add", "Many more phrasings understood in quick entry"]
+  ]},
+  { v: "83", items: [
+    ["add", "One box adds expenses, income, loans or savings spending"],
+    ["add", "Understands 120+ phrasings, dictation friendly"]
+  ]},
+  { v: "82", items: [
+    ["add", "Quick add — type or dictate an expense in one line"]
+  ]},
   { v: "81", items: [
     ["fix", "Title spacing on narrow screens"]
   ]},
@@ -4392,6 +4509,15 @@ function renderSnapshots(){
   }
 }
 
+/* Editable review rows =====================================================
+   Speech rarely carries every field. Rather than guessing a default and
+   hoping, each parsed entry is shown as a small FORM with whatever was
+   understood filled in and the rest blank. Missing fields are marked so
+   the eye goes straight to them.
+
+   This is the difference between "the parser must be perfect" and "the
+   parser must be close" -- and only the second is achievable with rules.
+   ======================================================================= */
 function renderCcSettings(){
   var box = el("cc-settings");
   if (!box) return;
@@ -6030,7 +6156,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-81)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-94)";
 }
 
 loadStateAndInit();
