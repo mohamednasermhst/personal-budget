@@ -138,8 +138,6 @@ h1{ font-family:'Newsreader',Georgia,serif; font-weight:600; line-height:1.15;
      raw vw overflowed by 12px at 360 and 6px at 393 -- measured, not
      guessed. The 34px ceiling keeps desktop unchanged. */
   font-size:clamp(17px, 5.3vw, 34px); }
-.year-select-wrap{ display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
-.year-select-wrap select{ font-family:'IBM Plex Mono',monospace; }
 .range-wrap{ display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
 .range-wrap input{ width:150px; }
 
@@ -152,14 +150,6 @@ h1{ font-family:'Newsreader',Georgia,serif; font-weight:600; line-height:1.15;
    itself working -- so the user would open it one day to an empty
    dashboard. This is the one failure this tool cannot recover from on its
    own, so the prompt is prominent rather than tucked away. */
-.backup-reminder{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-  background:var(--card-tint); border:1px solid var(--gold); border-radius:8px; padding:11px 14px; margin:6px 2px 18px; }
-.backup-reminder-text{ flex:1 1 260px; font-size:12.5px; color:var(--ink); }
-.backup-reminder-text strong{ display:block; margin-bottom:2px; }
-.backup-reminder-text span{ color:var(--ink-soft); }
-.backup-reminder-actions{ display:flex; align-items:center; gap:12px; }
-.backup-reminder.urgent{ background:#FBEAE4; border-color:var(--rust); }
-.backup-reminder.urgent .backup-reminder-text strong{ color:#7A3320; }
 /* ---- Language toggle + RTL ------------------------------------------------
    Arabic mode sets dir="rtl" on <html>, which flips the whole document:
    text alignment, flex/grid flow, list markers, table column order. Most
@@ -302,12 +292,6 @@ html[dir=rtl] .sanity-panel ul{ padding-left:0; padding-right:20px; }
 .undo-toast .btn-small{ background:#fff; color:var(--navy); border:none; }
 .ledger-search{ width:180px; }
 .exp-note, .inc-note{ width:150px; }
-.privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
-  border:1px solid var(--rule); border-radius:8px; padding:10px 13px; margin:6px 2px 16px;
-  font-size:12px; line-height:1.5; color:var(--ink-soft); }
-.privacy-actions{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:10px; }
-.privacy-notice strong{ display:block; color:var(--ink); margin-bottom:2px; font-size:12.5px; }
-.privacy-icon{ color:var(--emerald); font-size:15px; line-height:1.3; flex:none; }
 .title-with-mark{ display:flex; align-items:center; gap:12px; }
 .app-mark{ flex:none; line-height:0; }
 .app-mark svg{ width:44px; height:44px; display:block; border:1px solid var(--rule); border-radius:10px; }
@@ -459,8 +443,6 @@ html[data-theme=dark] .s1-stat.highlight{ background:linear-gradient(135deg,#2E2
 #forecast-table tbody tr:hover{ background:var(--card-tint); }
 td.negative{ color:var(--rust); }
 td.positive{ color:var(--emerald); }
-.editable-cell{ display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
-.editable-cell input{ width:110px; text-align:right; font-family:'IBM Plex Mono',monospace; padding:4px 8px; border:1px solid var(--rule-strong); border-radius:5px; }
 .badge-assumed{ font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--gold-deep); background:#FBF0DA; padding:2px 6px; border-radius:4px; font-family:'IBM Plex Sans',sans-serif; }
 .cashonhand-suggestion{ background:var(--card-tint); border:1px solid var(--gold); border-radius:8px; padding:10px 14px; margin:0 0 14px; font-size:13px; color:var(--ink); }
 .cashonhand-suggestion p{ margin:0 0 8px; }
@@ -596,7 +578,6 @@ td.positive{ color:var(--emerald); }
 .chart-detail-period{ font-family:'Newsreader',serif; font-size:16px; margin-bottom:6px; }
 .chart-detail-line{ display:flex; justify-content:space-between; font-size:13px; padding:2px 0; max-width:360px; }
 .chart-detail-line strong{ font-family:'IBM Plex Mono',monospace; }
-.chart-detail-note{ margin-top:6px; font-size:12.5px; color:var(--rust); }
 
 .ledger-header-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
 .ledger-actions{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -641,10 +622,10 @@ td.positive{ color:var(--emerald); }
    (grouped settings inside Monthly Cash Flow) and were styled
    differently -- different padding, heading treatment and background.
    One shared look; see .s1-subpanel. */
-.s1-subpanel, .cc-settings, .stilldue-section{
+.cc-settings, .stilldue-section{
   background:var(--card-tint); border:1px solid var(--rule); border-radius:8px;
   padding:12px 14px; margin:0 0 14px; }
-.s1-subpanel > .s1-subpanel-head, .cc-head, .stilldue-heading{
+.cc-head, .stilldue-heading{
   font-size:11px; text-transform:uppercase; letter-spacing:.05em;
   color:var(--gold-deep); font-weight:600; margin-bottom:8px; }
 .cc-settings{ display:block;
@@ -653,8 +634,6 @@ td.positive{ color:var(--emerald); }
 .cc-settings input{ width:64px; text-align:center; }
 .cc-settings .field-hint{ margin:4px 0 0; }
 .cc-settings .field-hint{ flex-basis:100%; margin:0; }
-.cc-statement-cell{ text-align:right; font-size:11px; color:var(--ink-soft); white-space:nowrap; }
-.cc-statement-cell input{ width:42px; padding:3px 5px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Mono',monospace; text-align:center; margin-left:5px; }
 
 .expense-row.drag-over{ outline:2px dashed var(--gold); outline-offset:-2px; }
 /* Same fix as .del-cell: keep the td in table layout so its bottom
@@ -682,7 +661,6 @@ td.positive{ color:var(--emerald); }
 
 .due-date-cell input[type=number]{ width:66px; }
 .due-date-cell .exp-dueday{ width:52px; }
-.onetime-note{ font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px; }
 .end-date-row{ margin-top:5px; font-size:11px; color:var(--ink-soft); display:flex; align-items:center; gap:4px; }
 
 .dates-editor, .overrides-editor{ display:flex; flex-direction:column; gap:4px; }
@@ -861,29 +839,6 @@ body.modal-open{ overflow:hidden; }
   <div id="update-banner" class="update-banner hidden">
     <span data-i18n="upd_text">A new version of the dashboard is ready.</span>
     <button type="button" id="update-now-btn" class="btn-small" data-i18n="upd_btn">Refresh now</button>
-  </div>
-
-  <div class="privacy-notice" id="privacy-notice">
-    <span class="privacy-icon" aria-hidden="true">&#9737;</span>
-    <div>
-      <strong data-i18n="pv_title">Your figures stay on this device</strong>
-      <span data-i18n="pv_body">Nothing is sent anywhere and no account is used. Anyone who can unlock your phone can open it. Clearing browser data erases it &mdash; keep a backup.</span>
-      <div class="privacy-actions">
-        <button type="button" id="privacy-protect" class="btn-small" data-i18n="k_protect">Protect with a passphrase</button>
-        <button type="button" id="privacy-dismiss" class="link-btn" data-i18n="k_later">Remind me later</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="backup-reminder" class="backup-reminder hidden">
-    <div class="backup-reminder-text">
-      <strong id="backup-reminder-title"></strong>
-      <span id="backup-reminder-body"></span>
-    </div>
-    <div class="backup-reminder-actions">
-      <button type="button" id="backup-reminder-export" class="btn-small" data-i18n="k_backupnow">Back up now</button>
-      <button type="button" id="backup-reminder-dismiss" class="link-btn" data-i18n="k_later">Later</button>
-    </div>
   </div>
 
   <div class="group-heading">
@@ -2109,9 +2064,6 @@ function periodLabel(row){
   if (row.yearA === row.yearB) return mA + "\u2013" + mB + " (" + toArabicDigits(row.yearA) + ")";
   return mA + "(" + toArabicDigits(row.yearA) + ")" + "\u2013" + mB + "(" + toArabicDigits(row.yearB) + ")";
 }
-function periodLabelCompact(row){
-  return monthShort(row.monthA) + "\u2019" + toArabicDigits(String(row.yearA).slice(-2));
-}
 function formatDayRange(row, incomeDay){
   // The exact day-level range for a period, e.g. "Aug 24 - Sep 23, 2026" --
   // supplements the month-level periodLabel() (e.g. "Aug-Sep (2026)") with
@@ -2148,15 +2100,6 @@ var viewAsOfDate = todayISO();
 // exclusion (a completely separate, deliberately-unchanged concern) --
 // don't remove the variable, only the UI control that used to set it.
 var viewExcludeAlreadyPaid = true;
-
-function walkCalendarMonths(fromY, fromM, toY, toM, cb){
-  var idx = fromY*12 + (fromM-1);
-  var endIdx = toY*12 + (toM-1);
-  while (idx <= endIdx){
-    cb(Math.floor(idx/12), (idx % 12) + 1);
-    idx++;
-  }
-}
 
 function monthIdx(y, m){ return y * 12 + (m - 1); }
 function idxToYM(i){ return { y: Math.floor(i / 12), m: (i % 12) + 1 }; }
@@ -2492,10 +2435,8 @@ function makeDefaultState(){
     // prompt, which would defeat the point.
     lang: "en",
     theme: "light",
-    privacySnoozedUntil: null,
     backupSnapshots: [],
     maxSnapshots: MAX_SNAPSHOTS_DEFAULT,
-    lastSeenVersion: null,
     arabicDigits: true,
     lastBackupAt: null,
     backupReminderSnoozedUntil: null,
@@ -3085,13 +3026,6 @@ function computeSnapshotView(mainRows){
    RENDER -- SECTION 1
    ========================================================================= */
 
-function deficitCutLabel(){
-  var cats = categoriesWithBehavior("deficitCutSuggestion");
-  if (cats.length === 0) return "discretionary spend"; // no category currently tagged -- generic fallback
-  if (cats.length === 1) return cats[0];
-  return cats.slice(0,-1).join(", ") + " and " + cats[cats.length-1];
-}
-
 function renderCashOnHandReconciliation(){
   var suggestionBox = el("cashonhand-suggestion");
   var badge = el("cashonhand-reconciled-badge");
@@ -3247,14 +3181,32 @@ function fitForecastTable(){
   // 0.97, not 1.0 -- see comment above the constant.
   var scale = (avail * FORECAST_FIT_MARGIN) / natural;
   if (scale >= MIN_FORECAST_SCALE){
-    if (SUPPORTS_ZOOM){
-      table.style.zoom = String(scale);
-    } else {
-      table.style.transformOrigin = "top left";
-      table.style.transform = "scale(" + scale + ")";
-      wrapper.style.height = (table.scrollHeight * scale) + "px";
+    function applyScale(k){
+      if (SUPPORTS_ZOOM){
+        table.style.zoom = String(k);
+      } else {
+        table.style.transformOrigin = "top left";
+        table.style.transform = "scale(" + k + ")";
+        wrapper.style.height = (table.scrollHeight * k) + "px";
+      }
     }
-    return;
+    applyScale(scale);
+    // VERIFY, do not assume. Up to three corrections: each measures the
+    // real overflow after painting and shrinks by exactly what is still
+    // sticking out, so a font that renders wider than measured cannot
+    // leave the table clipped.
+    for (var attempt = 0; attempt < 3; attempt++){
+      var over = wrapper.scrollWidth - wrapper.clientWidth;
+      if (over <= 0) break;
+      scale = scale * (wrapper.clientWidth / wrapper.scrollWidth) * FORECAST_FIT_MARGIN;
+      if (scale < MIN_FORECAST_SCALE) break;
+      applyScale(scale);
+    }
+    if (wrapper.scrollWidth - wrapper.clientWidth <= 0) return;
+    // Still overflowing at the smallest comfortable size -- fall through
+    // to the stacked layout rather than leaving columns cut off.
+    if (SUPPORTS_ZOOM){ table.style.zoom = "1"; }
+    else { table.style.transform = ""; wrapper.style.height = ""; }
   }
 
   // Doesn't fit even at the smallest comfortable reading scale -- fall
@@ -3518,15 +3470,6 @@ function monthSelectInline(id, idx, kind, val){
   return html;
 }
 
-function mainMonthSelect(id, val){
-  var html = '<select class="exp-month" data-id="' + escapeAttr(id) + '" data-field="dueMonth">';
-  MONTHS.forEach(function(m,i){
-    html += '<option value="' + (i+1) + '"' + ((i+1)===Number(val)?" selected":"") + ">" + monthShort(i+1) + "</option>";
-  });
-  html += "</select>";
-  return html;
-}
-
 function categorySelect(exp){
   var cats = getAllCategories();
   var html = '<select class="exp-category" data-id="' + escapeAttr(exp.id) + '" data-field="category">';
@@ -3726,19 +3669,6 @@ function renderLedgerTable(){
 
 var p2pExpanded = {}; // session-only: which loan cards are open
 
-function p2pStatusLabel(loan){
-  if (p2pIsSettled(loan)) return "settled";
-  if (loan.repayType === "open") return "open-ended";
-  if (loan.repayType === "lump" && loan.repayDate){
-    var d = parseISODate(loan.repayDate);
-    if (d) return "due " + formatDueDate(d.y, d.m, d.d);
-  }
-  if (loan.repayType === "monthly" && Number(loan.repayAmount) > 0){
-    return fmt(Number(loan.repayAmount)) + "/mo" + (loan.repayEndDate ? "" : ", open-ended");
-  }
-  return "no schedule set";
-}
-
 /* ===== Language (English / Arabic) ======================================
    Arabic mode sets dir="rtl" on <html>; the layout follows because it is
    built on flex/grid rather than hard-coded left/right offsets.
@@ -3900,10 +3830,6 @@ function toArabicDigits(str){
   return String(str).replace(/[0-9]/g, function(d){ return AR_DIGITS[+d]; });
 }
 
-function monthName(m1){
-  // m1 is 1-based.
-  return currentLang() === "ar" ? AR_MONTHS[m1-1] : MONTHS[m1-1];
-}
 function tr(en, ar){
   // Inline translation for strings BUILT IN JS (warnings, badges,
   // reminders). data-i18n only covers static markup; anything assembled
@@ -3976,13 +3902,6 @@ function applyLanguage(){
 var BACKUP_REMIND_AFTER_DAYS = 5;   // gentle nudge: before iOS's ~7-day window
 var BACKUP_URGENT_AFTER_DAYS = 14;  // stronger wording once well overdue
 var BACKUP_SNOOZE_DAYS = 3;
-
-function daysSince(iso){
-  if (!iso) return null;
-  var d = parseISODate(String(iso).slice(0,10));
-  if (!d) return null;
-  return toAbsDay(todayYear(), todayMonthNum(), todayDayNum()) - toAbsDay(d.y, d.m, d.d);
-}
 
 function markBackupTaken(){
   state.lastBackupAt = todayISO();
@@ -4211,6 +4130,15 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "97", items: [
+    ["fix", "Page behind an open backup dialog no longer scrolls"],
+    ["fix", "Removed leftover code from earlier features"]
+  ]},
+  { v: "96", items: [
+    ["fix", "Monthly Summary now verifies it fits instead of assuming"],
+    ["fix", "Page no longer pulls itself while scrolling"],
+    ["fix", "Removed the passphrase and backup notices from the top"]
+  ]},
   { v: "95", items: [
     ["fix", "Theme and language switches sit together on tablet"],
     ["fix", "Spacing below the top row"],
@@ -4603,52 +4531,6 @@ function renderLockToggle(){
     status.classList.add("hidden");
     btn.textContent = tr("Protect with a passphrase","حماية بعبارة مرور");
   }
-}
-
-function renderBackupReminder(){
-  var box = el("backup-reminder");
-  if (!box) return;
-  // The snooze must apply even when data is dirty. It previously did not
-  // (`&& !cashDataDirty`), and since the dirty flag is exactly what
-  // RAISES this reminder, "Later" could never hide anything -- the
-  // button looked broken because it was.
-  //
-  // The next EDIT clears the snooze (see saveState), so it hides the
-  // current prompt without silencing future ones.
-  var snoozed = state.backupReminderSnoozedUntil;
-  if (snoozed){
-    var sd = daysSince(snoozed);
-    // snoozedUntil is a future date; daysSince is negative until it passes.
-    if (sd !== null && sd < 0){ box.classList.add("hidden"); return; }
-  }
-  var since = daysSince(state.lastBackupAt);
-  var never = (since === null);
-  // Unsaved changes take priority over the day-based schedule: if the
-  // numbers have moved since the last export, the copy in the user's
-  // notes is stale NOW, not in five days.
-  if (!never && since < BACKUP_REMIND_AFTER_DAYS && !cashDataDirty){
-    box.classList.add("hidden"); return;
-  }
-
-  var urgent = never ? false : (since >= BACKUP_URGENT_AFTER_DAYS);
-  box.classList.toggle("urgent", urgent);
-  if (never){
-    el("backup-reminder-title").textContent = tr("Back up your data", "\u0627\u062d\u0641\u0638 \u0646\u0633\u062e\u0629 \u0645\u0646 \u0628\u064a\u0627\u0646\u0627\u062a\u0643");
-    el("backup-reminder-body").textContent = tr("Your figures live only on this device. If the browser clears its storage \u2014 which can happen on a phone after about a week unused \u2014 they are gone. A backup takes a few seconds and restores in one paste.", "\u0623\u0631\u0642\u0627\u0645\u0643 \u0645\u062d\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u062c\u0647\u0627\u0632 \u0641\u0642\u0637. \u0625\u0630\u0627 \u0645\u0633\u062d \u0627\u0644\u0645\u062a\u0635\u0641\u062d \u0630\u0627\u0643\u0631\u062a\u0647 \u2014 \u0648\u0647\u0630\u0627 \u0648\u0627\u0631\u062f \u0639\u0644\u0649 \u0627\u0644\u0647\u0627\u062a\u0641 \u0628\u0639\u062f \u0646\u062d\u0648 \u0623\u0633\u0628\u0648\u0639 \u062f\u0648\u0646 \u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u2014 \u0641\u0633\u062a\u0636\u064a\u0639. \u0627\u0644\u0646\u0633\u062e \u064a\u0633\u062a\u063a\u0631\u0642 \u062b\u0648\u0627\u0646\u064a \u0648\u0627\u0644\u0627\u0633\u062a\u0639\u0627\u062f\u0629 \u0628\u0644\u0635\u0642\u0629 \u0648\u0627\u062d\u062f\u0629.");
-  } else if (cashDataDirty && since < BACKUP_URGENT_AFTER_DAYS){
-    el("backup-reminder-title").textContent = tr("Changes not backed up yet","تغييرات لم تُحفظ نسخة منها");
-    el("backup-reminder-body").textContent = tr(
-      "You have edited your figures since the last backup. Take a fresh copy so the version you saved matches what is on screen.",
-      "لقد عدّلت أرقامك منذ آخر نسخة احتياطية. خذ نسخة جديدة حتى تطابق النسخة المحفوظة ما تراه الآن.");
-  } else {
-    el("backup-reminder-title").textContent = urgent
-      ? "It has been " + since + " days since your last backup"
-      : "Last backed up " + since + " day" + (since === 1 ? "" : "s") + " ago";
-    el("backup-reminder-body").textContent = urgent
-      ? "Your figures live only on this device and are overdue for a copy. If the browser clears its storage, they cannot be recovered."
-      : "Worth taking a fresh copy, especially if you have changed anything since.";
-  }
-  box.classList.remove("hidden");
 }
 
 function renderP2P(){
@@ -5245,19 +5127,9 @@ function render(){
   renderP2P();
   renderedRows = syncedRows;
   renderCategoryBreakdown(syncedRows);
-  renderBackupReminder();
   // Dismissible: the privacy notice is a one-time explanation, not a
   // standing alert. Shown until acknowledged, then the passphrase
   // control moves into the footer where settings live.
-  if (el("privacy-notice")){
-    // This panel is the PROMPT to protect the app. Once a passphrase is
-    // set the prompt has done its job and should not keep nagging; the
-    // control to remove it lives in the footer. "Remind me later" hides
-    // it for the rest of today only -- where your financial data lives
-    // is worth being told more than once.
-    var snoozed = state.privacySnoozedUntil && state.privacySnoozedUntil >= todayISO();
-    el("privacy-notice").classList.toggle("hidden", !!snoozed || !!encryptionOn);
-  }
   if (el("snap-keep-input") && document.activeElement !== el("snap-keep-input")){
     el("snap-keep-input").value = maxSnapshots();
   }
@@ -5269,9 +5141,18 @@ function render(){
   applyLanguage();
   fitForecastTable();
 
-  // Restore synchronously: doing this in a timeout lets the browser paint
-  // the scrolled-to-top state first, which is the visible "jump".
+  // Synchronous: a timeout would let the browser paint the
+  // scrolled-to-top state first, which is the visible jump. This must
+  // run on EVERY render -- innerHTML rebuilds shorten the document
+  // momentarily and the browser clamps scroll to 0 without it.
   window.scrollTo(scrollX, scrollY);
+  // Second attempt after layout settles. The synchronous call can be
+  // clamped to 0 when the rebuilt document is momentarily shorter than
+  // the old scroll position -- the browser refuses to scroll past the
+  // end, and by the time the content is back the position is lost.
+  if (scrollY > 0 && Math.abs(window.scrollY - scrollY) > 2){
+    requestAnimationFrame(function(){ window.scrollTo(scrollX, scrollY); });
+  }
   restoreFocus(focusDesc);
 }
 
@@ -5415,13 +5296,6 @@ function bindStaticListeners(){
     incomeFilter = e.target.value || "";
     renderIncomeTable();
   });
-  el("privacy-protect").addEventListener("click", function(){
-    el("lock-toggle-btn").click();
-  });
-  el("privacy-dismiss").addEventListener("click", function(){
-    state.privacySnoozedUntil = todayISO();
-    saveState(); render();
-  });
   el("theme-light").addEventListener("click", function(){
     state.theme = "light"; saveState(); render();
   });
@@ -5439,25 +5313,6 @@ function bindStaticListeners(){
   });
   el("digit-en").addEventListener("click", function(){
     state.arabicDigits = false; saveState(); render();
-  });
-  el("backup-reminder-export").addEventListener("click", function(){
-    // Takes a real backup. It previously opened the export box, which
-    // asked the user to do more work after they had already said yes --
-    // a prompt that asks you to back up should back up.
-    takeSnapshot("manual");
-    markBackupTaken();
-    cashDataDirty = false;
-    render();
-    notify(tr("Backup saved","تم حفظ النسخة"),
-           tr("Added to Dashboard Backups at the foot of the page.",
-              "أُضيفت إلى نسخ اللوحة في أسفل الصفحة."));
-  });
-  el("backup-reminder-dismiss").addEventListener("click", function(){
-    // Snooze rather than dismiss forever: the risk does not go away
-    // because the user is busy today.
-    var d = absToYMD(toAbsDay(todayYear(), todayMonthNum(), todayDayNum()) + BACKUP_SNOOZE_DAYS);
-    state.backupReminderSnoozedUntil = d.y + "-" + String(d.m).padStart(2,"0") + "-" + String(d.d).padStart(2,"0");
-    saveState(); render();
   });
   el("s1-payday-input").addEventListener("change", function(e){
     var day = clampDay(e.target.value);
@@ -5862,7 +5717,18 @@ function bindStaticListeners(){
 
   bindLedgerDelegatedEvents();
 
-  window.addEventListener("resize", debounce(fitForecastTable, 150));
+  // WIDTH only. iOS Safari fires `resize` every time the address bar
+  // collapses or expands during scrolling -- a HEIGHT change, not a
+  // layout change. Re-fitting on those re-zoomed the table and shifted
+  // the document height mid-scroll, which is the "page pulls itself up"
+  // the user reported. Nothing about a height change can affect how wide
+  // the table needs to be.
+  var lastFitWidth = window.innerWidth;
+  window.addEventListener("resize", debounce(function(){
+    if (window.innerWidth === lastFitWidth) return;
+    lastFitWidth = window.innerWidth;
+    fitForecastTable();
+  }, 150));
   if (document.fonts && document.fonts.ready){ document.fonts.ready.then(fitForecastTable); }
   var cardEl = el("forecast-table").closest(".card");
   if (window.ResizeObserver && cardEl){
@@ -6072,6 +5938,7 @@ var backupModalFilename = "export.txt";
 var backupModalText = "";
 
 function openBackupModal(mode){
+  document.body.classList.add("modal-open");
   backupModalMode = mode;
   var ta = el("backup-textarea");
   el("backup-feedback").textContent = "";
@@ -6128,7 +5995,8 @@ function openBackupModalWith(text, hint, filename){
   try { ta.focus({ preventScroll: true }); } catch(e){ ta.focus(); }
   ta.select();
 }
-function closeBackupModal(){ el("backup-modal").classList.add("hidden"); }
+function closeBackupModal(){
+  document.body.classList.remove("modal-open"); el("backup-modal").classList.add("hidden"); }
 
 function fallbackCopy(ta, feedback){
   var copied = false;
@@ -6176,7 +6044,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-95)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-97)";
 }
 
 loadStateAndInit();
