@@ -126,7 +126,17 @@ body{
 .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
 .header-row{ display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--rule-strong); padding-bottom:16px; position:relative; }
 .header-row::after{ content:""; position:absolute; left:0; right:0; bottom:-7px; height:1px; background:rgba(184,137,31,0.2); }
-h1{ font-family:'Newsreader',serif; font-weight:500; font-size:34px; margin:0; letter-spacing:-0.01em; color:var(--ink); }
+/* One line at every width. 34px wrapped "Household Budget Dashboard" onto
+   two lines on a phone; clamp() scales it with the viewport so it fits
+   without a breakpoint and without shrinking on desktop. */
+h1{ font-family:'Newsreader',Georgia,serif; font-weight:600; line-height:1.15;
+  margin:0; color:var(--ink); white-space:nowrap;
+  /* 5.3vw, not 6.4: the title shares its row with a 44px logo plate plus
+     12px gap and the page's own 24px of side padding, so the space it
+     actually gets is ~80px narrower than the viewport. Sizing against
+     raw vw overflowed by 12px at 360 and 6px at 393 -- measured, not
+     guessed. The 34px ceiling keeps desktop unchanged. */
+  font-size:clamp(17px, 5.3vw, 34px); }
 .year-select-wrap{ display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.06em; }
 .year-select-wrap select{ font-family:'IBM Plex Mono',monospace; }
 .range-wrap{ display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
@@ -195,6 +205,7 @@ html[dir=rtl] #forecast-table td, html[dir=rtl] .chart-detail-line strong{
 }
 html[dir=rtl] .num, html[dir=rtl] td.num{ text-align:left; }
 html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-align:left; }
+body.modal-open{ overflow:hidden; }
 .unlock-overlay{ position:fixed; inset:0; z-index:9999; background:var(--bg);
   display:flex; align-items:center; justify-content:center; padding:24px; }
 .unlock-card{ background:var(--card); border:1px solid var(--rule); border-radius:12px;
@@ -203,6 +214,36 @@ html[dir=rtl] input[type=number], html[dir=rtl] input[inputmode=decimal]{ text-a
 .unlock-card p{ margin:0 0 16px; font-size:13px; color:var(--ink-soft); line-height:1.55; }
 .unlock-card input{ width:100%; margin-bottom:12px; }
 .unlock-card button{ width:100%; }
+.snap-row{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:9px 0; border-top:1px solid var(--rule); }
+.snap-row:first-child{ border-top:none; }
+.snap-meta strong{ font-size:13px; color:var(--ink); display:block;
+  font-family:'IBM Plex Mono',monospace; }
+.snap-why{ font-size:11.5px; color:var(--ink-faint); }
+.snap-keep{ margin-bottom:14px; }
+.snap-keep input{ width:70px; text-align:center; }
+.snap-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.footer-actions{ display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding-bottom:12px; margin-bottom:10px; border-bottom:1px solid var(--rule);
+  font-size:12.5px; color:var(--ink-soft); }
+.build-stamp-btn{ background:none; border:none; padding:0; font:inherit; color:inherit;
+  cursor:pointer; text-decoration:underline; text-decoration-style:dotted;
+  text-underline-offset:3px; }
+.changelog-card{ max-width:460px; }
+.changelog-body{ max-height:58vh; overflow-y:auto; margin-bottom:14px; }
+.cl-rel{ margin-bottom:16px; }
+.cl-ver{ font-size:10.5px; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--gold-deep); font-weight:600; margin-bottom:5px; }
+.changelog-body ul{ margin:0; padding:0; list-style:none; }
+.changelog-body li{ font-size:12.5px; line-height:1.5; color:var(--ink-soft);
+  padding:2px 0 2px 16px; position:relative; }
+html[dir=rtl] .changelog-body li{ padding:2px 16px 2px 0; }
+.cl-dot{ position:absolute; left:0; top:8px; width:6px; height:6px; border-radius:50%; }
+html[dir=rtl] .cl-dot{ left:auto; right:0; }
+.cl-add .cl-dot{ background:var(--emerald); }
+.cl-fix .cl-dot{ background:var(--rust); }
+.ask-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:14px; }
+.ask-actions button{ width:auto; }
 .unlock-error{ margin:10px 0 0 !important; color:var(--rust); font-size:12.5px; min-height:1em; }
 /* Its own row beneath the text, never floated into it: floating made the
    paragraph wrap around the badge mid-sentence and read as broken on a
@@ -248,8 +289,7 @@ html[dir=rtl] .sanity-panel ul{ padding-left:0; padding-right:20px; }
 .privacy-notice{ display:flex; gap:10px; align-items:flex-start; background:var(--card-tint);
   border:1px solid var(--rule); border-radius:8px; padding:10px 13px; margin:6px 2px 16px;
   font-size:12px; line-height:1.5; color:var(--ink-soft); }
-.privacy-dismiss{ float:right; margin-left:10px; }
-html[dir=rtl] .privacy-dismiss{ float:left; margin-left:0; margin-right:10px; }
+.privacy-actions{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:10px; }
 .privacy-notice strong{ display:block; color:var(--ink); margin-bottom:2px; font-size:12.5px; }
 .privacy-icon{ color:var(--emerald); font-size:15px; line-height:1.3; flex:none; }
 .title-with-mark{ display:flex; align-items:center; gap:12px; }
@@ -301,6 +341,13 @@ html[dir=rtl] .privacy-dismiss{ float:left; margin-left:0; margin-right:10px; }
 .chart-cat-group table td.num{ text-align:right; font-family:'IBM Plex Mono',monospace; }
 
 .s1-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; }
+/* auto-fit stretched two fields across the full tablet width, throwing
+   "Recorded on" far from "Cash on hand" it belongs with. Cap the pair. */
+/* Two related fields that belong together. auto-fit dropped "Recorded
+   on" onto its own row on a phone and stretched it across a tablet;
+   an explicit 2-column grid keeps them paired at every width. */
+#cash-onhand-fields{ grid-template-columns:repeat(2, minmax(0, 200px));
+  justify-content:start; gap:12px; }
 .s1-field{ display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
 .s1-field input{ font-family:'IBM Plex Mono',monospace; font-size:16px; padding:8px 10px; border:1px solid var(--rule-strong); border-radius:6px; background:var(--card-tint); color:var(--ink); height:39px; box-sizing:border-box; }
 /* date-field sizing lives on #cash-onhand-date-input / #asof-date-input
@@ -379,7 +426,13 @@ input[type=date]::-webkit-datetime-edit-year-field{ padding:0; }
 .s1-stat{ display:flex; flex-direction:column; gap:6px; justify-content:flex-end; }
 .s1-stat span{ font-size:12px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; }
 .s1-stat strong{ font-size:19px; font-family:'IBM Plex Mono',monospace; }
-.s1-stat.highlight{ background:linear-gradient(135deg, #FBF3E0, #F5E8C8); border:1px solid var(--gold); border-radius:8px; padding:10px 12px; margin:-11px -13px; }
+/* Negative margins made the highlighted stat overhang its grid cell, so
+   its right edge sat outside the card and past the Snapshot box above.
+   Pad inward instead: the box stays visually distinct without breaking
+   the column alignment. */
+.s1-stat.highlight{ background:linear-gradient(135deg, #FBF3E0, #F5E8C8);
+  border:1px solid var(--gold); border-radius:8px; padding:10px 12px; margin:0; }
+html[data-theme=dark] .s1-stat.highlight{ background:linear-gradient(135deg,#2E2718,#332B1A); }
 .s1-stat.highlight strong{ color:var(--gold-deep); font-size:22px; }
 
 .table-scroll{ overflow-x:auto; }
@@ -432,7 +485,12 @@ td.positive{ color:var(--emerald); }
 .p2p-fields label.p2p-span{ grid-column:1 / -1; }
 /* Stacked payment card: date and amount side by side, note full width. */
 @media (max-width:520px){
+  /* Date and Amount pair; Note and the action take full rows. This was
+     already intended but never applied, because the colgroup widths from
+     the desktop table still bound and forced one field per row. */
   .p2p-pay-table tr{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px; align-items:end; }
+  .p2p-pay-table td{ min-width:0; }
+  .p2p-pay-table td input{ width:100%; box-sizing:border-box; }
   /* Date and Amount pair up; Note and the Remove action take full rows. */
   .p2p-pay-table td:nth-child(3){ grid-column:1 / -1; }
   .p2p-pay-table td:last-child{ grid-column:1 / -1; text-align:right; }
@@ -471,7 +529,12 @@ td.positive{ color:var(--emerald); }
   .p2p-pay-table{ table-layout:auto; }
   .p2p-pay-table colgroup, .p2p-pay-table col{ display:none; }
   .p2p-pay-table, .p2p-pay-table tbody, .p2p-pay-table tr, .p2p-pay-table td{ display:block; width:100%; }
-  .p2p-pay-table tr{ border:none; border-top:1px solid var(--rule); border-radius:0; padding:10px 0 4px; margin-bottom:2px; }
+  /* Merged with the grid rule above: two rules for the same selector,
+     the later one silently reset display back to block and undid the
+     2-column pairing. Keep ONE rule per selector per breakpoint. */
+  .p2p-pay-table tr{ display:grid; grid-template-columns:1fr 1fr; gap:8px 10px;
+    align-items:end; border:none; border-top:1px solid var(--rule);
+    border-radius:0; padding:10px 0 4px; margin-bottom:2px; }
   .p2p-pay-table td{ border-top:none; padding:3px 0; }
   .p2p-pay-table td::before{ content:attr(data-label); display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-bottom:2px; }
   .p2p-pay-table td:last-child{ text-align:right; }
@@ -510,6 +573,8 @@ td.positive{ color:var(--emerald); }
 .chart-saving-line{ stroke:var(--emerald); stroke-width:2; pointer-events:none; }
 .chart-dot-deficit{ cursor:pointer; }
 .chart-x-label{ font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--ink-soft); }
+.chart-year-label{ font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; fill:var(--gold-deep); }
+.chart-year-rule{ stroke:var(--rule-strong); stroke-width:1; }
 .chart-bar-label{ font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--gold); }
 .chart-detail{ margin-bottom:14px; border-bottom:1px solid var(--rule); padding-bottom:12px; }
 .chart-detail-period{ font-family:'Newsreader',serif; font-size:16px; margin-bottom:6px; }
@@ -556,6 +621,16 @@ td.positive{ color:var(--emerald); }
 .cc-row{ display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:9px; }
 .cc-name{ display:flex; align-items:center; gap:7px; font-weight:600; color:var(--ink);
   font-size:12.5px; min-width:110px; align-self:center; }
+/* The card-billing and snapshot panels are siblings doing the same job
+   (grouped settings inside Monthly Cash Flow) and were styled
+   differently -- different padding, heading treatment and background.
+   One shared look; see .s1-subpanel. */
+.s1-subpanel, .cc-settings, .stilldue-section{
+  background:var(--card-tint); border:1px solid var(--rule); border-radius:8px;
+  padding:12px 14px; margin:0 0 14px; }
+.s1-subpanel > .s1-subpanel-head, .cc-head, .stilldue-heading{
+  font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--gold-deep); font-weight:600; margin-bottom:8px; }
 .cc-settings{ display:block;
   background:var(--card-tint); border:1px solid var(--rule); border-radius:8px;
   padding:10px 13px; margin:0 0 14px; font-size:12.5px; }
@@ -658,7 +733,7 @@ td.positive{ color:var(--emerald); }
 #adhoc-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); font-weight:600; padding:8px 10px; border-bottom:2px solid var(--ink); font-family:'IBM Plex Sans',sans-serif; }
 #adhoc-table td{ padding:7px 10px; border-bottom:1px solid var(--rule); vertical-align:middle; font-family:'IBM Plex Sans',sans-serif; }
 .adhoc-name{ width:220px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Sans',sans-serif; }
-.adhoc-date{ padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+.adhoc-date{ min-width:150px;  padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; font-family:'IBM Plex Mono',monospace; font-size:13px; }
 .adhoc-amount{ width:110px; padding:5px 7px; border:1px solid var(--rule-strong); border-radius:5px; text-align:right; font-family:'IBM Plex Mono',monospace; }
 
 #income-table{ border-collapse:collapse; width:100%; min-width:760px; }
@@ -676,6 +751,7 @@ td.positive{ color:var(--emerald); }
 .add-tier-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; margin-top:2px; }
 .rental-percheque{ color:var(--ink-faint); font-size:11px; font-style:italic; margin-top:4px; }
 
+body.modal-open{ overflow:hidden; }
 .backup-modal{ position:fixed; inset:0; background:rgba(43,35,24,0.45); display:flex; align-items:center; justify-content:center; z-index:1000; padding:20px; }
 .backup-modal.hidden{ display:none; }
 .backup-modal-inner{ background:var(--card); color:var(--ink); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; max-width:520px; width:100%; max-height:85vh; overflow:auto; }
@@ -692,6 +768,27 @@ td.positive{ color:var(--emerald); }
 </style>
 </head>
 <body>
+<div id="changelog-overlay" class="unlock-overlay hidden">
+  <div class="unlock-card changelog-card">
+    <h2 data-i18n="cl_title">What&rsquo;s changed</h2>
+    <div id="changelog-body" class="changelog-body"></div>
+    <button type="button" id="changelog-close" class="primary-btn" data-i18n="k_close">Close</button>
+  </div>
+</div>
+
+<div id="ask-overlay" class="unlock-overlay hidden">
+  <div class="unlock-card">
+    <h2 id="ask-title"></h2>
+    <p id="ask-body"></p>
+    <input type="password" id="ask-input" class="hidden" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <p id="ask-error" class="unlock-error"></p>
+    <div class="ask-actions">
+      <button type="button" id="ask-cancel" class="ghost-btn"></button>
+      <button type="button" id="ask-ok" class="primary-btn"></button>
+    </div>
+  </div>
+</div>
+
 <div id="unlock-overlay" class="unlock-overlay hidden">
   <div class="unlock-card">
     <h2 data-i18n="lk_title">Enter your passphrase</h2>
@@ -750,7 +847,10 @@ td.positive{ color:var(--emerald); }
     <div>
       <strong data-i18n="pv_title">Your figures stay on this device</strong>
       <span data-i18n="pv_body">Nothing is sent anywhere and no account is used. Anyone who can unlock your phone can open it. Clearing browser data erases it &mdash; keep a backup.</span>
-      <button type="button" id="privacy-dismiss" class="link-btn privacy-dismiss" data-i18n="k_gotit">Got it</button>
+      <div class="privacy-actions">
+        <button type="button" id="privacy-protect" class="btn-small" data-i18n="k_protect">Protect with a passphrase</button>
+        <button type="button" id="privacy-dismiss" class="link-btn" data-i18n="k_later">Remind me later</button>
+      </div>
     </div>
   </div>
 
@@ -773,7 +873,6 @@ td.positive{ color:var(--emerald); }
 <section class="card" id="section1">
     <h2 data-i18n="s_cashflow">Monthly Cash Flow</h2>
     <p class="card-hint" id="s1-period-label"></p>
-    <p class="card-hint" id="s1-period-days" style="margin-top:-8px;"></p>
     <label class="s1-payday-row">
       <span data-i18n="l_payday">Pay period starts on day</span> <input type="number" min="1" max="31" id="s1-payday-input">
       <span class="field-hint" style="margin:0;" data-i18n="h_payday">&mdash; the day your pay arrives, which is where each month's budget period begins</span>
@@ -968,16 +1067,31 @@ td.positive{ color:var(--emerald); }
 
   
 
+  <section class="card" id="section-backups">
+    <h2 data-i18n="s_backups">Dashboard Backups</h2>
+    <p class="card-hint" data-i18n="h_backups">Snapshots kept on this device. Restore any of them to roll the whole dashboard back. They live in the same browser storage as your figures &mdash; if that is cleared they go too, so keep an exported file as well.</p>
+    <label class="field-inline snap-keep"><span data-i18n="k_keep">Backups to keep</span>
+      <input type="number" min="1" max="20" id="snap-keep-input"></label>
+    <div id="snapshots-body"></div>
+    <div class="snap-actions">
+      <button type="button" id="snapshot-now-btn" class="primary-btn" data-i18n="k_snapnow">Back up now</button>
+      <button type="button" id="export-btn-2" class="ghost-btn" data-i18n="btn_export">Export to file</button>
+      <button type="button" id="import-btn-2" class="ghost-btn" data-i18n="btn_import">Import from file</button>
+      <button type="button" id="reset-btn-2" class="ghost-btn" data-i18n="btn_reset">Reset to defaults</button>
+    </div>
+  </section>
+
   <footer class="page-footer">
-    <span class="lock-controls">
-      <span id="lock-status" class="lock-status hidden"></span>
-      <button type="button" id="lock-toggle-btn" class="link-btn"></button>
-    </span>
-    <button id="reset-btn" class="ghost-btn" type="button" data-i18n="btn_reset">Reset to defaults</button>
-    <button id="export-btn" class="ghost-btn" type="button" data-i18n="btn_export">Export backup</button>
-    <button id="import-btn" class="ghost-btn" type="button" data-i18n="btn_import">Import backup</button>
     <input type="file" id="import-file-input" accept="application/json" style="display:none;">
-    <p>Planning tool only &mdash; not financial advice. <span id="build-stamp"></span></p>
+    <div class="footer-actions">
+      <span data-i18n="wn_note">Updates to this dashboard are listed in the version history.</span>
+      <button type="button" id="whatsnew-open" class="btn-small" data-i18n="wn_btn">See what changed</button>
+      <span class="lock-controls">
+        <span id="lock-status" class="lock-status hidden"></span>
+        <button type="button" id="lock-toggle-btn" class="link-btn"></button>
+      </span>
+    </div>
+    <p>Planning tool only &mdash; not financial advice. <button type="button" id="build-stamp" class="build-stamp-btn"></button></p>
   </footer>
 
   <div id="backup-modal" class="backup-modal hidden">
@@ -1237,18 +1351,36 @@ function getCategoryPaymentDay(cat){
 }
 
 function isBuiltinCategory(name){
-  return BUILTIN_CATEGORIES.indexOf(name) !== -1;
+  if (BUILTIN_CATEGORIES.indexOf(name) !== -1) return true;
+  // A renamed builtin is still a builtin (it cannot be deleted).
+  var renames = state.builtinCategoryNames || {};
+  for (var k in renames){ if (renames[k] === name) return true; }
+  return false;
 }
 
 function renameCategory(oldName, newName){
-  // Custom categories only -- cascades the rename everywhere a category
-  // name is used as a key or a value, so nothing silently reverts to
-  // "Other" or loses its behavior/statement-day/collapsed state.
-  var entry = state.customCategories.filter(function(c){ return c.name === oldName; })[0];
-  if (!entry) return;
-  entry.name = newName;
+  // Works for BUILT-IN categories too. They were locked because the
+  // names live in a constant, but "Household" or "Utilities" are the
+  // user's own vocabulary -- there is no reason we should own them.
+  // A builtin is renamed by overriding it: recorded in
+  // state.builtinCategoryNames and resolved by getAllCategories().
+  //
+  // Cascades everywhere the name is used as a key or a value, so nothing
+  // silently reverts to "Other" or loses its behaviour, statement day,
+  // payment day or collapsed state.
+  if (isBuiltinCategory(oldName)){
+    state.builtinCategoryNames = state.builtinCategoryNames || {};
+    state.builtinCategoryNames[oldName] = newName;
+    if (state.builtinCategoryColors && state.builtinCategoryColors.hasOwnProperty(oldName)){
+      state.builtinCategoryColors[newName] = state.builtinCategoryColors[oldName];
+    }
+  } else {
+    var entry = state.customCategories.filter(function(c){ return c.name === oldName; })[0];
+    if (!entry) return;
+    entry.name = newName;
+  }
   state.expenses.forEach(function(e){ if (e.category === oldName) e.category = newName; });
-  ["categoryBehaviors","categoryStatementDays","collapsedCategories"].forEach(function(mapKey){
+  ["categoryBehaviors","categoryStatementDays","categoryPaymentDays","collapsedCategories"].forEach(function(mapKey){
     var m = state[mapKey];
     if (m && m.hasOwnProperty(oldName)){
       m[newName] = m[oldName];
@@ -1351,8 +1483,10 @@ function periodContaining(y, m, d, incomeDay){
    ========================================================================= */
 
 function getAllCategories(){
+  var renames = state.builtinCategoryNames || {};
+  var builtins = BUILTIN_CATEGORIES.map(function(b){ return renames[b] || b; });
   var custom = state.customCategories.map(function(c){ return c.name; });
-  return BUILTIN_CATEGORIES.concat(custom).concat(["Other"]);
+  return builtins.concat(custom).concat(["Other"]);
 }
 function getCategoryColor(name){
   if (state.builtinCategoryColors && state.builtinCategoryColors[name]) return state.builtinCategoryColors[name];
@@ -2298,6 +2432,7 @@ function makeDefaultState(){
       return m;
     })(),
     builtinCategoryColors: {},
+    builtinCategoryNames: {},
     categoryStatementDays: (function(){ var m = {}; m["Credit Card"] = DEFAULT_CREDIT_CARD_STATEMENT_DAY; m["Loan"] = 1; return m; })(),
     categoryPaymentDays: (function(){ var m = {}; m["Credit Card"] = DEFAULT_CREDIT_CARD_PAYMENT_DAY; return m; })(),
     collapsedCategories: (function(){ var c = {}; for (var k in DEFAULT_COLLAPSED_CATEGORIES) c[k] = DEFAULT_COLLAPSED_CATEGORIES[k]; return c; })(),
@@ -2327,7 +2462,10 @@ function makeDefaultState(){
     // prompt, which would defeat the point.
     lang: "en",
     theme: "light",
-    privacyAcked: false,
+    privacySnoozedUntil: null,
+    backupSnapshots: [],
+    maxSnapshots: MAX_SNAPSHOTS_DEFAULT,
+    lastSeenVersion: null,
     arabicDigits: true,
     lastBackupAt: null,
     backupReminderSnoozedUntil: null,
@@ -2366,6 +2504,51 @@ var state = makeDefaultState();
 var ENC_PREFIX = "HBDv1:";           // marks a stored blob as encrypted
 var sessionKey = null;               // CryptoKey for this session only
 var encryptionOn = false;
+
+/* In-page confirm / prompt =================================================
+   window.confirm() and window.prompt() are BLOCKED or silently
+   auto-dismissed in in-app browsers and some installed PWAs. The user
+   reported "Reset to defaults does nothing" -- it worked perfectly in
+   automation, because headless Chromium honours confirm() and their
+   phone did not. The passphrase flow had the same latent failure: two
+   prompt() calls that would simply never return a value.
+
+   Never gate a real action behind a native dialog. These render in the
+   page, so they work everywhere.
+   ======================================================================= */
+function askDialog(opts){
+  return new Promise(function(resolve){
+    var ov = el("ask-overlay");
+    if (!ov){ resolve(null); return; }
+    el("ask-title").textContent = opts.title || "";
+    el("ask-body").textContent = opts.body || "";
+    el("ask-error").textContent = "";
+    var input = el("ask-input");
+    input.classList.toggle("hidden", !opts.input);
+    input.value = "";
+    input.type = opts.password ? "password" : "text";
+    el("ask-ok").textContent = opts.okLabel || tr("OK","حسناً");
+    el("ask-cancel").textContent = opts.cancelLabel || tr("Cancel","إلغاء");
+    ov.classList.remove("hidden");
+    if (opts.input) setTimeout(function(){ try { input.focus({preventScroll:true}); } catch(e){} }, 60);
+
+    function done(val){
+      ov.classList.add("hidden");
+      el("ask-ok").onclick = null;
+      el("ask-cancel").onclick = null;
+      input.onkeydown = null;
+      resolve(val);
+    }
+    el("ask-ok").onclick = function(){ done(opts.input ? (input.value || "") : true); };
+    el("ask-cancel").onclick = function(){ done(null); };
+    input.onkeydown = function(e){ if (e.key === "Enter") el("ask-ok").click(); };
+  });
+}
+
+function notify(title, body){
+  return askDialog({ title: title, body: body, okLabel: tr("OK","حسناً"), cancelLabel: "" })
+    .then(function(){ return true; });
+}
 
 function cryptoAvailable(){
   return !!(window.crypto && window.crypto.subtle && window.TextEncoder);
@@ -2423,6 +2606,9 @@ function saveState(){
   // exported backup. This is what drives the "changes not backed up yet"
   // prompt -- the user should never have to remember whether the copy in
   // their notes is current.
+  // A fresh edit re-arms the reminder: "Later" hides the prompt for the
+  // change you already saw, not for everything you do afterwards.
+  if (!cashDataDirty) state.backupReminderSnoozedUntil = null;
   cashDataDirty = true;
   var json = JSON.stringify(state);
   if (encryptionOn && sessionKey && sessionSalt){
@@ -2451,6 +2637,17 @@ function persistRaw(payload){
   } catch(e){ /* localStorage unavailable -- state stays in-memory only */ }
 }
 
+function stateForExport(){
+  // Snapshots are device-local history. Exporting them would carry eight
+  // copies of the file inside itself, and they mean nothing on another
+  // device anyway.
+  var out = JSON.parse(JSON.stringify(state));
+  delete out.backupSnapshots;
+  return out;
+}
+
+var snapshotBeforeLoad = false;
+
 function applyLoadedState(raw){
   try {
     var loaded = JSON.parse(raw);
@@ -2461,6 +2658,25 @@ function applyLoadedState(raw){
     // mid-edit could carry a null. Every P2P helper assumes an array.
     if (!merged.p2pLoans || !merged.p2pLoans.length) merged.p2pLoans = merged.p2pLoans || [];
     merged.p2pLoans.forEach(function(l){ if (!l.payments) l.payments = []; });
+    // Device-local backup history survives an import. An imported file
+    // carries no snapshots (stripped on export), so taking the loaded
+    // value would silently wipe this device's recovery points at the
+    // exact moment the user is doing something risky.
+    //
+    // isBootLoad: on first load `state` is not populated yet, so there
+    // is nothing to preserve and nothing to snapshot.
+    // applyLoadedState also runs on BOOT and on RESTORE, where an
+    // auto-snapshot would be noise. Only a user-initiated import passes
+    // snapshotBeforeLoad -- keeping the trigger at the call site rather
+    // than guessing from state shape, which mis-fired on first load.
+    var existing = (typeof state !== "undefined" && state && state.backupSnapshots)
+      ? state.backupSnapshots.slice() : [];
+    if (snapshotBeforeLoad && existing !== null && typeof state !== "undefined" && state && state.expenses){
+      takeSnapshot("before import");
+      existing = (state.backupSnapshots || []).slice();
+    }
+    merged.backupSnapshots = existing.length ? existing
+      : (loaded.backupSnapshots || merged.backupSnapshots || []);
     state = merged;
     return true;
   } catch(e){ return false; }
@@ -2837,11 +3053,15 @@ function renderCashOnHandReconciliation(){
           tr("Off by ","الفرق ") + fmt(Math.abs(drift.drift)) + ". "
           + tr("Update the adjustment entry in the Income Ledger?","هل تريد تحديث إدخال التسوية في سجل الدخل؟");
         el("cashonhand-stale-note").classList.remove("hidden");
+        el("cashonhand-recalc-btn").classList.remove("hidden");
       } else {
         badge.classList.remove("reconciled-stale");
         el("cashonhand-badge-label").innerHTML = "\u2713 " + tr("Reconciled","مُطابَق");
         el("cashonhand-reconciled-link").textContent = entryLabel;
         el("cashonhand-stale-note").classList.add("hidden");
+        // Nothing to recalculate when the figures already agree. The
+        // variance prompt is the only place this action is meaningful.
+        el("cashonhand-recalc-btn").classList.add("hidden");
       }
     }
     return;
@@ -2876,8 +3096,11 @@ function renderSection1(rows){
 
   var hasStatementCategory = categoriesWithBehavior("statementBilling").length > 0;
 
-  el("s1-period-label").textContent = periodLabel(row0);
-  el("s1-period-days").textContent = formatDayRange(row0, getPrimaryIncomeDay());
+  // One line, not two. "Aug-Sep (2026)" and "Aug 25 - Sep 24, 2026" sat
+  // stacked and described the same period -- the second is simply the
+  // precise form of the first, so it reads as duplication.
+  el("s1-period-label").textContent =
+    periodLabel(row0) + "  \u00b7  " + formatDayRange(row0, getPrimaryIncomeDay());
   if (document.activeElement !== el("s1-payday-input")){
     el("s1-payday-input").value = getPrimaryIncomeDay();
   }
@@ -2981,7 +3204,7 @@ function renderYearChart(rows){
   function yFor(v){ return pad.top + plotH - (Math.max(0,v) / maxVal) * plotH; }
   function xCenter(i){ return pad.left + slot * i + slot / 2; }
 
-  var bars = "", dots = "", labels = "", barLabels = "", linePts = [];
+  var bars = "", dots = "", labels = "", barLabels = "", linePts = [], yearTicks = [];
   rows.forEach(function(r, i){
     var xC = xCenter(i);
     // Bars show each period's FULL committed expense, not the
@@ -3009,8 +3232,33 @@ function renderYearChart(rows){
     if (projDeficit){
       dots += '<circle class="chart-dot-deficit" data-index="' + i + '" cx="' + xC.toFixed(1) + '" cy="' + yFor(0).toFixed(1) + '" r="4" fill="var(--rust)"></circle>';
     }
-    labels += '<text x="' + xC.toFixed(1) + '" y="' + (svgHeight-10) + '" class="chart-x-label" text-anchor="middle">' + periodLabelCompact(r) + "</text>";
+    // Month only. The year is shown once per run beneath, rather than
+    // repeated on every tick -- with an 18-period range the repeated
+    // year made the axis dense and hard to scan.
+    labels += '<text x="' + xC.toFixed(1) + '" y="' + (svgHeight-22) + '" class="chart-x-label" text-anchor="middle">' + monthShort(r.monthA) + "</text>";
+    yearTicks.push({ x: xC, year: r.yearA });
   });
+  // One centred label per contiguous run of the same year, with a short
+  // rule under its span so the grouping is obvious.
+  var yearBand = "";
+  if (yearTicks.length){
+    var runStart = 0;
+    for (var yi = 1; yi <= yearTicks.length; yi++){
+      var ended = (yi === yearTicks.length) || (yearTicks[yi].year !== yearTicks[runStart].year);
+      if (!ended) continue;
+      var x1 = yearTicks[runStart].x, x2 = yearTicks[yi-1].x;
+      var mid = (x1 + x2) / 2;
+      var yBand = svgHeight - 6;
+      yearBand += '<line x1="' + (x1 - 12).toFixed(1) + '" y1="' + (yBand - 9)
+        + '" x2="' + (x2 + 12).toFixed(1) + '" y2="' + (yBand - 9)
+        + '" class="chart-year-rule"></line>';
+      yearBand += '<text x="' + mid.toFixed(1) + '" y="' + yBand
+        + '" class="chart-year-label" text-anchor="middle">'
+        + toArabicDigits(String(yearTicks[runStart].year)) + "</text>";
+      runStart = yi;
+    }
+  }
+
   var refIdx = Math.min(state._chartSelected || 0, rows.length-1);
   // Reference line uses the full committed income for the same reason
   // the bars do -- otherwise it drifts down as income is received.
@@ -3019,7 +3267,7 @@ function renderYearChart(rows){
   var linePath = '<polyline points="' + linePts.join(" ") + '" class="chart-saving-line" fill="none"></polyline>';
 
   el("year-chart-wrap").innerHTML = '<svg viewBox="0 0 ' + svgWidth + " " + svgHeight + '" class="year-chart" role="img" aria-label="Year at a glance chart">'
-    + bars + incomeLine + linePath + dots + barLabels + labels + "</svg>";
+    + bars + incomeLine + linePath + dots + barLabels + labels + yearBand + "</svg>";
 
   var nodes = el("year-chart-wrap").querySelectorAll("[data-index]");
   for (var i = 0; i < nodes.length; i++){
@@ -3066,8 +3314,6 @@ function showChartDetail(row){
     + '<div class="chart-detail-line"><span>' + tr("Saving Account Balance","\u0631\u0635\u064a\u062f \u062d\u0633\u0627\u0628 \u0627\u0644\u062a\u0648\u0641\u064a\u0631") + '</span><strong style="color:' + (row.excessCash>0.005?"var(--emerald)":(row.excessCash<-0.005?"var(--rust)":"inherit")) + '">' + fmt(row.excessCash) + "</strong></div>";
   if (row.isDeficit){
     var gap = Math.abs(row.remainingCash);
-    if (gap <= row.homeExpense) html += '<div class="chart-detail-note">' + tr("Cutting ","خفض ") + escapeHtml(deficitCutLabel()) + tr(" by "," بمقدار ") + fmt(gap) + tr(" would cover this period."," يغطي هذه الفترة.") + "</div>";
-    else html += '<div class="chart-detail-note">Cutting all of ' + escapeHtml(deficitCutLabel()) + " (" + fmt(row.homeExpense) + ") still leaves " + fmt(gap - row.homeExpense) + " short.</div>";
   }
   if (chartItemsRevealed){
     var incomeDay = getPrimaryIncomeDay();
@@ -3216,9 +3462,8 @@ function customDatesEditor(exp){
   var html = '<div class="dates-editor">';
   dates.forEach(function(d,i){
     html += '<div class="date-row">'
-      + monthSelectInline(exp.id, i, "date", d.month)
-      + '<input type="number" min="1" max="31" class="exp-date-day" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" data-field="date-day" value="' + (d.day||1) + '">'
-      + '<input type="number" class="exp-date-year" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" data-field="date-year" placeholder="auto" value="' + (d.year!=null?d.year:"") + '">'
+      + '<input type="date" class="exp-date-full" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" data-field="date-full" value="'
+        + escapeAttr(ymdToISO(d.year != null ? d.year : todayYear(), d.month || 1, d.day || 1)) + '">' 
       + '<button type="button" class="remove-date-btn" data-id="' + escapeAttr(exp.id) + '" data-idx="' + i + '" title="Remove date">\u2715</button>'
       + "</div>";
   });
@@ -3226,18 +3471,46 @@ function customDatesEditor(exp){
   return html;
 }
 
+/* Single date picker for due dates ========================================
+   Month/day/year as three separate controls was fiddly on a phone. These
+   render one <input type="date"> instead.
+
+   CRITICAL: the STORED fields are unchanged -- still dueMonth / dueDay /
+   dueYear (and month/day/year inside custom `dates`). Only the WIDGET
+   changed. That means no migration: an expense someone entered as
+   "1 Sep 2026" before this update is read straight back out of the same
+   fields and simply displays in the new picker. Never rewrite stored
+   shapes to suit a UI change -- the data outlives the widget, and a
+   migration is a chance to lose someone's figures for no gain.
+
+   Yearly expenses have no stored year (they repeat), so the picker is
+   given the current year purely for display and the year is discarded
+   on write.
+   ======================================================================= */
+function ymdToISO(y, m, d){
+  if (!m || !d) return "";
+  return String(y) + "-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d;
+}
+
+function dueDateInput(exp, opts){
+  var y = opts.year, iso = ymdToISO(y, exp.dueMonth || 1, exp.dueDay || 1);
+  return '<label class="field-inline"><span>' + escapeHtml(opts.label) + '</span>'
+    + '<input type="date" class="exp-duedate" data-id="' + escapeAttr(exp.id) + '"'
+    + ' data-field="' + escapeAttr(opts.field) + '" value="' + escapeAttr(iso) + '"></label>';
+}
+
 function dueDateCell(exp){
   var html;
   if (exp.frequency === "monthly"){
     html = '<label class="field-inline"><span>' + tr("Day","اليوم") + '</span><input type="number" min="1" max="31" class="exp-dueday" data-id="' + escapeAttr(exp.id) + '" data-field="dueDay" value="' + (exp.dueDay||1) + '"></label>';
   } else if (exp.frequency === "yearly"){
-    html = mainMonthSelect(exp.id, exp.dueMonth)
-      + ' <input type="number" min="1" max="31" class="exp-dueday" data-id="' + escapeAttr(exp.id) + '" data-field="dueDay" value="' + (exp.dueDay||1) + '">';
+    // Year shown for the picker's benefit only; it is not stored.
+    html = dueDateInput(exp, { label: tr("Due each year on","يستحق سنوياً في"),
+                               field: "dueDateYearly", year: todayYear() });
   } else if (exp.frequency === "onetime"){
-    html = '<div class="onetime-note">' + tr("won\u2019t recur","لا يتكرر") + '</div>'
-      + mainMonthSelect(exp.id, exp.dueMonth)
-      + ' <input type="number" min="1" max="31" class="exp-dueday" data-id="' + escapeAttr(exp.id) + '" data-field="dueDay" value="' + (exp.dueDay||1) + '">'
-      + ' <input type="number" class="exp-dueyear" data-id="' + escapeAttr(exp.id) + '" data-field="dueYear" placeholder="year" value="' + (exp.dueYear!=null?exp.dueYear:"") + '">';
+    html = dueDateInput(exp, { label: tr("Due on","يستحق في"),
+                               field: "dueDateOnce",
+                               year: (exp.dueYear != null ? exp.dueYear : todayYear()) });
   } else if (exp.frequency === "custom"){
     html = customDatesEditor(exp);
   } else {
@@ -3306,9 +3579,8 @@ function renderCategoryManager(){
     var builtin = isBuiltinCategory(cat);
     html += "<tr>"
       + '<td><input type="color" class="cat-color-input" data-category="' + escapeAttr(cat) + '" value="' + getCategoryColor(cat) + '"></td>'
-      + '<td class="cat-name-cell">' + (builtin
-          ? '<span class="cat-name-static">' + escapeHtml(cat) + "</span>"
-          : '<input type="text" class="cat-name-input" data-category="' + escapeAttr(cat) + '" value="' + escapeAttr(cat) + '">')
+      + '<td class="cat-name-cell">'
+        + '<input type="text" class="cat-name-input" data-category="' + escapeAttr(cat) + '" value="' + escapeAttr(cat) + '">'
         + "</td>"
       + "<td>" + behaviorSelectOptions(cat) + "</td>"
       + '<td>' + (builtin ? "" : '<button type="button" class="cat-delete-btn" data-category="' + escapeAttr(cat) + '" title="Delete category">\u2715</button>') + "</td>"
@@ -3448,6 +3720,7 @@ var I18N = {
     k_mancat: "إدارة الفئات",
     k_backupnow: "احفظ نسخة الآن",
     k_later: "لاحقاً",
+    k_protect: "حماية بعبارة مرور",
     k_recalc: "إعادة الحساب",
     k_redo: "إعادة آخر تراجع",
     k_expcsv: "تصدير السجل (CSV)",
@@ -3471,7 +3744,7 @@ var I18N = {
     c_date: "التاريخ",
     c_note: "ملاحظة",
     k_undo: "تراجع",
-    k_gotit: "فهمت",
+    k_later: "ذكّرني لاحقاً",
     c_income: "الدخل",
     c_leftover: "المرحّل",
     c_totalcash: "إجمالي النقد",
@@ -3503,6 +3776,14 @@ var I18N = {
     cc_pay: "يوم السداد",
     cc_hint: "يوم السداد هو ما يحدد الفترة التي يقع فيها المصروف.",
     k_close: "إغلاق",
+    cl_title: "ما الذي تغيّر",
+    s_backups: "نسخ اللوحة",
+    h_backups: "لقطات محفوظة على هذا الجهاز. استعد أياً منها لإرجاع اللوحة بالكامل. تُحفظ في نفس ذاكرة المتصفح مع أرقامك — إن مُسحت ذهبت معها، لذا احتفظ بملف مُصدَّر أيضاً.",
+    k_snapnow: "خذ نسخة الآن",
+    k_keep: "عدد النسخ المحفوظة",
+    wn_text: "تم تحديث اللوحة.",
+    wn_btn: "اعرض ما تغيّر",
+    wn_note: "تُدرج تحديثات هذه اللوحة في سجل الإصدارات.",
     k_copy: "نسخ",
     k_load: "تحميل هذه النسخة"
   }
@@ -3645,20 +3926,29 @@ function offerUndo(kind, obj, index){
   undoBuffer = { kind: kind, obj: obj, index: index };
   var t = el("undo-toast");
   if (!t) return;
-  el("undo-toast-text").textContent = kind === "income"
-    ? tr("Income source deleted.", "تم حذف مصدر الدخل.")
+  el("undo-toast-text").textContent =
+      kind === "reset" ? tr("Everything was cleared.", "تم مسح كل شيء.")
+    : kind === "income" ? tr("Income source deleted.", "تم حذف مصدر الدخل.")
     : tr("Expense deleted.", "تم حذف المصروف.");
   t.classList.remove("hidden");
   if (undoTimer) clearTimeout(undoTimer);
   undoTimer = setTimeout(function(){
     undoBuffer = null;
     var tt = el("undo-toast"); if (tt) tt.classList.add("hidden");
-  }, 12000);
+  }, kind === "reset" ? 45000 : 12000);
 }
 
 function performUndo(){
   if (!undoBuffer) return;
   var u = undoBuffer;
+  if (u.kind === "reset"){
+    state = u.obj;
+    undoBuffer = null;
+    if (undoTimer) clearTimeout(undoTimer);
+    var tr0 = el("undo-toast"); if (tr0) tr0.classList.add("hidden");
+    saveState(); render();
+    return;
+  }
   var list = u.kind === "income" ? state.incomeSources : state.expenses;
   var at = (u.index >= 0 && u.index <= list.length) ? u.index : list.length;
   list.splice(at, 0, u.obj);
@@ -3820,6 +4110,288 @@ function renderSanity(){
   box.classList.remove("hidden");
 }
 
+/* Version history =========================================================
+   Shown by tapping the build stamp in the footer -- the version number is
+   already where anyone looks to ask "what changed", so it is the natural
+   trigger and costs no extra chrome.
+
+   Keep entries to a HEADLINE. "Made expense categories editable", not a
+   paragraph about how. Type "add" renders green (added or improved),
+   "fix" renders red (fixed or removed). Newest first.
+
+   Add to this in the SAME commit as the change, or it will not happen.
+   ======================================================================= */
+var CHANGELOG = [
+  { v: "81", items: [
+    ["fix", "Title spacing on narrow screens"]
+  ]},
+  { v: "80", items: [
+    ["fix", "Backup reminder now saves a backup instead of opening export"],
+    ["fix", "Title fits on one line on every screen"]
+  ]},
+  { v: "79", items: [
+    ["fix", "Version history moved to the footer with a clear button"],
+    ["fix", "Passphrase moved out of the backups section"],
+    ["fix", "Backups to keep sits with the description"],
+    ["fix", "Empty backups are removed automatically"]
+  ]},
+  { v: "78", items: [
+    ["add", "Choose how many backups to keep"],
+    ["add", "Reset and file import moved into Dashboard Backups"],
+    ["add", "Update notice so you can see what changed"],
+    ["fix", "Next 12 periods now counts from your chosen start"],
+    ["fix", "Export no longer claims a cancelled download was saved"],
+    ["fix", "Empty dashboards are no longer backed up"]
+  ]},
+  { v: "77", items: [
+    ["add", "Dashboard Backups \u2014 snapshots you can restore from"],
+    ["add", "Automatic backup before clearing or importing"],
+    ["add", "Full version history back to the first build"]
+  ]},
+  { v: "76", items: [
+    ["add", "Version history, opened from the build number"],
+    ["add", "File backup confirms and closes automatically"]
+  ]},
+  { v: "75", items: [
+    ["fix", "Reset, passphrase and other prompts now work in all browsers"],
+    ["fix", "Backup reminder \u201cLater\u201d now hides the message"],
+    ["fix", "Undo, search and theme buttons that had stopped responding"],
+    ["fix", "Screen no longer jumps when opening backup"],
+    ["fix", "P2P payment date and amount share a row"],
+    ["fix", "Ad-hoc date no longer wraps"],
+    ["fix", "Removed duplicate period line in Monthly Cash Flow"]
+  ]},
+  { v: "74", items: [
+    ["add", "Expense and income categories can be renamed"],
+    ["add", "Reset to defaults can be undone"],
+    ["add", "Passphrase prompt shows only until one is set"],
+    ["fix", "Cash on hand and Recorded on stay side by side"],
+    ["fix", "Tightened P2P layout"],
+    ["fix", "Recalculate shows only when there is a variance"]
+  ]},
+  { v: "73", items: [
+    ["add", "Due dates use a single date picker"],
+    ["add", "Year shown once per run on the chart"],
+    ["add", "Leftover added to the chart breakdown"],
+    ["fix", "Monthly Summary columns no longer cut off"],
+    ["fix", "Amount to Save aligns with the panel above"],
+    ["fix", "Removed the deficit suggestion line"]
+  ]},
+  { v: "72", items: [
+    ["add", "Warnings for data that would skew the forecast"],
+    ["add", "Ad-hoc spending beyond savings is now flagged"],
+    ["add", "Income can have an end date"]
+  ]},
+  { v: "71", items: [
+    ["add", "Night mode"],
+    ["fix", "Category totals no longer run together on mobile"]
+  ]},
+  { v: "70", items: [
+    ["add", "Choose any date range to forecast"],
+    ["add", "Card statement and payment days moved into Monthly Cash Flow"],
+    ["fix", "Card settings shown only if you use a card"]
+  ]},
+  { v: "68", items: [
+    ["add", "Multiple credit cards, each with its own days"],
+    ["fix", "Removed duplicate card settings in the ledger"]
+  ]},
+  { v: "66", items: [
+    ["add", "Where the money goes \u2014 category shares"],
+    ["fix", "Removed Planned vs Actual and Ending Soon"],
+    ["fix", "Simplified cash-on-hand to a variance notice"]
+  ]},
+  { v: "62", items: [
+    ["add", "Undo for deleted rows"],
+    ["add", "Search in both ledgers"],
+    ["add", "Notes on expenses and income"],
+    ["add", "Duplicate a row"]
+  ]},
+  { v: "60", items: [
+    ["add", "Update prompt when a new version is ready"]
+  ]},
+  { v: "53", items: [
+    ["add", "Optional passphrase encryption"],
+    ["add", "Backup reminder when figures change"],
+    ["add", "App icon and privacy notice"]
+  ]},
+  { v: "50", items: [
+    ["fix", "Credit card charges count in the period you actually pay them"],
+    ["fix", "Removed the deferred card payment override"],
+    ["add", "Dashboard ships empty for new users"]
+  ]},
+  { v: "43", items: [
+    ["add", "Arabic translation with Cairo font"],
+    ["add", "Installable as an app, works offline"],
+    ["fix", "Row and column alignment throughout"]
+  ]},
+  { v: "35", items: [
+    ["add", "P2P lending \u2014 money lent and borrowed"],
+    ["add", "Cash-on-hand reconciliation"],
+    ["add", "Ad-hoc savings spending"]
+  ]},
+  { v: "20", items: [
+    ["add", "The Year at a Glance chart"],
+    ["add", "Monthly Summary table"],
+    ["add", "Expense categories with custom behaviour"]
+  ]},
+  { v: "1", items: [
+    ["add", "Monthly Cash Flow built around pay periods"],
+    ["add", "Income and Expense ledgers"],
+    ["add", "Amount to Save that looks ahead before suggesting"]
+  ]}
+];
+
+function renderChangelog(){
+  var html = "";
+  CHANGELOG.forEach(function(rel){
+    html += '<div class="cl-rel"><div class="cl-ver">' + tr("Version ","الإصدار ") + toArabicDigits(rel.v) + "</div><ul>";
+    rel.items.forEach(function(it){
+      html += '<li class="cl-' + it[0] + '"><span class="cl-dot"></span>' + escapeHtml(it[1]) + "</li>";
+    });
+    html += "</ul></div>";
+  });
+  el("changelog-body").innerHTML = html;
+}
+
+/* Dashboard Backups ======================================================
+   Point-in-time snapshots the user can restore from, kept ON DEVICE.
+
+   Stored INSIDE state (`state.backupSnapshots`) on purpose:
+     - it is then encrypted along with everything else when a passphrase
+       is set, rather than sitting in a second plaintext key;
+     - it survives the same way the rest of the data does.
+
+   Two rules that keep it from eating itself:
+     1. A snapshot NEVER contains the snapshot list (stripped before
+        saving), or each backup would nest every previous one.
+     2. Snapshots are stripped from EXPORT too -- history is device-local,
+        and an export carrying 8 copies of itself is absurd. On IMPORT the
+        current device's history is preserved rather than overwritten.
+
+   HONEST LIMIT, stated in the UI: these live in the same browser storage
+   as your data. If that storage is cleared, the backups go WITH it. They
+   protect against mistakes, not against losing the device or the browser
+   wiping itself. The exported file is still the only real safety net.
+   ======================================================================= */
+var MAX_SNAPSHOTS_DEFAULT = 5;
+function maxSnapshots(){
+  var n = parseInt(state.maxSnapshots, 10);
+  if (!n || n < 1) n = MAX_SNAPSHOTS_DEFAULT;
+  return Math.min(n, 20);   // storage is finite; 20 is already generous
+}
+
+function snapshotList(){ return state.backupSnapshots || []; }
+
+function stateIsEmpty(){
+  return !(state.expenses || []).length
+      && !(state.incomeSources || []).length
+      && !(state.p2pLoans || []).length
+      && !(state.adHocExpenses || []).length;
+}
+
+function takeSnapshot(reason){
+  // An empty dashboard is not worth a backup slot -- "Reset to defaults"
+  // reproduces it exactly. Snapshotting it would push a real backup off
+  // the end of the list for nothing.
+  if (stateIsEmpty()) return false;
+  var copy = JSON.parse(JSON.stringify(state));
+  delete copy.backupSnapshots;           // rule 1: never nest
+  var list = snapshotList().slice();
+  list.unshift({
+    id: "snap_" + Date.now(),
+    at: new Date().toISOString(),
+    reason: reason || "manual",
+    expenses: (copy.expenses || []).length,
+    income: (copy.incomeSources || []).length,
+    data: JSON.stringify(copy)
+  });
+  // Oldest fall off. Browser storage is finite and a budget file is not
+  // a version-control system.
+  state.backupSnapshots = list.slice(0, maxSnapshots());
+  saveState();
+  return true;
+}
+
+function restoreSnapshot(id){
+  var snap = snapshotList().filter(function(x){ return x.id === id; })[0];
+  if (!snap) return false;
+  // Snapshot the CURRENT state first, so restoring is itself undoable.
+  takeSnapshot("before restore");
+  var keep = snapshotList();
+  var restored = JSON.parse(snap.data);
+  restored.backupSnapshots = keep;       // history survives the restore
+  state = restored;
+  saveState();
+  return true;
+}
+
+function snapshotLabel(snap){
+  var d = new Date(snap.at);
+  var when = formatDueDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+    + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  var why = snap.reason === "manual" ? tr("Manual backup","نسخة يدوية")
+    : snap.reason === "before restore" ? tr("Before a restore","قبل استعادة")
+    : snap.reason === "before reset" ? tr("Before clearing","قبل المسح")
+    : snap.reason === "before import" ? tr("Before an import","قبل استيراد")
+    : snap.reason;
+  return { when: when, why: why };
+}
+
+function renderSnapshots(){
+  var box = el("snapshots-body");
+  if (!box) return;
+  // Prune entries with nothing in them. Older builds could record a
+  // snapshot of an empty dashboard (before the guard in takeSnapshot),
+  // and those occupy a slot while offering nothing to restore.
+  var pruned = snapshotList().filter(function(sn){
+    return (sn.expenses || 0) > 0 || (sn.income || 0) > 0;
+  });
+  if (pruned.length !== snapshotList().length){
+    state.backupSnapshots = pruned;
+    saveState();
+  }
+  var list = pruned;
+  if (!list.length){
+    box.innerHTML = '<p class="card-hint">'
+      + tr("No backups yet. Take one with the button below.","لا توجد نسخ بعد. خذ واحدة بالزر أدناه.")
+      + "</p>";
+    return;
+  }
+  var html = "";
+  list.forEach(function(sn){
+    var L = snapshotLabel(sn);
+    html += '<div class="snap-row">'
+      + '<div class="snap-meta"><strong>' + escapeHtml(L.when) + "</strong>"
+        + '<span class="snap-why">' + escapeHtml(L.why) + " \u00b7 "
+        + toArabicDigits(sn.expenses) + " " + tr("expenses","مصروف") + " \u00b7 "
+        + toArabicDigits(sn.income) + " " + tr("income","دخل") + "</span></div>"
+      + '<button type="button" class="snap-restore btn-small" data-snap="' + escapeAttr(sn.id) + '">'
+        + tr("Restore","استعادة") + "</button>"
+      + "</div>";
+  });
+  box.innerHTML = html;
+  var btns = box.querySelectorAll(".snap-restore");
+  for (var i = 0; i < btns.length; i++){
+    btns[i].addEventListener("click", function(){
+      var id = this.getAttribute("data-snap");
+      var sn = snapshotList().filter(function(x){ return x.id === id; })[0];
+      if (!sn) return;
+      var L = snapshotLabel(sn);
+      askDialog({
+        title: tr("Restore this backup?","استعادة هذه النسخة؟"),
+        body: L.when + " \u2014 " + toArabicDigits(sn.expenses) + " "
+              + tr("expenses","مصروف") + ". "
+              + tr("Your current figures are backed up first, so this can be undone.",
+                   "سيتم حفظ أرقامك الحالية أولاً، فيمكن التراجع عن هذا."),
+        okLabel: tr("Restore","استعادة")
+      }).then(function(ok){
+        if (!ok) return;
+        if (restoreSnapshot(id)) render();
+      });
+    });
+  }
+}
+
 function renderCcSettings(){
   var box = el("cc-settings");
   if (!box) return;
@@ -3890,8 +4462,15 @@ function renderLockToggle(){
 function renderBackupReminder(){
   var box = el("backup-reminder");
   if (!box) return;
+  // The snooze must apply even when data is dirty. It previously did not
+  // (`&& !cashDataDirty`), and since the dirty flag is exactly what
+  // RAISES this reminder, "Later" could never hide anything -- the
+  // button looked broken because it was.
+  //
+  // The next EDIT clears the snooze (see saveState), so it hides the
+  // current prompt without silencing future ones.
   var snoozed = state.backupReminderSnoozedUntil;
-  if (snoozed && !cashDataDirty){
+  if (snoozed){
     var sd = daysSince(snoozed);
     // snoozedUntil is a future date; daysSince is negative until it passes.
     if (sd !== null && sd < 0){ box.classList.add("hidden"); return; }
@@ -3963,18 +4542,18 @@ function renderP2P(){
         + (p2pIsForeign(loan)
             ? '<label class="p2p-field p2p-half">1 ' + escapeHtml((loan.currency||"").toUpperCase()) + ' = ? ' + escapeHtml(baseCurrency()) + '<input type="text" inputmode="decimal" data-p2p-field="fxRate" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (loan.fxRate !== undefined && loan.fxRate !== null && loan.fxRate !== "" ? loan.fxRate : "") + '" placeholder="e.g. 3.67"></label>'
             : '')
-        + '<label class="p2p-field p2p-span">' + tr("Interest","الفائدة") + '<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
-          + '<option value="flat"' + (loan.interestMode !== "rate" ? " selected" : "") + '>' + tr("Flat agreed amount","مبلغ متفق عليه") + '</option>'
-          + '<option value="rate"' + (loan.interestMode === "rate" ? " selected" : "") + '>' + tr("Annual rate (compounds)","نسبة سنوية (مركبة)") + '</option>'
+        + '<label class="p2p-field p2p-half">' + tr("Interest","الفائدة") + '<select data-p2p-field="interestMode" data-p2p-id="' + escapeAttr(loan.id) + '">'
+          + '<option value="flat"' + (loan.interestMode !== "rate" ? " selected" : "") + '>' + tr("Flat amount","مبلغ ثابت") + '</option>'
+          + '<option value="rate"' + (loan.interestMode === "rate" ? " selected" : "") + '>' + tr("Annual rate","نسبة سنوية") + '</option>'
         + '</select></label>'
         + (loan.interestMode === "rate"
             ? '<label class="p2p-field p2p-half">' + tr("Rate % / year","النسبة % سنوياً") + '<input type="text" inputmode="decimal" data-p2p-field="interestRatePct" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + (Number(loan.interestRatePct)||0) + '"></label>'
             : '<label class="p2p-field p2p-half">' + tr("Interest amount","مبلغ الفائدة") + '<input type="text" inputmode="decimal" data-p2p-field="interestAmount" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + fmt(p2pInterestAmount(loan)) + '"></label>')
         + '<label class="p2p-field p2p-half">' + tr("Date of loan","تاريخ القرض") + '<input type="date" data-p2p-field="date" data-p2p-id="' + escapeAttr(loan.id) + '" value="' + escapeAttr(loan.date || "") + '"></label>'
-        + '<label class="p2p-field p2p-span">' + tr("Repayment","السداد") + '<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
-          + '<option value="lump"' + (loan.repayType==="lump"?" selected":"") + '>' + tr("Lump sum on a date","دفعة واحدة بتاريخ") + '</option>'
-          + '<option value="monthly"' + (loan.repayType==="monthly"?" selected":"") + '>' + tr("Fixed monthly","قسط شهري ثابت") + '</option>'
-          + '<option value="open"' + (loan.repayType==="open"?" selected":"") + '>' + tr("Open-ended (no schedule)","مفتوح (بلا جدول)") + '</option>'
+        + '<label class="p2p-field p2p-half">' + tr("Repayment","السداد") + '<select data-p2p-field="repayType" data-p2p-id="' + escapeAttr(loan.id) + '">'
+          + '<option value="lump"' + (loan.repayType==="lump"?" selected":"") + '>' + tr("Lump sum","دفعة واحدة") + '</option>'
+          + '<option value="monthly"' + (loan.repayType==="monthly"?" selected":"") + '>' + tr("Monthly","شهري") + '</option>'
+          + '<option value="open"' + (loan.repayType==="open"?" selected":"") + '>' + tr("Open-ended","مفتوح") + '</option>'
         + '</select></label>';
 
       if (loan.repayType === "lump"){
@@ -4131,7 +4710,15 @@ function bindP2PControls(){
       // Confirm before removing a payment that records real money. A
       // zero-amount row is just an unfilled entry, so no prompt there.
       if (pay && Math.abs(Number(pay.amount)||0) > 0.005){
-        if (!window.confirm("Remove the payment of " + fmt(Number(pay.amount)||0) + (pay.date ? " dated " + pay.date : "") + "?\n\nThe outstanding balance and your forecast will both change. This cannot be undone.")) return;
+        askDialog({ title: tr("Remove this payment?","إزالة هذه الدفعة؟"),
+          body: fmt(Number(pay.amount)||0) + (pay.date ? " \u2014 " + pay.date : "") + ". "
+                + tr("The outstanding balance and your forecast will both change.","سيتغير الرصيد المتبقي وتوقعاتك."),
+          okLabel: tr("Remove","إزالة") }).then(function(ok){
+          if (!ok) return;
+          loan.payments.splice(pi, 1);
+          saveState(); render();
+        });
+        return;
       }
       loan.payments = (loan.payments||[]).filter(function(p){ return p.id !== payId; });
       saveState(); render();
@@ -4171,8 +4758,13 @@ function bindP2PControls(){
           var msg = "Delete " + who + "?";
           if (payCount > 0) msg += "\n\n" + payCount + " logged payment" + (payCount === 1 ? "" : "s") + " totalling " + fmt(p2pPaidTotal(loan)) + " will be permanently removed, along with their effect on your forecast.";
           if (outstandingNow > 0.005) msg += "\n\n" + fmt(outstandingNow) + " is still outstanding on it.";
-          msg += "\n\nThis cannot be undone.";
-          if (!window.confirm(msg)) return;
+          askDialog({ title: tr("Delete this loan?","حذف هذا القرض؟"), body: msg,
+                      okLabel: tr("Delete","حذف") }).then(function(ok){
+            if (!ok) return;
+            state.p2pLoans = p2pLoans().filter(function(l){ return l.id !== id; });
+            saveState(); render();
+          });
+          return;
         }
       }
       state.p2pLoans = p2pLoans().filter(function(l){ return l.id !== id; });
@@ -4511,7 +5103,19 @@ function render(){
   // Dismissible: the privacy notice is a one-time explanation, not a
   // standing alert. Shown until acknowledged, then the passphrase
   // control moves into the footer where settings live.
-  if (el("privacy-notice")) el("privacy-notice").classList.toggle("hidden", !!state.privacyAcked);
+  if (el("privacy-notice")){
+    // This panel is the PROMPT to protect the app. Once a passphrase is
+    // set the prompt has done its job and should not keep nagging; the
+    // control to remove it lives in the footer. "Remind me later" hides
+    // it for the rest of today only -- where your financial data lives
+    // is worth being told more than once.
+    var snoozed = state.privacySnoozedUntil && state.privacySnoozedUntil >= todayISO();
+    el("privacy-notice").classList.toggle("hidden", !!snoozed || !!encryptionOn);
+  }
+  if (el("snap-keep-input") && document.activeElement !== el("snap-keep-input")){
+    el("snap-keep-input").value = maxSnapshots();
+  }
+  renderSnapshots();
   renderCcSettings();
   renderSanity();
   renderLockToggle();
@@ -4539,8 +5143,12 @@ function bindStaticListeners(){
     saveState(); setTimeout(render, 0);
   });
   el("range-reset").addEventListener("click", function(){
-    state.rangeStart = ""; state.rangeEnd = "";
-    saveState(); render();
+    // Twelve periods FROM THE CHOSEN START, not from today. Overriding a
+    // start the user had deliberately set was the opposite of helpful:
+    // pick Jan 2026, tap this, and you expect Jan-Dec 2026.
+    var rng = forecastRange();
+    state.rangeEnd = monthStr(rng.start + 11);
+    saveState(); setTimeout(render, 0);
   });
 
   el("has-cashonhand-checkbox").addEventListener("change", function(e){
@@ -4572,42 +5180,87 @@ function bindStaticListeners(){
   });
   el("lock-toggle-btn").addEventListener("click", function(){
     if (!cryptoAvailable()){
-      window.alert(tr("This browser cannot encrypt data.","هذا المتصفح لا يدعم التشفير."));
+      notify(tr("Not available","غير متاح"),
+             tr("This browser cannot encrypt data.","هذا المتصفح لا يدعم التشفير."));
       return;
     }
     if (encryptionOn){
-      // Turning it OFF requires no passphrase: the session is already
-      // unlocked, so the user has proved they know it.
-      if (!window.confirm(tr(
-        "Remove the passphrase?\n\nYour figures will no longer be encrypted on this device, and the app will open without asking for anything. Only your phone's own lock screen will protect them.",
-        "إزالة عبارة المرور؟\n\nلن تعود أرقامك مشفّرة على هذا الجهاز، وسيفتح التطبيق دون طلب أي شيء. سيحميها قفل شاشة هاتفك وحده."))) return;
-      encryptionOn = false; sessionKey = null; sessionSalt = null;
-      persistRaw(JSON.stringify(state));
-      render();
+      askDialog({
+        title: tr("Remove the passphrase?","إزالة عبارة المرور؟"),
+        body: tr("Your figures will no longer be encrypted on this device, and the app will open without asking for anything.",
+                 "لن تعود أرقامك مشفّرة على هذا الجهاز، وسيفتح التطبيق دون طلب أي شيء."),
+        okLabel: tr("Remove","إزالة")
+      }).then(function(ok){
+        if (!ok) return;
+        encryptionOn = false; sessionKey = null; sessionSalt = null;
+        persistRaw(JSON.stringify(state));
+        render();
+      });
       return;
     }
-    var warn = tr(
-      "Set a passphrase?\n\nYour figures will be encrypted on this device. You will type this passphrase every time you open the app.\n\nIF YOU FORGET IT, THE DATA CANNOT BE RECOVERED — not by anyone. Export a backup FIRST and keep it somewhere safe.",
-      "تعيين عبارة مرور؟\n\nستُشفَّر أرقامك على هذا الجهاز. ستُدخل هذه العبارة في كل مرة تفتح فيها التطبيق.\n\nإذا نسيتها فلا يمكن استرجاع البيانات إطلاقاً — من أي أحد. صدّر نسخة احتياطية أولاً واحتفظ بها في مكان آمن.");
-    if (!window.confirm(warn)) return;
-    // No minimum length, at the user's explicit request. Note the security
-    // trade-off is real: PBKDF2 at 250k iterations slows brute-forcing but
-    // cannot rescue a passphrase short enough to guess. Kept as the user's
-    // decision rather than enforced -- it is their device and their data.
-    var p1 = window.prompt(tr("Choose a passphrase:","اختر عبارة مرور:"));
-    if (!p1) return;
-    var p2 = window.prompt(tr("Type it again to confirm:","أعد كتابتها للتأكيد:"));
-    if (p1 !== p2){ window.alert(tr("They did not match. Nothing was changed.","غير متطابقتين. لم يتم تغيير شيء.")); return; }
-    var salt = window.crypto.getRandomValues(new Uint8Array(16));
-    deriveKey(p1, salt).then(function(key){
-      sessionKey = key; sessionSalt = salt; encryptionOn = true;
-      saveState(); render();
-      window.alert(tr("Passphrase set. Your data on this device is now encrypted.","تم تعيين عبارة المرور. بياناتك على هذا الجهاز مشفّرة الآن."));
+    askDialog({
+      title: tr("Set a passphrase?","تعيين عبارة مرور؟"),
+      body: tr("Your figures will be encrypted on this device and you will type this every time you open the app. IF YOU FORGET IT, THE DATA CANNOT BE RECOVERED. Export a backup first.",
+               "ستُشفَّر أرقامك على هذا الجهاز وستُدخل هذه العبارة في كل مرة تفتح فيها التطبيق. إذا نسيتها فلا يمكن استرجاع البيانات إطلاقاً. صدّر نسخة احتياطية أولاً."),
+      okLabel: tr("Continue","متابعة")
+    }).then(function(ok){
+      if (!ok) return null;
+      return askDialog({ title: tr("Choose a passphrase","اختر عبارة مرور"),
+                         input: true, password: true, okLabel: tr("Next","التالي") });
+    }).then(function(p1){
+      if (!p1) return;
+      return askDialog({ title: tr("Type it again","أعد كتابتها"),
+                         input: true, password: true, okLabel: tr("Set","تعيين") })
+        .then(function(p2){
+          if (p2 === null) return;
+          if (p1 !== p2){
+            notify(tr("They did not match","غير متطابقتين"),
+                   tr("Nothing was changed.","لم يتم تغيير شيء."));
+            return;
+          }
+          var salt = window.crypto.getRandomValues(new Uint8Array(16));
+          return deriveKey(p1, salt).then(function(key){
+            sessionKey = key; sessionSalt = salt; encryptionOn = true;
+            saveState(); render();
+            notify(tr("Passphrase set","تم التعيين"),
+                   tr("Your data on this device is now encrypted.","بياناتك على هذا الجهاز مشفّرة الآن."));
+          });
+        });
     }).catch(function(){
-      window.alert(tr("Could not set the passphrase. Nothing was changed.","تعذّر تعيين عبارة المرور. لم يتم تغيير شيء."));
+      notify(tr("Could not set the passphrase","تعذّر التعيين"),
+             tr("Nothing was changed.","لم يتم تغيير شيء."));
     });
   });
   el("undo-toast-btn").addEventListener("click", performUndo);
+  el("whatsnew-open").addEventListener("click", function(){
+    renderChangelog();
+    el("changelog-overlay").classList.remove("hidden");
+  });
+  el("snapshot-now-btn").addEventListener("click", function(){
+    takeSnapshot("manual");
+    markBackupTaken();
+    cashDataDirty = false;
+    render();
+    notify(tr("Backup saved","تم حفظ النسخة"),
+           tr("You can restore it from this list at any time.","يمكنك استعادتها من هذه القائمة في أي وقت."));
+  });
+  el("export-btn-2").addEventListener("click", function(){ openBackupModal("export"); });
+  el("import-btn-2").addEventListener("click", function(){ openBackupModal("import"); });
+
+  el("snap-keep-input").addEventListener("change", function(e){
+    var n = parseInt(e.target.value, 10);
+    state.maxSnapshots = (!n || n < 1) ? MAX_SNAPSHOTS_DEFAULT : Math.min(n, 20);
+    // Trim immediately so the setting takes visible effect.
+    state.backupSnapshots = snapshotList().slice(0, maxSnapshots());
+    saveState(); setTimeout(render, 0);
+  });
+  el("build-stamp").addEventListener("click", function(){
+    renderChangelog();
+    el("changelog-overlay").classList.remove("hidden");
+  });
+  el("changelog-close").addEventListener("click", function(){
+    el("changelog-overlay").classList.add("hidden");
+  });
   el("ledger-search").addEventListener("input", function(e){
     ledgerFilter = e.target.value || "";
     renderLedgerTable();
@@ -4616,8 +5269,12 @@ function bindStaticListeners(){
     incomeFilter = e.target.value || "";
     renderIncomeTable();
   });
+  el("privacy-protect").addEventListener("click", function(){
+    el("lock-toggle-btn").click();
+  });
   el("privacy-dismiss").addEventListener("click", function(){
-    state.privacyAcked = true; saveState(); render();
+    state.privacySnoozedUntil = todayISO();
+    saveState(); render();
   });
   el("theme-light").addEventListener("click", function(){
     state.theme = "light"; saveState(); render();
@@ -4638,8 +5295,16 @@ function bindStaticListeners(){
     state.arabicDigits = false; saveState(); render();
   });
   el("backup-reminder-export").addEventListener("click", function(){
-    openBackupModal("export");
+    // Takes a real backup. It previously opened the export box, which
+    // asked the user to do more work after they had already said yes --
+    // a prompt that asks you to back up should back up.
+    takeSnapshot("manual");
+    markBackupTaken();
+    cashDataDirty = false;
     render();
+    notify(tr("Backup saved","تم حفظ النسخة"),
+           tr("Added to Dashboard Backups at the foot of the page.",
+              "أُضيفت إلى نسخ اللوحة في أسفل الصفحة."));
   });
   el("backup-reminder-dismiss").addEventListener("click", function(){
     // Snooze rather than dismiss forever: the risk does not go away
@@ -4747,7 +5412,7 @@ function bindStaticListeners(){
       var newName = e.target.value.trim();
       if (!newName || newName === cat) { render(); return; }
       var dup = getAllCategories().some(function(c){ return c !== cat && c.toLowerCase() === newName.toLowerCase(); });
-      if (dup){ window.alert("A category named \"" + newName + "\" already exists."); render(); return; }
+      if (dup){ notify(tr("Name already used","الاسم مستخدم"), tr("A category named \"" + newName + "\" already exists.","توجد فئة بهذا الاسم بالفعل.")); render(); return; }
       renameCategory(cat, newName);
       saveState(); render(); return;
     }
@@ -4760,9 +5425,12 @@ function bindStaticListeners(){
     var msg = count > 0
       ? "Delete \"" + cat + "\"? " + count + " expense" + (count===1?"":"s") + " will move to \"Other\"."
       : "Delete \"" + cat + "\"?";
-    if (!window.confirm(msg)) return;
-    deleteCategory(cat);
-    saveState(); render();
+    askDialog({ title: tr("Delete this category?","حذف هذه الفئة؟"), body: msg,
+                okLabel: tr("Delete","حذف") }).then(function(ok){
+      if (!ok) return;
+      deleteCategory(cat);
+      saveState(); render();
+    });
   });
 
   el("add-category-confirm-btn").addEventListener("click", function(){
@@ -4787,20 +5455,37 @@ function bindStaticListeners(){
     saveState(); render();
   });
 
-  el("reset-btn").addEventListener("click", function(){
-    if (!window.confirm("Reset all data to the defaults built into this file? This cannot be undone.")) return;
-    state = makeDefaultState();
-    saveState(); render();
+  el("reset-btn-2").addEventListener("click", function(){
+    askDialog({
+      title: tr("Clear everything?","مسح كل شيء؟"),
+      body: tr("This empties the dashboard. You can undo it straight afterwards.",
+               "سيؤدي هذا إلى إفراغ اللوحة. يمكنك التراجع مباشرة بعد ذلك."),
+      okLabel: tr("Clear","مسح")
+    }).then(function(ok){
+      if (!ok) return;
+      // Snapshot first: the backup list is now the recovery path, so a
+      // destructive action must always leave one behind.
+      takeSnapshot("before reset");
+      var keep = snapshotList();
+      state = makeDefaultState();
+      state.backupSnapshots = keep;
+      saveState();
+      render();
+      notify(tr("Everything was cleared","تم مسح كل شيء"),
+             tr("Restore your previous figures from Dashboard Backups.","استعد أرقامك السابقة من نسخ اللوحة."));
+    });
   });
 
-  el("export-btn").addEventListener("click", function(){ openBackupModal("export"); });
-  el("import-btn").addEventListener("click", function(){ openBackupModal("import"); });
   el("backup-modal-close").addEventListener("click", closeBackupModal);
 
   el("backup-copy-btn").addEventListener("click", function(){
     var ta = el("backup-textarea");
     var feedback = el("backup-feedback");
-    ta.focus(); ta.select();
+    // preventScroll: focusing the textarea scrolled the page behind the
+  // modal, so closing it left the user somewhere else entirely -- the
+  // "screen gets dragged" they reported.
+  try { ta.focus({ preventScroll: true }); } catch(e){ ta.focus(); }
+  ta.select();
     try {
       if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(ta.value).then(function(){
@@ -4814,18 +5499,31 @@ function bindStaticListeners(){
 
   el("backup-load-btn").addEventListener("click", function(){
     var ta = el("backup-textarea");
-    if (applyLoadedState(ta.value)){
+    snapshotBeforeLoad = true;
+    var okPaste = applyLoadedState(ta.value);
+    snapshotBeforeLoad = false;
+    if (okPaste){
       saveState(); render();
       closeBackupModal();
-      window.alert("Backup loaded.");
+      
     } else {
-      window.alert("That doesn't look like valid backup JSON. Make sure you copied the whole thing.");
+      notify(tr("Not a valid backup","نسخة غير صالحة"), tr("Make sure you copied the whole thing.","تأكد من نسخ المحتوى كاملاً."));
     }
   });
 
   el("backup-secondary-btn").addEventListener("click", function(){
     if (backupModalMode === "export"){
-      downloadStateAsFile();
+      var okDl = downloadStateAsFile();
+      if (okDl !== false){
+        // The browser gives NO callback for whether the user actually
+        // completed the save dialog -- cancelling looks identical to
+        // saving. Claiming "downloaded" was therefore sometimes a lie.
+        // Word it as an instruction, not a confirmation.
+        closeBackupModal();
+        notify(tr("Save the file somewhere safe","احفظ الملف في مكان آمن"),
+               tr("If you cancelled the download, use Export again or copy the text instead.",
+                  "إن ألغيت التنزيل، استخدم التصدير مرة أخرى أو انسخ النص بدلاً من ذلك."));
+      }
     } else {
       el("import-file-input").click();
     }
@@ -4835,11 +5533,20 @@ function bindStaticListeners(){
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function(){
-      if (applyLoadedState(reader.result)){
+      snapshotBeforeLoad = true;
+      var okFile = applyLoadedState(reader.result);
+      snapshotBeforeLoad = false;
+      if (okFile){
         saveState(); render();
-        window.alert("Backup imported.");
+        // A FILE import is not self-evident the way pasting is -- the
+        // user picked a file in a system dialog and needs telling it
+        // landed. Close the modal first so the confirmation is not
+        // stacked on top of it.
+        closeBackupModal();
+        notify(tr("Backup restored","تمت الاستعادة"),
+               tr("Your figures have been loaded from the file.","تم تحميل أرقامك من الملف."));
       } else {
-        window.alert("That file doesn't look like a valid backup.");
+        notify(tr("Not a valid backup","نسخة غير صالحة"), "");
       }
     };
     reader.readAsText(file);
@@ -5031,7 +5738,12 @@ function bindLedgerDelegatedEvents(){
 
     if (idxAttr !== null && idxAttr !== ""){
       var idx = parseInt(idxAttr, 10);
-      if (field === "date-month"){ exp.dates[idx].month = parseInt(t.value,10) || 1; }
+      // One picker now writes all three stored parts at once.
+      if (field === "date-full"){
+        var df = parseISODate(t.value);
+        if (df){ exp.dates[idx].month = df.m; exp.dates[idx].day = df.d; exp.dates[idx].year = df.y; }
+      }
+      else if (field === "date-month"){ exp.dates[idx].month = parseInt(t.value,10) || 1; }
       else if (field === "date-day"){ exp.dates[idx].day = clampDay(t.value); }
       else if (field === "date-year"){ exp.dates[idx].year = t.value === "" ? null : parseInt(t.value,10); }
       else if (field === "ov-month"){ exp.overrides[idx].month = parseInt(t.value,10) || 1; }
@@ -5041,6 +5753,18 @@ function bindLedgerDelegatedEvents(){
       switch(field){
         case "name": exp.name = t.value; break;
         case "note": exp.note = t.value; break;
+        // Write back into the EXISTING fields. The widget changed; the
+        // stored shape did not, so older data keeps working untouched.
+        case "dueDateYearly": {
+          var dy = parseISODate(t.value);
+          if (dy){ exp.dueMonth = dy.m; exp.dueDay = dy.d; }
+          break;
+        }
+        case "dueDateOnce": {
+          var d1 = parseISODate(t.value);
+          if (d1){ exp.dueMonth = d1.m; exp.dueDay = d1.d; exp.dueYear = d1.y; }
+          break;
+        }
         case "category": exp.category = t.value; break;
         case "frequency":
           exp.frequency = t.value;
@@ -5217,7 +5941,7 @@ function openBackupModal(mode){
     setTimeout(render, 0);
     el("backup-modal-title").textContent = tr("Export backup","تصدير نسخة");
     el("backup-modal-hint").textContent = tr("Tap inside the box, select all, and copy. Paste it into Notes to save it, or paste it back to Claude in chat.","اضغط داخل المربع، حدد الكل، وانسخ. الصقه في الملاحظات لحفظه، أو أعده إلى المحادثة.");
-    ta.value = JSON.stringify(state, null, 2);
+    ta.value = JSON.stringify(stateForExport(), null, 2);
     ta.readOnly = true;
     el("backup-copy-btn").classList.remove("hidden");
     el("backup-load-btn").classList.add("hidden");
@@ -5232,7 +5956,7 @@ function openBackupModal(mode){
     el("backup-secondary-btn").textContent = tr("Choose a file instead","اختر ملفاً بدلاً من ذلك");
   }
   el("backup-modal").classList.remove("hidden");
-  ta.focus();
+  try { ta.focus({ preventScroll: true }); } catch(e){ ta.focus(); }
   if (mode === "export") ta.select();
 }
 function openBackupModalWith(text, hint, filename){
@@ -5252,7 +5976,11 @@ function openBackupModalWith(text, hint, filename){
   el("backup-load-btn").classList.add("hidden");
   el("backup-secondary-btn").textContent = tr("Try downloading as a file instead","جرّب التنزيل كملف بدلاً من ذلك");
   el("backup-modal").classList.remove("hidden");
-  ta.focus(); ta.select();
+  // preventScroll: focusing the textarea scrolled the page behind the
+  // modal, so closing it left the user somewhere else entirely -- the
+  // "screen gets dragged" they reported.
+  try { ta.focus({ preventScroll: true }); } catch(e){ ta.focus(); }
+  ta.select();
 }
 function closeBackupModal(){ el("backup-modal").classList.add("hidden"); }
 
@@ -5276,7 +6004,7 @@ function downloadStateAsFile(){
       el("backup-feedback").textContent = "Download started.";
       return;
     }
-    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var blob = new Blob([JSON.stringify(stateForExport(), null, 2)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     var stamp = todayYear() + "-" + String(todayMonthNum()).padStart(2,"0") + "-" + String(todayDayNum()).padStart(2,"0");
@@ -5286,8 +6014,10 @@ function downloadStateAsFile(){
     a.click();
     document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    return true;
   } catch(e){
-    window.alert("File download isn't available here -- use the copy/paste box instead.");
+    notify(tr("Download unavailable","التنزيل غير متاح"), tr("Use the copy/paste box instead.","استخدم مربع النسخ واللصق بدلاً من ذلك."));
+    return false;   // caller must NOT claim success
   }
 }
 
@@ -5300,7 +6030,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-72)";
+  if (stampEl) stampEl.textContent = "(build 2026-08-31-81)";
 }
 
 loadStateAndInit();
