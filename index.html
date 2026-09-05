@@ -128,11 +128,6 @@ body{
      bar off-screen in the first place. */
   min-height:100vh;
   min-height:100lvh;
-  /* Set from window.visualViewport when it exists -- see syncViewport().
-     In an in-app webview the layout viewport (which every CSS unit
-     measures) can be taller than the sheet actually on screen, and no
-     unit can see that difference. */
-  min-height:var(--vv-height, 100lvh);
   display:flex;
   flex-direction:column;
 }
@@ -398,7 +393,10 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
    reads as lifted rather than merely coloured. */
 .tab-bar{ position:fixed; z-index:9000;
   left:12px; right:12px;
-  bottom:calc(var(--vv-bottom, 0px) + 10px + env(safe-area-inset-bottom, 0px));
+  /* The browser already places fixed elements against the visible
+     viewport. The only thing between the capsule and the bottom edge is
+     the home indicator. */
+  bottom:calc(8px + env(safe-area-inset-bottom, 0px));
   display:flex; gap:3px; background:var(--bg-soft);
   border:1px solid var(--rule-strong); border-radius:999px; padding:4px;
   box-shadow:0 6px 22px rgba(42,36,24,.13); }
@@ -3877,12 +3875,10 @@ function renderSection2(rows){
     // IS the signal that a later period is claiming the money.
     var note = "";
     if (row.remainingCash < -0.005){
-      note = tr("Short by ","النقص ") + fmt(Math.abs(row.remainingCash))
-           + tr(" \u2014 nothing to set aside this period."," \u2014 لا شيء للادخار هذه الفترة.");
+      note = tr("Short by ","النقص ") + fmt(Math.abs(row.remainingCash));
     } else if (held > 0.005){
-      note = tr("","") + fmt(held) + tr(" of that is held back","ﻣﻨﻬﺎ محتجز")
-           + (row.heldForLabel ? tr(" \u2014 ", " \u2014 ") + escapeHtml(row.heldForLabel)
-              + tr(" runs short without it."," سيعاني نقصاً بدونه.") : tr(" for a later period."," لفترة لاحقة."));
+      note = fmt(held) + tr(" held for ","محتجز لـ")
+           + (row.heldForLabel ? escapeHtml(row.heldForLabel) : tr("a later period","فترة لاحقة"));
     }
     html += '<td class="row-note" data-label="Note">' + note + "</td>";
     html += "</tr>";
@@ -3899,8 +3895,15 @@ function renderSection2(rows){
   // negotiation: its figures are sums, so they are wider than any row's,
   // and in build 101 they pushed the whole table past the fit threshold
   // and into the stacked-card fallback on a tablet.
-  var tIncome = 0, tExpense = 0, tSave = 0;
-  rows.forEach(function(r){ tIncome += r.income; tExpense += r.expense; tSave += r.amountToSave; });
+  var tIncome = 0, tExpense = 0, tSave = 0, tDue = 0;
+  rows.forEach(function(r){
+    tIncome += r.income;
+    // Whole periods, so this figure matches Where the money goes exactly.
+    // tDue keeps the still-due total for the note underneath.
+    tDue += r.expense;
+    tExpense += r.expense + (r.paidExpense || 0);
+    tSave += r.amountToSave;
+  });
   // The current period's row counts only what is still due. Say so, and
   // name the amount, so this total can be reconciled with the category
   // card on the Dashboards tab.
@@ -3923,10 +3926,11 @@ function renderSection2(rows){
         + "</div>"
         + (paidNow > 0.005
             ? '<div class="summary-totals-note">'
-              + tr("The current period counts only what is still due. ",
-                   "الفترة الحالية تحسب ما هو مستحق فقط. ")
-              + fmt(paidNow) + tr(" already paid is not included here.",
-                                  " مدفوع بالفعل وغير مشمول هنا.") + "</div>"
+              + tr("Expenses count whole periods. ","المصروفات تحسب فترات كاملة. ")
+              + "<strong>" + fmt(tDue) + "</strong>" + tr(" is still due; ", " مستحق بعد؛ ")
+              + "<strong>" + fmt(paidNow) + "</strong>"
+              + tr(" was already paid this period, which is why the rows above are lower.",
+                   " دُفع بالفعل هذه الفترة، ولهذا تظهر الصفوف أعلاه أقل.") + "</div>"
             : "");
     }
   }
@@ -4930,9 +4934,7 @@ function renderCategoryBreakdown(rows){
   if (paidNow > 0.005){
     html += '<p class="card-hint cat-reconcile">'
       + tr("Whole periods, including ","فترات كاملة، تشمل ") + "<strong>" + fmt(paidNow)
-      + "</strong>" + tr(" already paid this period \u2014 which the Monthly Summary totals leave out.",
-                         " مدفوعة بالفعل هذه الفترة \u2014 وهي غير مشمولة في إجماليات الملخص الشهري.")
-      + "</p>";
+      + "</strong>" + tr(" already paid this period."," مدفوعة بالفعل هذه الفترة.") + "</p>";
   }
   html += '<div class="catbar-list">';
   t.list.forEach(function(x){
@@ -5057,6 +5059,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "108", items: [
+    ["fix", "The menu sits at the bottom of the screen on every device"],
+    ["fix", "Monthly Summary totals now match Where the money goes"],
+    ["fix", "Shorter hold-back note on each period"]
+  ]},
   { v: "107", items: [
     ["add", "New menu: one rounded capsule, floating clear of the edge"],
     ["fix", "No gap under the menu when the app is opened in an in-app browser"],
@@ -5532,28 +5539,6 @@ function renderTabBar(){
   var overlayOpen = document.querySelector(".unlock-overlay:not(.hidden)")
     || !el("backup-modal").classList.contains("hidden");
   bar.classList.toggle("hidden", setupActive() || !!overlayOpen);
-}
-
-/* The visible area, as opposed to the area CSS thinks exists. In Safari,
-   an in-app webview and a page mid-toolbar-collapse all report a layout
-   viewport taller than what the user can see; a bar pinned to the bottom
-   of the layout viewport then sits below the screen edge, or leaves a
-   strip of page under it. visualViewport is the only thing that reports
-   the truth, so the bar's offset and the body's height come from it. */
-function syncViewport(){
-  var vv = window.visualViewport;
-  if (!vv) return;                        // older browsers keep the CSS fallback
-  var gap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-  document.documentElement.style.setProperty("--vv-bottom", gap.toFixed(0) + "px");
-  document.documentElement.style.setProperty("--vv-height", vv.height.toFixed(0) + "px");
-}
-
-function initViewportSync(){
-  if (!window.visualViewport) return;
-  syncViewport();
-  window.visualViewport.addEventListener("resize", syncViewport);
-  window.visualViewport.addEventListener("scroll", syncViewport);
-  window.addEventListener("orientationchange", function(){ setTimeout(syncViewport, 200); });
 }
 
 function initTabBar(){
@@ -6523,7 +6508,6 @@ function bindStaticListeners(){
     el("changelog-overlay").classList.remove("hidden");
   });
   initSectionNav();
-  initViewportSync();
   initTabBar();
   bindSummaryRowDetail();
   el("setup-next").addEventListener("click", function(){
@@ -7322,7 +7306,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-107)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-108)";
 }
 
 loadStateAndInit();
