@@ -118,8 +118,53 @@ body{
   font-size:15px;
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
+  /* Column flex + min-height so the sticky tab bar (margin-top:auto) is
+     pushed to the bottom of the screen even when the content above it is
+     short -- an empty Dashboards tab, for instance. dvh, not vh: vh is the
+     tallest the mobile viewport ever gets, which is the size that put the
+     bar off-screen in the first place. */
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
 }
-.page{ max-width:1040px; margin:0 auto; padding:28px 20px 60px; }
+/* A flex item's min-width defaults to auto -- it will not shrink below
+   its content's minimum. The forecast table's minimum is ~1000px, which
+   made the whole page refuse to fit a phone. */
+body > *{ min-width:0; max-width:100%; }
+/* First-run setup ========================================================
+   Shown INSTEAD of the dashboard while it is empty, not on top of it.
+   The build-62 attempt was a banner OVER the full page -- the
+   overwhelming dashboard was still underneath, which is why it did not
+   help and was removed. Replacing the page is the whole point: a new
+   user sees three questions, not eleven screens of zeros.
+   ======================================================================= */
+.setup-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center;
+  padding:24px 20px; box-sizing:border-box; }
+.setup-card{ background:var(--card); border:1px solid var(--rule); border-radius:14px;
+  padding:26px 24px 22px; width:100%; max-width:460px; box-shadow:var(--shadow); }
+.setup-brand{ margin-bottom:18px; }
+.setup-eyebrow{ font-size:10.5px; letter-spacing:.14em; color:var(--gold); font-weight:600; }
+.setup-title{ font-family:'Newsreader',Georgia,serif; font-size:clamp(21px,5.6vw,28px);
+  color:var(--ink); margin:6px 0 4px; white-space:normal; }
+html[dir=rtl] .setup-title{ font-family:'Cairo',sans-serif; }
+.setup-sub{ font-size:13px; color:var(--ink-soft); margin:0; line-height:1.5; }
+.setup-dots{ display:flex; gap:6px; margin:0 0 20px; }
+.setup-dot{ height:3px; flex:1; border-radius:2px; background:var(--rule); }
+.setup-dot.on{ background:var(--gold); }
+.setup-step h2{ font-family:'Newsreader',Georgia,serif; font-size:18px; color:var(--ink); margin:0 0 5px; }
+html[dir=rtl] .setup-step h2{ font-family:'Cairo',sans-serif; }
+.setup-step .card-hint{ margin:0 0 14px; }
+.setup-field input{ width:96px; text-align:center; }
+.setup-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px; }
+.setup-grow{ flex:1 1 150px; min-width:0; }
+.setup-grow input{ width:100%; box-sizing:border-box; }
+.setup-row input{ min-width:0; }
+.setup-exp-freq{ width:104px; }
+.setup-actions{ display:flex; align-items:center; gap:12px; margin-top:22px;
+  padding-top:16px; border-top:1px solid var(--rule); }
+.setup-actions .primary-btn{ margin-left:auto; }
+html[dir=rtl] .setup-actions .primary-btn{ margin-left:0; margin-right:auto; }
+.page{ width:100%; max-width:1040px; margin:0 auto; padding:28px 20px 60px; }
 .mono{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
 
 .header-top{ margin-bottom:14px; }
@@ -286,6 +331,158 @@ html[dir=rtl] .catbar-pct{ margin-left:0; margin-right:8px; }
 .sanity-panel ul{ margin:0; padding-left:20px; }
 .sanity-panel li{ margin-bottom:3px; }
 html[dir=rtl] .sanity-panel ul{ padding-left:0; padding-right:20px; }
+/* First-run setup ========================================================
+   Shown INSTEAD of the dashboard while there is no data. Build 62 tried
+   a banner ON TOP of the full page and the user removed it -- the
+   overwhelming page was still underneath. Replacing the page is the
+   point: a first-time user should see three questions, not eleven
+   screens of zeros.
+   ====================================================================== */
+.setup-screen{ position:fixed; inset:0; z-index:9990; background:var(--bg);
+  overflow-y:auto; padding:24px 20px 40px;
+  display:flex; align-items:flex-start; justify-content:center; }
+.setup-card{ width:100%; max-width:520px; background:var(--card);
+  border:1px solid var(--rule); border-radius:12px; padding:26px 24px 22px;
+  box-shadow:var(--shadow); margin-top:6vh; }
+.setup-progress{ display:flex; gap:7px; margin-bottom:20px; }
+.setup-dot{ width:26px; height:4px; border-radius:2px; background:var(--rule-strong); }
+.setup-dot.done{ background:var(--gold); }
+.setup-card h2{ font-family:'Newsreader',Georgia,serif; font-weight:500;
+  font-size:23px; color:var(--ink); margin:0 0 8px; }
+html[dir=rtl] .setup-card h2{ font-family:'Cairo',sans-serif; }
+.setup-card p{ font-size:13.5px; line-height:1.6; color:var(--ink-soft); margin:0 0 18px; }
+.setup-big input{ font-size:20px; width:96px; text-align:center; padding:9px; }
+.setup-row{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+.setup-row .field-inline{ flex:1 1 130px; min-width:0; }
+.setup-row input, .setup-row select{ width:100%; box-sizing:border-box; }
+.setup-actions{ display:flex; align-items:center; gap:14px; margin-top:20px; flex-wrap:wrap; }
+.setup-actions .primary-btn{ min-width:130px; }
+/* Tabs =================================================================
+   Build 99. The page is three views behind one bar -- Ledger (everything
+   you type), Monthly Summary (the forecast table), Dashboards (where you
+   stand). Reordering sections was rejected in build 98 because it fixes
+   the new user by breaking the daily check; splitting them fixes both,
+   because each audience now gets a page with nothing else on it.
+
+   Visibility is an ATTRIBUTE on each element, not a wrapper: the ship
+   gate's STRUCTURE audit requires every section.card to be a direct
+   child of .page and the footer to be a child of body, and that audit
+   exists because misplaced markup shipped twice. Flat DOM, same ids,
+   same handlers, nothing to rebind on a switch.
+   ====================================================================== */
+body[data-tab="ledger"]  [data-tab]:not([data-tab~="ledger"]),
+body[data-tab="summary"] [data-tab]:not([data-tab~="summary"]),
+body[data-tab="dash"]    [data-tab]:not([data-tab~="dash"]){ display:none !important; }
+/* The forecast range only means something where a range is displayed. */
+body[data-tab="ledger"] .range-wrap{ display:none; }
+
+/* Sticky, NOT fixed. A fixed bar is placed against the viewport, and
+   when the viewport is taller than the visible area (an iframe expanded
+   to content height, a mobile browser mid-toolbar-collapse) it lands
+   below the screen edge and is drawn half-cut. A sticky bar is in the
+   flow: it cannot be positioned outside the document, so it is always
+   fully drawn -- pinned to the bottom while there is content to scroll,
+   resting at the end when there is not. body is a flex column so the bar
+   is pushed down even on a page shorter than the screen. */
+.tab-bar{ position:sticky; bottom:0; z-index:9000; margin-top:auto;
+  display:flex; gap:4px; background:var(--card);
+  border-top:1px solid var(--rule-strong);
+  padding:5px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -3px 14px rgba(42,36,24,.10); }
+html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
+.tab-bar.hidden{ display:none; }
+.tab-item{ flex:1 1 0; min-width:0; background:none; border:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 2px 5px; font-family:inherit; border-radius:8px; }
+.tab-mark{ display:block; line-height:0; }
+.tab-mark svg{ width:23px; height:23px; }
+/* One glyph per destination -- three copies of the app mark told the user
+   nothing about where each tab went, which is what made the bar read as
+   decoration. Stroked, not filled, so the active state can simply
+   darken it. */
+.tab-mark .tmo, .tab-mark .tmi, .tab-mark .tmn{ fill:none; stroke:var(--ink-faint);
+  stroke-linecap:round; stroke-linejoin:round; }
+.tab-mark .tmo{ stroke-width:1.7; }
+.tab-mark .tmi{ stroke-width:1.4; }
+.tab-mark .tmn{ stroke-width:1.8; }
+.tab-mark .tmd{ fill:var(--ink-faint); }
+.tab-label{ display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; font-size:11px; color:var(--ink-faint); letter-spacing:.01em; }
+.tab-item[aria-selected="true"]{ background:var(--bg-soft); }
+.tab-item[aria-selected="true"] .tab-label{ color:var(--gold-deep); font-weight:600; }
+.tab-item[aria-selected="true"] .tab-mark .tmo,
+.tab-item[aria-selected="true"] .tab-mark .tmi,
+.tab-item[aria-selected="true"] .tab-mark .tmn{ stroke:var(--gold-deep); }
+.tab-item[aria-selected="true"] .tab-mark .tmd{ fill:var(--gold-deep); }
+/* Room for the bar at EVERY width -- the tabs are not phone-only, so the
+   padding cannot be either. */
+/* Clearance for the fixed bar belongs to the LAST element on the tab.
+   On Dashboards the footer follows .page, so padding on both left a dead
+   band between the final card and the footer. */
+.page{ padding-bottom:24px; }
+
+.undo-toast{ bottom:calc(78px + env(safe-area-inset-bottom, 0px)); }
+
+/* Ledger chip row ======================================================
+   The Ledger tab still holds six cards, so build 98's one-tap reach is
+   still needed inside it. Sticky, not fixed: a second fixed element
+   stacks badly with the iOS address-bar resize (build 96).
+   ====================================================================== */
+/* Every jump target clears the sticky chip row. Without this the heading
+   lands UNDER the row and the section looks like it starts mid-card. */
+body[data-tab="ledger"] .page section.card{ scroll-margin-top:62px; }
+.section-nav{ position:sticky; top:0; z-index:60; display:flex; gap:4px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  background:var(--bg); padding:6px 0 8px; margin-bottom:2px; }
+.section-nav.hidden{ display:none; }
+.secnav-item{ flex:0 0 auto; background:var(--card); border:1px solid var(--rule);
+  padding:6px 12px; min-width:0; font-family:inherit; font-size:12px;
+  color:var(--ink-soft); cursor:pointer; border-radius:999px; white-space:nowrap; }
+.secnav-item.active{ color:var(--gold-deep); background:var(--card-tint);
+  border-color:var(--rule-strong); font-weight:600; }
+
+/* Gauges ===============================================================
+   Three arcs, not one hero number: the user was offered committed / free
+   / saving rate as a single figure and chose all three, small. Committed
+   and free are complements outside deficit -- known and accepted; read
+   together they show the period filling from both ends.
+
+   Every figure comes from computeSnapshotView's row0, the same object
+   Monthly Cash Flow and the chart read, so the four agree by
+   construction (engine rule 3).
+   ====================================================================== */
+.gauge-row{ margin:6px 0 2px; }
+.gauge-single{ text-align:center; }
+.gauge-single svg{ width:100%; max-width:280px; height:auto; display:block; margin:0 auto; }
+.gauge-track{ fill:none; stroke:var(--rule); }
+.gauge-val{ font-family:"Cormorant Garamond",Georgia,serif; font-size:15px;
+  font-weight:600; fill:var(--ink); }
+.gauge-val.negative{ fill:var(--rust); }
+.gauge-caption{ font-family:'IBM Plex Sans',sans-serif; font-size:5px; fill:var(--ink-faint); }
+.gauge-name{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+/* The split in money, one line. A second chart of the same three numbers
+   would be decoration. */
+.gauge-legend{ display:flex; flex-wrap:wrap; gap:6px 16px; justify-content:center;
+  margin-top:10px; font-size:12.5px; color:var(--ink-soft); }
+.gauge-legend div{ display:flex; align-items:center; gap:5px; }
+.gauge-legend strong{ font-family:'IBM Plex Mono',monospace; color:var(--ink); font-weight:600; }
+.gauge-key{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+.gauge-perday{ margin-top:6px; font-size:13px; color:var(--emerald); font-weight:600; }
+.gauge-perday.negative{ color:var(--rust); }
+/* Two-up on a phone: five stats stacked one per row filled the screen. */
+#section-gauge .s1-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+#section-gauge .s1-stat{ min-width:0; }
+.gauge-progress{ margin-top:12px; }
+.gauge-bar{ height:6px; border-radius:3px; background:var(--rule); overflow:hidden; }
+.gauge-bar span{ display:block; height:100%; background:var(--ink-faint); border-radius:3px; }
+.gauge-progress-label{ display:flex; justify-content:space-between; gap:8px;
+  font-size:12px; color:var(--ink-soft); margin-bottom:5px; }
+.gauge-next{ margin-top:10px; font-size:13px; color:var(--ink-soft); }
+.gauge-next strong{ color:var(--ink); font-weight:600; }
+.gauge-next div + div{ margin-top:3px; }
+@media (prefers-reduced-motion: no-preference){
+  .gauge-seg{ transition:stroke-dashoffset .3s ease; }
+}
 .undo-toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9998;
   display:flex; align-items:center; gap:14px; background:var(--navy); color:#fff;
   padding:11px 16px; border-radius:9px; box-shadow:0 6px 20px rgba(0,0,0,.22); font-size:13px; }
@@ -556,9 +753,14 @@ td.positive{ color:var(--emerald); }
 #cashonhand-limit-line > span{ flex-basis:100%; margin-top:2px; }
 #cashonhand-limit-line{ align-items:center; }
 .cashonhand-dimmed{ opacity:.55; }
+.asof-cue{ margin:-4px 0 10px; font-size:12.5px; color:var(--clay); }
+.asof-cue.hidden{ display:none; }
 
 #forecast-table.stacked-mode thead{ display:none; }
-#forecast-table.stacked-mode, #forecast-table.stacked-mode tbody, #forecast-table.stacked-mode tr, #forecast-table.stacked-mode td{ display:block; width:100%; }
+#forecast-table.stacked-mode, #forecast-table.stacked-mode tbody, #forecast-table.stacked-mode tfoot, #forecast-table.stacked-mode tr, #forecast-table.stacked-mode td{ display:block; width:100%; }
+/* Empty cells carry no figure; in the stacked card they would render as a
+   label with nothing after it. */
+#forecast-table.stacked-mode tfoot td:empty{ display:none; }
 #forecast-table.stacked-mode tr{ border:1px solid var(--rule); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
 #forecast-table.stacked-mode td{ display:flex; justify-content:space-between; border:none; padding:4px 0; white-space:normal; }
 #forecast-table.stacked-mode td::before{ content:attr(data-label); color:var(--ink-soft); font-family:'IBM Plex Sans',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
@@ -575,6 +777,28 @@ td.positive{ color:var(--emerald); }
 .chart-year-rule{ stroke:var(--rule-strong); stroke-width:1; }
 .chart-bar-label{ font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--gold); }
 .chart-detail{ margin-bottom:14px; border-bottom:1px solid var(--rule); padding-bottom:12px; }
+.chart-detail:empty{ display:none; border:none; padding:0; margin:0; }
+/* Monthly Summary: a row is tappable, and the tapped one is marked. */
+#forecast-tbody tr{ cursor:pointer; }
+#forecast-tbody tr.row-open td{ background:var(--card-tint); }
+/* Totals sit BELOW the table, not in a <tfoot>: they are a summary of the
+   rows, not another row, and inside the table their (wider, summed)
+   figures competed with the rows for column width. */
+.summary-totals{ margin-top:14px; border:1px solid var(--rule-strong);
+  border-radius:var(--radius); background:var(--card-tint); padding:12px 14px; }
+.summary-totals.hidden{ display:none; }
+.summary-totals-head{ font-family:'IBM Plex Sans',sans-serif; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--gold-deep);
+  font-weight:600; margin-bottom:10px; }
+.summary-totals-head span{ display:block; letter-spacing:0; text-transform:none;
+  font-size:12px; font-weight:400; color:var(--ink-soft); margin-top:2px; }
+.summary-totals-grid{ display:flex; flex-wrap:wrap; gap:12px 26px; }
+.summary-totals-grid > div{ flex:1 1 120px; min-width:0; }
+.summary-totals-grid span{ display:block; font-size:11px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--ink-faint); }
+.summary-totals-grid strong{ font-family:'IBM Plex Mono',monospace; font-size:16px;
+  color:var(--ink); font-weight:600; }
+.summary-totals-grid strong.pos{ color:var(--emerald); }
 .chart-detail-period{ font-family:'Newsreader',serif; font-size:16px; margin-bottom:6px; }
 .chart-detail-line{ display:flex; justify-content:space-between; font-size:13px; padding:2px 0; max-width:360px; }
 .chart-detail-line strong{ font-family:'IBM Plex Mono',monospace; }
@@ -721,7 +945,11 @@ td.positive{ color:var(--emerald); }
 .add-date-btn, .add-override-btn{ align-self:flex-start; background:none; border:1px dashed var(--rule-strong); color:var(--ink-soft); font-size:11px; padding:3px 8px; border-radius:5px; cursor:pointer; }
 .muted-placeholder{ color:var(--ink-faint); font-style:italic; font-size:12px; }
 
-.page-footer{ max-width:1040px; margin:0 auto; padding:0 20px 40px;
+/* The bottom value clears the fixed tab bar. It lives in the SHORTHAND
+   because a padding shorthand further down the sheet silently reset an
+   earlier padding-bottom -- measured at -6px, i.e. the build stamp sat
+   under the bar. */
+.page-footer{ width:100%; max-width:1040px; margin:0 auto; padding:0 20px 32px;
   display:block; }
 .page-footer > p{ display:flex; align-items:center; gap:14px; margin-top:10px;
   color:var(--ink-faint); font-size:12px; flex-wrap:wrap; }
@@ -799,6 +1027,38 @@ body.modal-open{ overflow:hidden; }
   <span id="undo-toast-text"></span>
   <button type="button" id="undo-toast-btn" class="btn-small" data-i18n="k_undo">Undo</button>
 </div>
+<div id="setup-screen" class="setup-screen hidden">
+  <div class="setup-card">
+    <div class="setup-brand">
+      <span class="setup-eyebrow" data-i18n="su_eyebrow">HOUSEHOLD LEDGER</span>
+      <h1 class="setup-title" data-i18n="su_title">Let’s set up your budget</h1>
+      <p class="setup-sub" data-i18n="su_sub">Three quick questions. You can change any of it later.</p>
+    </div>
+    <div class="setup-dots" id="setup-dots"></div>
+    <div class="setup-step" id="setup-step-1">
+      <h2 data-i18n="su_q1">When does your pay arrive?</h2>
+      <p class="card-hint" data-i18n="su_h1">The day of the month your salary lands. Every budget period starts from there.</p>
+      <label class="field-inline setup-field"><span data-i18n="su_day">Day of month</span>
+        <input type="number" min="1" max="31" id="setup-payday" value="25"></label>
+    </div>
+    <div class="setup-step hidden" id="setup-step-2">
+      <h2 data-i18n="su_q2">What comes in?</h2>
+      <p class="card-hint" data-i18n="su_h2">Your salary, or the main money you receive each month.</p>
+      <div class="setup-row">
+        <label class="field-inline setup-grow"><span data-i18n="su_name">Name</span>
+          <input type="text" id="setup-inc-name" placeholder="Salary"></label>
+        <label class="field-inline"><span data-i18n="su_amount">Amount</span>
+          <input type="text" inputmode="decimal" id="setup-inc-amount" placeholder="0.00"></label>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button type="button" id="setup-back" class="ghost-btn hidden" data-i18n="su_back">Back</button>
+      <button type="button" id="setup-skip" class="link-btn hidden" data-i18n="su_skip">Skip for now</button>
+      <button type="button" id="setup-next" class="primary-btn" data-i18n="su_next">Next</button>
+    </div>
+  </div>
+</div>
+
 <div class="page">
 
   <header class="ledger-header">
@@ -841,14 +1101,12 @@ body.modal-open{ overflow:hidden; }
     <button type="button" id="update-now-btn" class="btn-small" data-i18n="upd_btn">Refresh now</button>
   </div>
 
-  <div class="group-heading">
-    <span data-i18n="g_stand">Where you stand</span>
-    <p data-i18n="g_stand_sub">A read-only view of your position right now and the year ahead. Check this often.</p>
-  </div>
+  
 
-<section class="card" id="section1">
-    <h2 data-i18n="s_cashflow">Monthly Cash Flow</h2>
+<section class="card" id="section1" data-tab="ledger">
+    <h2 data-i18n="s_payperiod">Pay period &amp; reconciliation</h2>
     <p class="card-hint" id="s1-period-label"></p>
+    <p class="asof-cue hidden" id="s1-asof-cue"></p>
     <label class="s1-payday-row">
       <span data-i18n="l_payday">Pay period starts on day</span> <input type="number" min="1" max="31" id="s1-payday-input">
       <span class="field-hint" style="margin:0;" data-i18n="h_payday">&mdash; the day your pay arrives, which is where each month's budget period begins</span>
@@ -884,16 +1142,18 @@ body.modal-open{ overflow:hidden; }
 
     <div id="cc-settings" class="cc-settings hidden"></div>
 
-    <div class="stilldue-section">
-      <div class="stilldue-heading" data-i18n="l_snapshot">Snapshot</div>
-      <label class="stilldue-line">
-        <span data-i18n="l_viewing">Viewing as of</span>
-        <input type="date" id="asof-date-input">
-      </label>
-      <p class="field-hint" data-i18n="h_snapshot">View the dashboard as of any date. Credit card charges follow the statement and payment days above.</p>
-    </div>
+    
 
 
+    
+  </section>
+
+<section class="card" id="section-gauge" data-tab="dash">
+    <h2 data-i18n="s_gauge">This Period at a Glance</h2>
+    <p class="card-hint" id="gauge-period-label"></p>
+    <div class="gauge-row" id="gauge-row"></div>
+    <div class="gauge-progress" id="gauge-progress"></div>
+    <p class="field-hint" data-i18n="h_gauge">How this period&rsquo;s cash divides between what is already paid, what is still due, and what is left to save.</p>
     <div class="s1-grid">
       <div class="s1-stat"><span data-i18n="k_totinc">Total income</span><strong id="s1-total-income"></strong></div>
       <div class="s1-stat"><span data-i18n="k_totexp">Total expense</span><strong id="s1-total-expense"></strong></div>
@@ -901,18 +1161,28 @@ body.modal-open{ overflow:hidden; }
       <div class="s1-stat"><span data-i18n="k_remcash">Remaining cash</span><strong id="s1-remaining-cash"></strong></div>
       <div class="s1-stat highlight"><span data-i18n="k_amtsave">Amount to save</span><strong id="s1-amount-to-save"></strong></div>
     </div>
+    <div class="gauge-next" id="gauge-next"></div>
   </section>
 
-<section class="card" id="section3">
+  <section class="card" id="section3" data-tab="dash">
     <h2 data-i18n="s_chart">The Year at a Glance</h2>
     <p class="card-hint" data-i18n="h_chart">Select any bar for that period's full breakdown.</p>
     <div id="chart-detail" class="chart-detail"></div>
     <div id="year-chart-wrap" class="year-chart-wrap"></div>
   </section>
 
-<section class="card" id="section2">
+<section class="card" id="section2" data-tab="summary">
     <h2 data-i18n="s_summary">Monthly Summary</h2>
-    <p class="card-hint" data-i18n="h_summary">A rolling twelve-period forecast, calculated from your entries.</p>
+        <p class="card-hint" data-i18n="h_summary">A rolling twelve-period forecast, calculated from your entries.</p>
+<div class="stilldue-section">
+      <div class="stilldue-heading" data-i18n="l_snapshot">Snapshot</div>
+      <label class="stilldue-line">
+        <span data-i18n="l_viewing">Viewing as of</span>
+        <input type="date" id="asof-date-input">
+      </label>
+      <p class="field-hint" data-i18n="h_snapshot">View the dashboard as of any date. Credit card charges follow the statement and payment days set for each category in the Expense Ledger.</p>
+    </div>
+    <div id="summary-detail" class="chart-detail"></div>
     <div class="table-scroll">
       <table id="forecast-table">
         <thead><tr>
@@ -928,19 +1198,28 @@ body.modal-open{ overflow:hidden; }
         <tbody id="forecast-tbody"></tbody>
       </table>
     </div>
+    <div class="summary-totals hidden" id="forecast-totals"></div>
   </section>
 
-  <section class="card" id="section-where">
+  <section class="card" id="section-where" data-tab="dash">
     <h2 data-i18n="s_where">Where the money goes</h2>
     <div id="cat-breakdown"></div>
   </section>
 
-  <div class="group-heading">
+  <nav id="section-nav" class="section-nav" data-tab="ledger" aria-label="Sections">
+    <button type="button" class="secnav-item" data-goto="section-income" data-i18n="nv_in">Income</button>
+    <button type="button" class="secnav-item" data-goto="section4" data-i18n="nv_out">Expenses</button>
+    <button type="button" class="secnav-item" data-goto="section6" data-i18n="nv_loan">Loans</button>
+    <button type="button" class="secnav-item" data-goto="section5" data-i18n="nv_adhoc">Ad-hoc</button>
+    <button type="button" class="secnav-item" data-goto="section-backups" data-i18n="nv_backups">Backups</button>
+  </nav>
+
+  <div class="group-heading" data-tab="ledger">
     <span data-i18n="g_driving">What's driving it</span>
     <p data-i18n="g_driving_sub">Everything you enter. Changes here flow through the figures above.</p>
   </div>
 
-<section class="card" id="section-income">
+<section class="card" id="section-income" data-tab="ledger">
     <div class="ledger-header-row">
       <h2 data-i18n="s_income">Income Ledger</h2>
       <div class="ledger-actions">
@@ -959,7 +1238,7 @@ body.modal-open{ overflow:hidden; }
     </div>
   </section>
 
-<section class="card" id="section4">
+<section class="card" id="section4" data-tab="ledger">
     <div class="ledger-header-row">
       <h2 data-i18n="s_expense">Expense Ledger</h2>
       <div class="ledger-actions">
@@ -999,7 +1278,7 @@ body.modal-open{ overflow:hidden; }
     </div>
   </section>
 
-<section class="card" id="section6">
+<section class="card" id="section6" data-tab="ledger">
     <h2 data-i18n="s_p2p">P2P Lending</h2>
     <p class="card-hint" data-i18n="h_p2p">Loans between you and another person, either direction. The loan and its repayments both flow into your forecast. Only payments you record reduce a balance.</p>
 
@@ -1018,7 +1297,7 @@ body.modal-open{ overflow:hidden; }
     </div>
   </section>
 
-<section class="card" id="section5">
+<section class="card" id="section5" data-tab="ledger">
     <h2 data-i18n="s_adhoc">Ad-hoc Savings Spending</h2>
     <p class="card-hint" data-i18n="h_adhoc">One-off purchases paid from savings. Reduces the Saving Account Balance only.</p>
     <div class="table-scroll">
@@ -1043,7 +1322,9 @@ body.modal-open{ overflow:hidden; }
 
   
 
-  <section class="card" id="section-backups">
+  <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+
+  <section class="card" id="section-backups" data-tab="ledger">
     <h2 data-i18n="s_backups">Dashboard Backups</h2>
     <p class="card-hint" data-i18n="h_backups">Snapshots kept on this device. Restore any of them to roll the whole dashboard back. They live in the same browser storage as your figures &mdash; if that is cleared they go too, so keep an exported file as well.</p>
     <label class="field-inline snap-keep"><span data-i18n="k_keep">Backups to keep</span>
@@ -1059,8 +1340,9 @@ body.modal-open{ overflow:hidden; }
 
 </div><!-- /.page -->
 
-<footer class="page-footer">
-    <input type="file" id="import-file-input" accept="application/json" style="display:none;">
+
+
+<footer class="page-footer" data-tab="dash">
     <div class="footer-actions">
       <span data-i18n="wn_note">Updates to this dashboard are listed in the version history.</span>
       <button type="button" id="whatsnew-open" class="btn-small" data-i18n="wn_btn">See what changed</button>
@@ -1071,6 +1353,21 @@ body.modal-open{ overflow:hidden; }
     </div>
     <p>Planning tool only &mdash; not financial advice. <button type="button" id="build-stamp" class="build-stamp-btn"></button></p>
   </footer>
+
+<nav id="tab-bar" class="tab-bar" role="tablist" aria-label="Views">
+  <button type="button" id="tab-ledger" class="tab-item" role="tab" aria-selected="false" data-tab-name="ledger">
+    <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="3.5" width="18" height="17" rx="3"/><line class="tmo" x1="8" y1="3.5" x2="8" y2="20.5"/><line class="tmi" x1="11.5" y1="9" x2="17.5" y2="9"/><line class="tmi" x1="11.5" y1="12.5" x2="17.5" y2="12.5"/><line class="tmi" x1="11.5" y1="16" x2="15" y2="16"/></svg></span>
+    <span class="tab-label" data-i18n="tab_ledger">Ledger</span>
+  </button>
+  <button type="button" id="tab-summary" class="tab-item" role="tab" aria-selected="false" data-tab-name="summary">
+    <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="4" width="18" height="16" rx="3"/><line class="tmo" x1="3" y1="9" x2="21" y2="9"/><line class="tmi" x1="9.5" y1="9" x2="9.5" y2="20"/><line class="tmi" x1="3" y1="14.5" x2="21" y2="14.5"/></svg></span>
+    <span class="tab-label" data-i18n="tab_summary">Monthly Summary</span>
+  </button>
+  <button type="button" id="tab-dash" class="tab-item" role="tab" aria-selected="false" data-tab-name="dash">
+    <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path class="tmo" d="M3.6 17.5a9.5 9.5 0 1 1 16.8 0"/><line class="tmn" x1="12" y1="17" x2="16.6" y2="10.4"/><circle class="tmd" cx="12" cy="17.3" r="1.9"/></svg></span>
+    <span class="tab-label" data-i18n="tab_dash">Dashboards</span>
+  </button>
+</nav>
 
   <div id="backup-modal" class="backup-modal hidden">
     <div class="backup-modal-inner">
@@ -2038,7 +2335,7 @@ function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBefo
   occs.forEach(function(o){
     var isStatementItem = categoryHasBehavior(o.category, "statementBilling");
     var effAbs = isStatementItem ? statementEffectiveAbs(o.category, o.y, o.m, o.d) : toAbsDay(o.y, o.m, o.d);
-    var item = { name: o.name, category: o.category, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d };
+    var item = { name: o.name, category: o.category, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d, effAbs: effAbs };
     if (isStatementItem){
       var stmt = statementMonthFor(o.category, o.y, o.m, o.d);
       item.stmtY = stmt.y; item.stmtM = stmt.m; item.stmtD = getCategoryStatementDay(o.category);
@@ -3018,7 +3315,15 @@ function computeSnapshotView(mainRows){
     pendingIncome: incRes.pendingIncome, pendingIncomeItems: incRes.pendingItems,
     paidExpense: expRes.paidExpense, paidItems: expRes.paidItems,
     totalCash: totalCash, remainingCash: remainingCash, amountToSave: amountToSave,
-    isDeficit: isDeficit, excessCash: null
+    isDeficit: isDeficit, excessCash: null,
+    // For the gauges (build 99). periodDay/periodDays describe how far
+    // through the period the snapshot date sits; gross is everything this
+    // period had to work with -- leftover + realized income, i.e. total
+    // cash BEFORE what has already been paid out was taken off it.
+    periodDays: periodEndExAbs - periodStartAbs,
+    periodDay: Math.min(Math.max(asOfAbs - periodStartAbs + 1, 1), periodEndExAbs - periodStartAbs),
+    periodStartAbs: periodStartAbs, periodEndExAbs: periodEndExAbs,
+    gross: totalCash + expRes.paidExpense
   };
 }
 
@@ -3127,6 +3432,25 @@ function renderSection1(rows){
     el("s1-payday-input").value = getPrimaryIncomeDay();
   }
   el("asof-date-input").value = viewAsOfDate;
+  // The control that sets this lives on Monthly Summary now. Without a cue
+  // here, a date left in the past would silently change what this card and
+  // the gauges say, with no visible cause on the tab you are looking at.
+  var cue = el("s1-asof-cue");
+  if (viewAsOfDate && viewAsOfDate !== todayISO()){
+    var a = parseISODate(viewAsOfDate);
+    cue.innerHTML = tr("Viewing as of ","معروض بتاريخ ")
+      + monthShort(a.m) + " " + toArabicDigits(a.d) + ", " + toArabicDigits(a.y)
+      + ' \u00b7 <button type="button" id="s1-asof-reset" class="link-btn">'
+      + tr("Back to today","العودة إلى اليوم") + "</button>";
+    cue.classList.remove("hidden");
+    el("s1-asof-reset").addEventListener("click", function(){
+      viewAsOfDate = todayISO();
+      render();
+    });
+  } else {
+    cue.innerHTML = "";
+    cue.classList.add("hidden");
+  }
   el("s1-total-income").textContent = fmt(row0.income);
   el("s1-total-expense").textContent = fmt(row0.expense);
   el("s1-total-cash").textContent = fmt(row0.totalCash);
@@ -3136,6 +3460,169 @@ function renderSection1(rows){
   el("s1-amount-to-save").textContent = fmt(row0.amountToSave);
 
 
+}
+
+/* =========================================================================
+   RENDER -- GAUGES (build 99)
+
+   Three small arcs rather than one hero number: the user was offered
+   committed / free / saving rate as a single big figure and chose all
+   three. Committed and free are complements outside deficit -- that is
+   known and accepted; read together they show the period filling up from
+   both ends.
+
+   Everything here comes from the SAME row0 that Monthly Cash Flow and the
+   chart read, so no figure on the Dashboards tab can disagree with the
+   Monthly Summary row for the same period (engine rule 3). If a gauge ever
+   needs a number that isn't on row0, add it to computeSnapshotView -- do
+   not derive it here.
+
+   Deliberately NOT motivational. The screenshot this borrows its SHAPE
+   from ("74% Perfect Day", "Cheer up!") is exactly the register every
+   decorative element removed from this app was written in.
+   ========================================================================= */
+
+// 240-degree sweep, 210deg -> 330deg clockwise through the bottom-less arc.
+var GAUGE_R = 34, GAUGE_CX = 40, GAUGE_CY = 40;
+var GAUGE_SWEEP = 240;
+
+function gaugeArcPath(){
+  function pt(deg){
+    var r = (deg - 90) * Math.PI / 180;
+    return [GAUGE_CX + GAUGE_R * Math.cos(r), GAUGE_CY + GAUGE_R * Math.sin(r)];
+  }
+  var a = pt(-120), b = pt(120);
+  return "M " + a[0].toFixed(2) + " " + a[1].toFixed(2) +
+         " A " + GAUGE_R + " " + GAUGE_R + " 0 1 1 " + b[0].toFixed(2) + " " + b[1].toFixed(2);
+}
+
+function gaugeArcLength(){
+  return 2 * Math.PI * GAUGE_R * (GAUGE_SWEEP / 360);
+}
+
+/* One gauge. `segments` is [{frac, color}] drawn from the start of the arc
+   outward; fractions are clamped so a period that is 118% committed shows a
+   full arc (and the NUMBER carries the overflow -- capping the figure would
+   hide the only case that matters). */
+function gaugeSvg(segments, label, valueText, negative, caption){
+  var L = gaugeArcLength(), d = gaugeArcPath(), out = "";
+  out += '<svg viewBox="0 0 80 66" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'
+       + escapeAttr(label + " " + valueText) + '">';
+  out += '<path class="gauge-track" d="' + d + '" stroke-width="6" stroke-linecap="butt"/>';
+  var used = 0;
+  segments.forEach(function(seg){
+    var f = Math.max(0, Math.min(1 - used, seg.frac));
+    if (f <= 0) return;
+    out += '<path class="gauge-seg" d="' + d + '" fill="none" stroke="' + seg.color
+         + '" stroke-width="6" stroke-linecap="butt" stroke-dasharray="'
+         + (f * L).toFixed(2) + " " + L.toFixed(2) + '" stroke-dashoffset="'
+         + (-used * L).toFixed(2) + '"/>';
+    used += f;
+  });
+  // Money, not a percentage: longer, so it is sized to the widest real
+  // figure rather than to "81%".
+  out += '<text class="gauge-val' + (negative ? " negative" : "") + '" x="40" y="41" '
+       + 'text-anchor="middle" textLength="' + (valueText.length > 7 ? 56 : 0) + '" '
+       + 'lengthAdjust="spacingAndGlyphs">' + escapeHtml(valueText) + "</text>";
+  if (caption){
+    out += '<text class="gauge-caption" x="40" y="52" text-anchor="middle">'
+         + escapeHtml(caption) + "</text>";
+  }
+  out += "</svg>";
+  return out;
+}
+
+
+function renderGauge(row0){
+  var rowEl = el("gauge-row"), labelEl = el("gauge-period-label"),
+      progEl = el("gauge-progress"), nextEl = el("gauge-next");
+  if (!rowEl) return;
+
+  labelEl.textContent = periodLabel(row0) + "  \u00b7  " + formatDayRange(row0, getPrimaryIncomeDay());
+
+  var gross = row0.gross || 0;
+  var committed = row0.paidExpense + row0.expense;
+  var free = row0.remainingCash;
+  var daysLeft = Math.max(0, row0.periodDays - row0.periodDay);
+
+  if (gross <= 0.005){
+    // Nothing entered, or a snapshot before any income landed. An empty
+    // arc and a dash is honest; 0% would read as "nothing is committed"
+    // rather than "there is nothing to divide".
+    rowEl.innerHTML = '<div class="gauge-single">' + gaugeSvg([], "", "\u2014", false, "") + "</div>";
+    progEl.innerHTML = "";
+    nextEl.innerHTML = "<div>" + tr("Add income in the Ledger to see where this period stands.",
+      "\u0623\u0636\u0641 \u062f\u062e\u0644\u0627\u064b \u0641\u064a \u0627\u0644\u062f\u0641\u062a\u0631 \u0644\u0645\u0639\u0631\u0641\u0629 \u0645\u0648\u0642\u0641 \u0647\u0630\u0647 \u0627\u0644\u0641\u062a\u0631\u0629.") + "</div>";
+    return;
+  }
+
+  var over = committed > gross + 0.005;
+  var paidSeg = { frac: row0.paidExpense / gross, color: over ? "var(--rust)" : "var(--navy)" };
+  var dueSeg  = { frac: row0.expense / gross,     color: over ? "var(--rust)" : "var(--gold)" };
+  // The saving slice must be ON THE ARC, not only in the legend. It was
+  // invisible before because the arc's remaining length was drawn as
+  // empty track -- so a period with 2% left looked identical to one with
+  // 40% left.
+  var saveSeg = { frac: Math.max(0, free) / gross, color: "var(--emerald)" };
+
+  // Centre: the money, not a percentage. Negative free cash keeps its
+  // sign and its colour -- that is the case worth seeing from across the
+  // room.
+  var caption = tr("of ","من ") + fmt(gross);
+  rowEl.innerHTML = '<div class="gauge-single">'
+    + gaugeSvg([paidSeg, dueSeg, saveSeg], tr("Saving","الادخار"), fmt(free), free < -0.005, caption)
+    + '<div class="gauge-name">' + tr("Saving this period","الادخار هذه الفترة") + "</div>"
+    + "</div>";
+
+  // The split, in money. One line, three figures, no second chart.
+  var pct = Math.round((committed / gross) * 100);
+  rowEl.innerHTML += '<div class="gauge-legend">'
+    + '<div><span class="gauge-key" style="background:' + paidSeg.color + '"></span>'
+      + tr("Paid","مدفوع") + "<strong>" + fmt(row0.paidExpense) + "</strong></div>"
+    + '<div><span class="gauge-key" style="background:' + dueSeg.color + '"></span>'
+      + tr("Still due","مستحق") + "<strong>" + fmt(row0.expense) + "</strong></div>"
+    + (free < -0.005
+        ? '<div><span class="gauge-key" style="background:var(--rust)"></span>'
+          + tr("Short by","النقص") + '<strong style="color:var(--rust)">' + fmt(Math.abs(free)) + "</strong></div>"
+        : '<div><span class="gauge-key" style="background:var(--emerald)"></span>'
+          + tr("Saving","ادخار") + "<strong>" + fmt(free) + "</strong></div>")
+    + "</div>";
+
+  // Period progress, and the one figure the app could not tell him
+  // before: what the free cash is worth per remaining day.
+  var day = row0.periodDay, days = row0.periodDays;
+  var perDay = (free > 0 && daysLeft > 0) ? (free / daysLeft) : null;
+  progEl.innerHTML =
+    '<div class="gauge-progress-label"><span>' + tr("Day ","اليوم ") + toArabicDigits(day)
+      + tr(" of ", " من ") + toArabicDigits(days) + "</span><span>"
+      + toArabicDigits(pct) + "% " + tr("committed","ملتزم به") + "</span></div>"
+    + '<div class="gauge-bar"><span style="width:' + ((day / days) * 100).toFixed(1) + '%"></span></div>'
+    + (perDay !== null
+        ? '<div class="gauge-perday">' + fmt(perDay) + tr(" a day if you spend it, over the ", " يومياً إن أنفقته، على مدى ")
+          + toArabicDigits(daysLeft) + tr(" days left", " يوماً المتبقية") + "</div>"
+        : (free <= 0
+            ? '<div class="gauge-perday negative">' + tr("This period is short by ","هذه الفترة ينقصها ")
+              + fmt(Math.abs(free)) + "</div>"
+            : ""));
+
+  // What is coming next -- the one genuinely new fact on this page.
+  var due = (row0.items || []).slice().sort(function(a, b){ return a.effAbs - b.effAbs; });
+  var lines = "";
+  if (due.length){
+    var n = due[0], nd = absToYMD(n.effAbs);
+    lines += "<div>" + tr("Next: ","التالي: ") + "<strong>" + escapeHtml(n.name) + "</strong> \u00b7 "
+          + fmt(n.amount) + " \u00b7 " + monthShort(nd.m) + " " + toArabicDigits(nd.d) + "</div>";
+  } else {
+    lines += "<div>" + tr("Nothing else due this period.","لا شيء آخر مستحق هذه الفترة.") + "</div>";
+  }
+  if (row0.pendingIncome > 0.005){
+    var pi = (row0.pendingIncomeItems || [])[0];
+    if (pi){
+      lines += "<div>" + tr("Expected: ","متوقع: ") + "<strong>" + escapeHtml(pi.name) + "</strong> \u00b7 "
+            + fmt(pi.amount) + " \u00b7 " + monthShort(pi.dueM) + " " + toArabicDigits(pi.dueD) + "</div>";
+    }
+  }
+  nextEl.innerHTML = lines;
 }
 
 /* =========================================================================
@@ -3158,7 +3645,67 @@ function renderSection2(rows){
     html += "</tr>";
   });
   el("forecast-tbody").innerHTML = html;
+
+  // Totals across the DISPLAYED range, BELOW the table rather than inside
+  // it. Income, Expenses and Amount to Save are sums that mean something;
+  // Leftover, Total Cash, Remaining and Saving Balance are running
+  // balances, and adding those up produces a number with no
+  // interpretation -- which is why this was never a full table row.
+  //
+  // Keeping it out of <tfoot> also keeps it out of the column-width
+  // negotiation: its figures are sums, so they are wider than any row's,
+  // and in build 101 they pushed the whole table past the fit threshold
+  // and into the stacked-card fallback on a tablet.
+  var tIncome = 0, tExpense = 0, tSave = 0;
+  rows.forEach(function(r){ tIncome += r.income; tExpense += r.expense; tSave += r.amountToSave; });
+  var box = el("forecast-totals");
+  if (box){
+    box.classList.toggle("hidden", !rows.length);
+    if (rows.length){
+      var span = periodLabel(rows[0]) + " \u2013 " + periodLabel(rows[rows.length - 1]);
+      box.innerHTML =
+        '<div class="summary-totals-head">' + tr("Totals","الإجماليات")
+          + '<span>' + toArabicDigits(rows.length) + tr(" periods \u00b7 ", " فترات \u00b7 ")
+          + escapeHtml(span) + "</span></div>"
+        + '<div class="summary-totals-grid">'
+        + '<div><span>' + tr("Income","الدخل") + "</span><strong>" + fmt(tIncome) + "</strong></div>"
+        + '<div><span>' + tr("Expenses","المصروفات") + "</span><strong>" + fmt(tExpense) + "</strong></div>"
+        + '<div><span>' + tr("Amount to save","المبلغ للادخار")
+          + '</span><strong class="pos">' + fmt(tSave) + "</strong></div>"
+        + "</div>";
+    }
+  }
 }
+
+/* Tapping a Monthly Summary row opens the SAME breakdown panel the chart
+   uses, above the table. Delegated on the tbody, bound once: the tbody is
+   rebuilt by innerHTML on every render, so a per-row listener would be
+   dropped and re-added a dozen times a keystroke. */
+function bindSummaryRowDetail(){
+  var tbody = el("forecast-tbody");
+  if (!tbody) return;
+  tbody.addEventListener("click", function(e){
+    var tr_ = e.target.closest("tr[data-index]");
+    if (!tr_) return;
+    var idx = parseInt(tr_.getAttribute("data-index"), 10);
+    var row = (renderedRows || []).filter(function(r){ return r.index === idx; })[0];
+    if (!row) return;
+    var panel = el("summary-detail");
+    // Tapping the open row again closes it -- otherwise the only way to
+    // dismiss the panel would be to switch tabs.
+    if (summaryDetailIndex === idx){
+      summaryDetailIndex = null;
+      panel.innerHTML = "";
+      tbody.querySelectorAll("tr.row-open").forEach(function(x){ x.classList.remove("row-open"); });
+      return;
+    }
+    summaryDetailIndex = idx;
+    tbody.querySelectorAll("tr.row-open").forEach(function(x){ x.classList.remove("row-open"); });
+    tr_.classList.add("row-open");
+    showChartDetail(row, "summary-detail");
+  });
+}
+var summaryDetailIndex = null;
 
 function fitForecastTable(){
   var wrapper = document.querySelector("#section2 .table-scroll");
@@ -3176,7 +3723,7 @@ function fitForecastTable(){
 
   var natural = table.scrollWidth;
   var avail = wrapper.clientWidth;
-  if (natural <= avail || natural === 0) return; // already fits at full size
+  if (natural <= avail || natural === 0)return; // fits at full size
 
   // 0.97, not 1.0 -- see comment above the constant.
   var scale = (avail * FORECAST_FIT_MARGIN) / natural;
@@ -3344,9 +3891,14 @@ function renderIncomeBreakdown(items, noun){
   return html;
 }
 
-function showChartDetail(row){
-  state._chartSelected = row.index;
+function showChartDetail(row, targetId){
+  // targetId defaults to the chart's own panel. Monthly Summary passes
+  // its own container so a tapped row shows the SAME breakdown rather
+  // than a second implementation of it.
+  targetId = targetId || "chart-detail";
+  if (targetId === "chart-detail") state._chartSelected = row.index;
   chartItemsCurrentRow = row;
+  chartDetailRows[targetId] = row;
   var html = '<div class="chart-detail-period">' + escapeHtml(periodLabel(row)) + "</div>"
     + '<div class="chart-detail-line"><span>' + tr("Income","\u0627\u0644\u062f\u062e\u0644") + '</span><strong>' + fmt(row.income) + "</strong></div>"
     + '<div class="chart-detail-line"><span>' + tr("Expenses","\u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a") + '</span><strong>' + fmt(row.expense) + "</strong></div>"
@@ -3376,7 +3928,7 @@ function showChartDetail(row){
   } else {
     html += '<div class="chart-items-hint">' + tr("Select a bar or dot above for a full income and expense breakdown of that period.","اختر عموداً أو نقطة أعلاه لعرض تفصيل كامل للدخل والمصروفات لتلك الفترة.") + '</div>';
   }
-  el("chart-detail").innerHTML = html;
+  el(targetId).innerHTML = html;
   bindChartItemsControls();
 }
 
@@ -3435,6 +3987,16 @@ function renderItemsBreakdown(items, sectionKey, isGrouped, noun){
   return html;
 }
 
+// Which period each breakdown panel is currently showing. Keyed by panel
+// id, because the two panels are independent: the chart may be open on
+// March while a tapped Monthly Summary row shows September.
+var chartDetailRows = {};
+
+function detailHostOf(node){
+  var host = node.closest ? node.closest(".chart-detail") : null;
+  return host && host.id ? host.id : "chart-detail";
+}
+
 function bindChartItemsControls(){
   var toggleBtns = document.querySelectorAll("[id^='chart-items-group-toggle-']");
   for (var t = 0; t < toggleBtns.length; t++){
@@ -3442,7 +4004,8 @@ function bindChartItemsControls(){
       var section = this.getAttribute("data-section");
       if (section === "paid") paidItemsGrouped = !paidItemsGrouped;
       else chartItemsGrouped = !chartItemsGrouped;
-      showChartDetail(chartItemsCurrentRow);
+      var host = detailHostOf(this);
+      showChartDetail(chartDetailRows[host] || chartItemsCurrentRow, host);
     });
   }
   var headers = document.querySelectorAll(".chart-cat-header");
@@ -3451,7 +4014,8 @@ function bindChartItemsControls(){
       var cat = this.getAttribute("data-category");
       state.collapsedCategories[cat] = !state.collapsedCategories[cat];
       saveState();
-      showChartDetail(chartItemsCurrentRow);
+      var host = detailHostOf(this);
+      showChartDetail(chartDetailRows[host] || chartItemsCurrentRow, host);
     });
   }
 }
@@ -3690,24 +4254,16 @@ var I18N = {
     rangeFrom: "اعرض من",
     rangeTo: "إلى",
     rangeReset: "الفترات الـ١٢ القادمة",
-    g_stand: "\u0645\u0648\u0642\u0641\u0643 \u0627\u0644\u062d\u0627\u0644\u064a",
-    g_stand_sub: "\u0639\u0631\u0636 \u0644\u0644\u0627\u0637\u0644\u0627\u0639 \u0641\u0642\u0637 \u2014 \u0644\u0627 \u064a\u0645\u0643\u0646 \u062a\u0639\u062f\u064a\u0644 \u0634\u064a\u0621 \u0647\u0646\u0627 \u0645\u0628\u0627\u0634\u0631\u0629.",
     g_driving: "\u0645\u0627 \u064a\u064f\u0643\u0648\u0651\u0646 \u0647\u0630\u0647 \u0627\u0644\u0623\u0631\u0642\u0627\u0645",
     g_driving_sub: "\u0643\u0644 \u0645\u0627 \u062a\u062f\u062e\u0644\u0647. \u0627\u0644\u062a\u063a\u064a\u064a\u0631\u0627\u062a \u0647\u0646\u0627 \u062a\u0646\u0639\u0643\u0633 \u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0623\u0639\u0644\u0627\u0647.",
-    g_understand: "فهم أموالك",
-    g_understand_sub: "أين تذهب أموالك فعلاً، ومدى دقة تقديراتك. تستحق نظرة مرة في الشهر.",
-    s_cashflow: "\u0627\u0644\u062a\u062f\u0641\u0642 \u0627\u0644\u0646\u0642\u062f\u064a \u0627\u0644\u0634\u0647\u0631\u064a",
     s_chart: "\u0627\u0644\u0633\u0646\u0629 \u0641\u064a \u0644\u0645\u062d\u0629",
     s_summary: "\u0627\u0644\u0645\u0644\u062e\u0635 \u0627\u0644\u0634\u0647\u0631\u064a",
     s_income: "\u0633\u062c\u0644 \u0627\u0644\u062f\u062e\u0644",
     s_expense: "\u0633\u062c\u0644 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a",
     s_p2p: "\u0627\u0644\u0625\u0642\u0631\u0627\u0636 \u0627\u0644\u0634\u062e\u0635\u064a",
     s_adhoc: "\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0645\u0646 \u0627\u0644\u0645\u062f\u062e\u0631\u0627\u062a",
-    s_actuals: "المخطط مقابل الفعلي",
     s_where: "أين يذهب مالك",
-    h_actuals: "سجّل ما كلّفته الفترة فعلياً بعد أن تبدأ. لا شيء هنا يغيّر توقعاتك — إنه سجل مقارنة، لترى أين تنحرف تقديراتك وتضبطها مع الوقت.",
     btn_reset: "\u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0636\u0628\u0637",
-    btn_forceupdate: "التحقق من التحديثات",
     btn_export: "\u062a\u0635\u062f\u064a\u0631 \u0646\u0633\u062e\u0629",
     btn_import: "\u0627\u0633\u062a\u064a\u0631\u0627\u062f \u0646\u0633\u062e\u0629",
     btn_lent: "+ \u0645\u0628\u0644\u063a \u0623\u0642\u0631\u0636\u062a\u0647",
@@ -3721,8 +4277,7 @@ var I18N = {
     l_snapshot: "لقطة",
     l_viewing: "العرض بتاريخ",
     h_coh: "أداة مطابقة وليست رصيداً متغيراً: هذا الرقم لا يؤثر على أي إجمالي مباشرة. أدخل رصيدك الفعلي والتاريخ الذي كان صحيحاً فيه. إذا اختلف عمّا تتوقعه مدخلات الدخل والمصروفات، تقترح اللوحة تسجيل الفرق كسطر جديد في سجل الدخل أو المصروفات، حيث يُعامل كأي إدخال آخر.",
-    h_snapshot: "كل ما يظهر أدناه يعكس هذا التاريخ تحديداً، كما لو انتقلت إليه — أي فترة أنت فيها، وما حدث بالفعل، وما لا يزال قادماً. غيّر التاريخ ويتحدث القسم بالكامل. أما مصروفات البطاقة الائتمانية فتتبع تواريخ كشف الحساب والسداد الخاصة بها، المحددة لكل فئة في سجل المصروفات.",
-    h_defer: "يعامل كل مصروفات البطاقة الائتمانية المستحقة في هذه الفترة كدفعة واحدة في هذا التاريخ، متجاوزاً أيام كشف الحساب والسداد المعتادة. استخدم هذا عندما تعلم أنك ستسدد البطاقة قبل أو بعد موعدها المعتاد هذه الدورة.",
+    h_snapshot: "كل ما يظهر في اللوحة يعكس هذا التاريخ تحديداً، كما لو انتقلت إليه — أي فترة أنت فيها، وما حدث بالفعل، وما لا يزال قادماً. غيّر التاريخ وتتحدث اللوحة بالكامل. أما مصروفات البطاقة الائتمانية فتتبع تواريخ كشف الحساب والسداد الخاصة بها، المحددة لكل فئة في سجل المصروفات.",
     h_income: "كل مصدر دخل يدخل في تدفقك النقدي — الراتب (مع إمكانية زيادة مستقبلية)، أو دفعة لمرة واحدة كمكافأة، أو دخل إيجار من عقد مستأجر.",
     h_p2p: "قروض غير رسمية بينك وبين شخص آخر، في أي من الاتجاهين. القرض نفسه وأقساطه يدخلان في توقعاتك: المال الذي تقترضه يصل كدخل في تاريخ القرض وتصبح أقساطه مصروفات، بينما المال الذي تقرضه يخرج كمصروف ويعود كدخل. الدفعات التي تسجلها فعلياً هي وحدها التي تخفض الرصيد — لا يُفترض السداد لمجرد مرور التاريخ.",
     h_adhoc: "مشتريات لمرة واحدة تُدفع من المدخرات بدلاً من الدخل المعتاد. كل إدخال يخفض رصيد حساب التوفير من تاريخه فصاعداً، ولا يمس الدخل أو المصروفات أو المبلغ المخصص للادخار.",
@@ -3737,19 +4292,10 @@ var I18N = {
     k_addinc: "+ إضافة مصدر دخل",
     k_addexp: "+ إضافة مصروف",
     k_mancat: "إدارة الفئات",
-    k_backupnow: "احفظ نسخة الآن",
     k_later: "لاحقاً",
-    k_protect: "حماية بعبارة مرور",
     k_recalc: "إعادة الحساب",
-    k_redo: "إعادة آخر تراجع",
-    k_expcsv: "تصدير السجل (CSV)",
     k_addledger: "أضف إلى السجل",
     k_notnow: "ليس الآن",
-    k_autocorr: "صحّح هذا تلقائياً",
-    k_onlyupto: "حتى حد",
-    k_flat: "مبلغ ثابت",
-    k_pct: "% من الرصيد",
-    k_limithint: "— الفروق الأكبر يتم تنبيهك بها بدلاً من ذلك (٠ = بلا حد)",
     c_period: "الفترة",
     c_name: "الاسم",
     c_type: "النوع",
@@ -3763,6 +4309,22 @@ var I18N = {
     c_date: "التاريخ",
     c_note: "ملاحظة",
     k_undo: "تراجع",
+    su_eyebrow: "دفتر الأسرة",
+    su_title: "لنجهّز ميزانيتك",
+    su_sub: "ثلاثة أسئلة سريعة. يمكنك تغيير أي شيء لاحقاً.",
+    su_q1: "متى يصل راتبك؟",
+    su_h1: "يوم الشهر الذي يصل فيه راتبك. كل فترة ميزانية تبدأ من هناك.",
+    su_day: "يوم الشهر",
+    su_q2: "ما الذي يدخل؟",
+    su_h2: "راتبك، أو المال الأساسي الذي تستلمه كل شهر.",
+    su_name: "الاسم",
+    su_amount: "المبلغ",
+    su_q3: "ما الذي يخرج؟",
+    su_h3: "التزاماتك المنتظمة. أضف الكبيرة الآن، والباقي متى شئت.",
+    su_more: "+ أضف آخر",
+    su_back: "رجوع",
+    su_skip: "تخطَّ الآن",
+    su_next: "التالي",
     k_later: "ذكّرني لاحقاً",
     c_income: "الدخل",
     c_leftover: "المرحّل",
@@ -3781,26 +4343,34 @@ var I18N = {
     k_add: "إضافة",
     k_curhint: "— العملة التي تُعرض بها كل الأرقام في هذه اللوحة",
     k_basecur: "العملة الأساسية",
-    pv_title: "أرقامك تبقى على هذا الجهاز",
     upd_text: "نسخة جديدة من اللوحة جاهزة.",
     upd_btn: "تحديث الآن",
     lk_title: "أدخل عبارة المرور",
     lk_body: "أرقامك مشفّرة على هذا الجهاز. بدون عبارة المرور لا يمكن قراءتها — لا بواسطة هذا التطبيق ولا بواسطة أي أحد.",
     lk_unlock: "فتح",
-    pv_body: "لا يُرسل أي شيء تُدخله إلى أي مكان، ولا يُستخدم أي حساب — الأرقام محفوظة في ذاكرة هذا المتصفح على هذا الهاتف وحده، ولا يصل إليها سوى هذا التطبيق. أي شخص يستطيع فتح هاتفك يستطيع فتحها، لذا أبقِ قفل الشاشة مفعّلاً. مسح بيانات المتصفح سيمحوها، لذا احتفظ بنسخة احتياطية.",
     k_addadhoc: "+ إضافة مصروف من المدخرات",
-    l_defer: "تأجيل سداد البطاقة إلى",
-    cc_lbl: "البطاقة الائتمانية",
-    cc_stmt: "يوم الكشف",
-    cc_pay: "يوم السداد",
-    cc_hint: "يوم السداد هو ما يحدد الفترة التي يقع فيها المصروف.",
     k_close: "إغلاق",
     cl_title: "ما الذي تغيّر",
+    su_day: "يوم الشهر",
+    su_name: "الاسم",
+    su_next: "التالي",
+    su_skip: "تخطَّ الآن",
+    su_more: "+ أضف آخر",
+    tab_ledger: "الدفتر",
+    tab_summary: "الملخص الشهري",
+    tab_dash: "اللوحات",
+    nv_in: "الدخل",
+    nv_out: "المصروفات",
+    nv_adhoc: "مصروفات المدخرات",
+    nv_backups: "النسخ الاحتياطية",
+    s_gauge: "هذه الفترة في لمحة",
+    h_gauge: "كيف ينقسم نقد هذه الفترة بين ما دُفع بالفعل، وما لا يزال مستحقاً، وما تبقّى للادخار.",
+    s_payperiod: "فترة الراتب والمطابقة",
+    nv_loan: "القروض",
     s_backups: "نسخ اللوحة",
     h_backups: "لقطات محفوظة على هذا الجهاز. استعد أياً منها لإرجاع اللوحة بالكامل. تُحفظ في نفس ذاكرة المتصفح مع أرقامك — إن مُسحت ذهبت معها، لذا احتفظ بملف مُصدَّر أيضاً.",
     k_snapnow: "خذ نسخة الآن",
     k_keep: "عدد النسخ المحفوظة",
-    wn_text: "تم تحديث اللوحة.",
     wn_btn: "اعرض ما تغيّر",
     wn_note: "تُدرج تحديثات هذه اللوحة في سجل الإصدارات.",
     k_copy: "نسخ",
@@ -4130,6 +4700,39 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "103", items: [
+    ["fix", "The bottom bar is never cut off, at any screen size"],
+    ["fix", "Monthly Summary is a table again on tablets"],
+    ["fix", "The gauge no longer has bare ends"],
+    ["add", "Totals moved below the table, with the periods they cover"]
+  ]},
+  { v: "102", items: [
+    ["fix", "Setup now opens the Expense Ledger when you finish"],
+    ["fix", "The last setup step no longer leads to a blank card"]
+  ]},
+  { v: "101", items: [
+    ["fix", "Setup asks two questions: pay day and income"],
+    ["add", "The gauge shows saving in green, in three clear colours"],
+    ["fix", "Spacing above the footer, and the last line no longer hides behind the bar"],
+    ["add", "The totals block names the periods it covers"]
+  ]},
+  { v: "100", items: [
+    ["fix", "Section chips: the right one lights up, and only one"],
+    ["fix", "Section jumps no longer hide the heading under the chip row"],
+    ["add", "Each tab has its own icon"],
+    ["add", "This Period at a Glance: free cash, the split, and what it is a day"]
+  ]},
+  { v: "99", items: [
+    ["add", "Three tabs: Ledger, Monthly Summary, Dashboards"],
+    ["add", "Three gauges for the current period: committed, free, saving rate"],
+    ["add", "Tap a Monthly Summary row for that period's breakdown"],
+    ["add", "Totals row under the Monthly Summary table"],
+    ["fix", "The section bar no longer reappears behind a dialog"]
+  ]},
+  { v: "98", items: [
+    ["add", "Guided setup for first-time users"],
+    ["add", "Section bar on mobile \u2014 jump to any ledger in one tap"]
+  ]},
   { v: "97", items: [
     ["fix", "Page behind an open backup dialog no longer scrolls"],
     ["fix", "Removed leftover code from earlier features"]
@@ -4466,6 +5069,255 @@ function renderSnapshots(){
    This is the difference between "the parser must be perfect" and "the
    parser must be close" -- and only the second is achievable with rules.
    ======================================================================= */
+/* Tabs ====================================================================
+   Three views, one bar. Visibility is driven by body[data-tab] against the
+   data-tab attribute on each element (see the CSS block) -- no wrappers, no
+   re-binding, and every id stays exactly where it was.
+
+   The active tab is NOT part of `state`. saveState() sets cashDataDirty and
+   arms the "you have changes that aren't backed up" prompt; switching views
+   is not a data change, and it has no business inside a backup or inside
+   the encrypted blob either. It lives under its own localStorage key.
+   ========================================================================= */
+var TABS = ["ledger", "summary", "dash"];
+var UI_KEY = STORAGE_KEY + ":ui";
+var activeTab = "dash";
+// Session-only, like viewAsOfDate: where you were on each tab is a lens on
+// this sitting, not a setting worth restoring days later.
+var tabScroll = { ledger: 0, summary: 0, dash: 0 };
+var tabVisited = {};
+
+function readUiPrefs(){
+  try {
+    var raw = window.localStorage && window.localStorage.getItem(UI_KEY);
+    var o = raw ? JSON.parse(raw) : null;
+    if (o && TABS.indexOf(o.tab) !== -1) return o;
+  } catch(e){ /* private mode, or a value from an older build */ }
+  return null;
+}
+
+function writeUiPrefs(){
+  try {
+    if (window.localStorage) window.localStorage.setItem(UI_KEY, JSON.stringify({ tab: activeTab }));
+  } catch(e){ /* storage unavailable -- the tab simply won't persist */ }
+}
+
+function tabOfSection(id){
+  var elm = document.getElementById(id);
+  var host = elm && elm.closest ? elm.closest("[data-tab]") : null;
+  return host ? host.getAttribute("data-tab") : null;
+}
+
+function showTab(name){
+  if (TABS.indexOf(name) === -1) name = "dash";
+  if (name !== activeTab) tabScroll[activeTab] = window.pageYOffset;
+  activeTab = name;
+  document.body.setAttribute("data-tab", name);
+  TABS.forEach(function(t){
+    var btn = el("tab-" + (t === "summary" ? "summary" : t === "dash" ? "dash" : "ledger"));
+    if (btn) btn.setAttribute("aria-selected", String(t === name));
+  });
+  writeUiPrefs();
+  // The forecast table measures its own width to decide its scale. Inside a
+  // display:none tab both the wrapper and the table measure 0, so the fit
+  // function reads "already fits" and the table opens unscaled and clipped.
+  // rAF, so the browser has laid the newly-shown tab out first.
+  requestAnimationFrame(function(){
+    fitForecastTable();
+    var y = tabVisited[name] ? (tabScroll[name] || 0) : 0;
+    tabVisited[name] = true;
+    window.scrollTo(0, y);
+    if (secNavActiveUpdate) secNavActiveUpdate();
+  });
+}
+
+// Every cross-tab jump goes through here. scrollIntoView on an element that
+// was display:none a microsecond ago is a no-op -- it has no box yet -- so
+// the scroll waits a frame after the tab is shown.
+function gotoSection(id){
+  var t = tabOfSection(id);
+  if (t && t !== activeTab) showTab(t);
+  requestAnimationFrame(function(){
+    var target = document.getElementById(id);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (secNavActiveUpdate) setTimeout(secNavActiveUpdate, 1250);
+  });
+}
+
+function renderTabBar(){
+  var bar = el("tab-bar");
+  if (!bar) return;
+  // Hidden during setup and behind any overlay: a pinned bar over a modal
+  // is both wrong and tappable.
+  var overlayOpen = document.querySelector(".unlock-overlay:not(.hidden)")
+    || !el("backup-modal").classList.contains("hidden");
+  bar.classList.toggle("hidden", setupActive() || !!overlayOpen);
+}
+
+function initTabBar(){
+  el("tab-ledger").addEventListener("click", function(){ showTab("ledger"); });
+  el("tab-summary").addEventListener("click", function(){ showTab("summary"); });
+  el("tab-dash").addEventListener("click", function(){ showTab("dash"); });
+  var prefs = readUiPrefs();
+  showTab(prefs ? prefs.tab : "dash");
+}
+
+function renderSectionNav(){
+  var nav = el("section-nav");
+  if (!nav) return;
+  nav.classList.toggle("hidden", setupActive());
+}
+
+var secNavObserver = null;
+var secNavActiveUpdate = null;
+var secNavLockUntil = 0;
+var secNavLastTapped = null;
+var SECNAV_IDS = ["section-income","section4","section6","section5","section-backups"];
+
+function initSectionNav(){
+  var nav = el("section-nav");
+  if (!nav || secNavObserver) return;
+  var items = nav.querySelectorAll(".secnav-item");
+  for (var i = 0; i < items.length; i++){
+    items[i].addEventListener("click", function(){
+      // Light the tapped chip immediately. Waiting for the smooth scroll
+      // to cross an observer boundary leaves the OLD chip lit for the
+      // whole animation, which reads as "my tap did nothing".
+      for (var j = 0; j < items.length; j++) items[j].classList.remove("active");
+      this.classList.add("active");
+      secNavLockUntil = Date.now() + 1200;
+      secNavLastTapped = this.getAttribute("data-goto");
+      gotoSection(this.getAttribute("data-goto"));
+    });
+  }
+  // ONE active chip, recomputed from real positions. The previous version
+  // toggled per intersection entry, which could light two chips in the
+  // same callback and could never unlight the last one: at the bottom of
+  // the page the remaining sections stop crossing the band entirely, so
+  // no entry fires and whatever was lit stays lit. Both were reported.
+  function updateActiveChip(){
+    if (activeTab !== "ledger") return;
+    // A tap is an explicit statement of where you meant to go. Honour it
+    // until the scroll has settled, or a mid-flight recompute overrides
+    // it with whatever happened to be under the anchor at that moment.
+    if (Date.now() < secNavLockUntil) return;
+    var anchor = 80;                      // just under the sticky chip row
+    var bestId = null, bestTop = -Infinity;
+    var atBottom = (window.innerHeight + window.pageYOffset)
+                   >= (document.body.scrollHeight - 4);
+    SECNAV_IDS.forEach(function(id){
+      var t = document.getElementById(id);
+      if (!t) return;
+      var top = t.getBoundingClientRect().top;
+      // The section whose heading is highest ABOVE the anchor is the one
+      // being read; ties go to the later section.
+      if (top <= anchor && top > bestTop){ bestTop = top; bestId = id; }
+    });
+    if (atBottom){
+      var tapped = secNavLastTapped && document.getElementById(secNavLastTapped);
+      var r = tapped ? tapped.getBoundingClientRect() : null;
+      var tappedVisible = r && r.top < window.innerHeight && r.bottom > 0;
+      bestId = tappedVisible ? secNavLastTapped : SECNAV_IDS[SECNAV_IDS.length - 1];
+    }
+    if (!bestId) bestId = SECNAV_IDS[0];
+    for (var j = 0; j < items.length; j++){
+      items[j].classList.toggle("active", items[j].getAttribute("data-goto") === bestId);
+    }
+  }
+  secNavActiveUpdate = updateActiveChip;
+  // IntersectionObserver, not a scroll listener: a scroll handler that
+  // writes to the DOM on every frame is what caused the earlier
+  // "page pulls itself while scrolling" report. The observer fires only
+  // at boundaries; the recompute above is what makes the result correct.
+  secNavObserver = new IntersectionObserver(function(){
+    updateActiveChip();
+  }, { threshold: [0, 0.01, 0.5, 1] });
+  SECNAV_IDS.forEach(function(id){
+    var t = document.getElementById(id);
+    if (t) secNavObserver.observe(t);
+  });
+  // A read-only listener: it measures and, at most, moves one class. The
+  // build-96 report was a handler that WROTE layout on every frame; this
+  // one cannot, and the observer alone cannot see a scroll that ends
+  // without crossing a boundary.
+  window.addEventListener("scrollend", updateActiveChip);
+  updateActiveChip();
+}
+
+
+/* First-run setup =========================================================
+   Three questions instead of eleven screens of zeros.
+
+   The "are we onboarding" state is DERIVED from the data (stateIsEmpty),
+   never stored. A stored step counter drifts the moment someone deletes
+   everything, and then instructs them to do what they already did --
+   the exact failure of the build-62 attempt. If the dashboard is empty,
+   setup shows; the moment it is not, it does not.
+   ======================================================================= */
+var setupStep = 1;
+// Two questions. The expenses step was removed in build 101: a new user
+// cannot answer "which category, monthly or yearly, due which day?" in a
+// wizard, and a wrong answer there costs more than not asking. The
+// Expense Ledger is one tap away and asks properly.
+var SETUP_STEPS = 2;
+
+function setupActive(){
+  return stateIsEmpty() && !state.setupSkipped;
+}
+
+
+function renderSetup(){
+  var scr = el("setup-screen"), page = document.querySelector(".page");
+  if (!scr) return;
+  var on = setupActive();
+  scr.classList.toggle("hidden", !on);
+  if (page) page.classList.toggle("hidden", on);
+  var ft = document.querySelector("footer");
+  if (ft) ft.classList.toggle("hidden", on);
+  if (!on) return;
+
+  for (var i = 1; i <= SETUP_STEPS; i++){
+    el("setup-step-" + i).classList.toggle("hidden", i !== setupStep);
+  }
+  var dots = "";
+  for (var d = 1; d <= SETUP_STEPS; d++){
+    dots += '<span class="setup-dot' + (d <= setupStep ? " on" : "") + '"></span>';
+  }
+  el("setup-dots").innerHTML = dots;
+  el("setup-back").classList.toggle("hidden", setupStep === 1);
+  el("setup-skip").classList.toggle("hidden", setupStep === 1);
+  el("setup-next").textContent = setupStep < SETUP_STEPS
+    ? tr("Next","التالي") : tr("Add my expenses","أضف مصروفاتي");
+}
+
+function setupFinish(){
+  // Everything the user typed becomes ordinary ledger rows -- there is no
+  // separate "setup data" shape to reconcile later.
+  var day = clampDay(el("setup-payday").value || 25);
+  var incName = (el("setup-inc-name").value || "").trim();
+  var incAmt = parseFloat(String(el("setup-inc-amount").value).replace(/,/g, "")) || 0;
+
+  if (incAmt > 0 || incName){
+    state.nextIncomeId = (state.nextIncomeId || 0) + 1;
+    state.incomeSources = [{
+      id: "inc_" + state.nextIncomeId,
+      name: incName || tr("Salary","الراتب"),
+      type: "salary", incomeDay: day,
+      tiers: [{ amount: incAmt, startMonth: null, startYear: null }]
+    }];
+  }
+
+  state.setupSkipped = true;   // so an all-skipped setup does not loop
+  saveState();
+  takeSnapshot("manual");      // a first recovery point, free
+  render();
+  // Straight to the Expense Ledger. Setup no longer collects expenses
+  // (build 101), so this is the one thing left to do -- and a dashboard
+  // of zeros with no route to the form is exactly the "6.2 screens of
+  // nothing" problem build 98 set out to solve.
+  setTimeout(function(){ gotoSection("section4"); }, 60);
+}
+
 function renderCcSettings(){
   var box = el("cc-settings");
   if (!box) return;
@@ -5113,11 +5965,13 @@ function render(){
   var scrollX = window.pageXOffset, scrollY = window.pageYOffset;
   var focusDesc = describeFocus();
 
+  renderSetup();
   renderYearSelect();
   var rows = computeForecast();
   var snapView = computeSnapshotView(rows);
   var syncedRows = applySnapshotToRows(rows, snapView);
   renderSection1(rows);
+  renderGauge(snapView);
   renderSection2(syncedRows);
   renderYearChart(syncedRows);
   renderIncomeTable();
@@ -5134,6 +5988,9 @@ function render(){
     el("snap-keep-input").value = maxSnapshots();
   }
   renderSnapshots();
+  renderSetup();
+  renderSectionNav();
+  renderTabBar();
   renderCcSettings();
   renderSanity();
   renderLockToggle();
@@ -5262,6 +6119,21 @@ function bindStaticListeners(){
   el("whatsnew-open").addEventListener("click", function(){
     renderChangelog();
     el("changelog-overlay").classList.remove("hidden");
+  });
+  initSectionNav();
+  initTabBar();
+  bindSummaryRowDetail();
+  el("setup-next").addEventListener("click", function(){
+    if (setupStep < SETUP_STEPS){ setupStep++; renderSetup(); return; }
+    setupFinish();
+  });
+  el("setup-back").addEventListener("click", function(){
+    if (setupStep > 1){ setupStep--; renderSetup(); }
+  });
+  el("setup-skip").addEventListener("click", function(){
+    // Skipping still finishes: whatever was typed so far is kept, and the
+    // dashboard opens. Never discard what the user already entered.
+    setupFinish();
   });
   el("snapshot-now-btn").addEventListener("click", function(){
     takeSnapshot("manual");
@@ -5939,6 +6811,7 @@ var backupModalText = "";
 
 function openBackupModal(mode){
   document.body.classList.add("modal-open");
+  renderTabBar();
   backupModalMode = mode;
   var ta = el("backup-textarea");
   el("backup-feedback").textContent = "";
@@ -5973,6 +6846,7 @@ function openBackupModal(mode){
   if (mode === "export") ta.select();
 }
 function openBackupModalWith(text, hint, filename){
+  renderTabBar();
   // Read-only variant of the backup modal for ad-hoc exports (currently
   // the correction-history CSV). Reuses the same copy/paste surface
   // because a bare file download is unreliable on iOS.
@@ -5996,7 +6870,8 @@ function openBackupModalWith(text, hint, filename){
   ta.select();
 }
 function closeBackupModal(){
-  document.body.classList.remove("modal-open"); el("backup-modal").classList.add("hidden"); }
+  document.body.classList.remove("modal-open"); el("backup-modal").classList.add("hidden");
+  renderTabBar(); }
 
 function fallbackCopy(ta, feedback){
   var copied = false;
@@ -6044,7 +6919,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-08-31-97)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-103)";
 }
 
 loadStateAndInit();
