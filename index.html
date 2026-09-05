@@ -110,6 +110,9 @@ html[data-theme=dark] .s1-stat.highlight strong{ color:var(--gold-light); }
 
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+/* Any strip the browser paints outside the body -- overscroll bounce, a
+   toolbar animating away -- must not flash white against the page. */
+html{ background:var(--bg); }
 body{
   background:var(--bg);
   background-image: radial-gradient(ellipse 1400px 700px at 50% -15%, var(--bg-soft) 0%, var(--bg) 70%);
@@ -123,7 +126,8 @@ body{
      short -- an empty Dashboards tab, for instance. dvh, not vh: vh is the
      tallest the mobile viewport ever gets, which is the size that put the
      bar off-screen in the first place. */
-  min-height:100dvh;
+  min-height:100vh;
+  min-height:100lvh;
   display:flex;
   flex-direction:column;
 }
@@ -517,7 +521,37 @@ body[data-tab="ledger"] .page section.card{ scroll-margin-top:62px; }
 
 .chart-items{ margin-top:14px; border:1px solid var(--rule-strong); border-radius:8px; padding:10px 12px; }
 .chart-items-title{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:6px; }
-.chart-items table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.chart-items table{ width:100%; table-layout:fixed; border-collapse:collapse; font-size:12.5px; }
+/* The name is the only column that can afford to wrap; the date and the
+   amount must stay on one line or they stop being readable. */
+.chart-items td:first-child{ overflow-wrap:anywhere; }
+/* Even columns starve the date (which is a fixed 11 characters) and the
+   amount. Share the width by what each column actually needs. */
+.chart-items table.items-3 th:nth-child(1), .chart-items table.items-3 td:nth-child(1){ width:36%; }
+.chart-items table.items-3 th:nth-child(2), .chart-items table.items-3 td:nth-child(2){ width:32%; }
+.chart-items table.items-3 th:nth-child(3), .chart-items table.items-3 td:nth-child(3){ width:32%; }
+.chart-items table.items-4 th:nth-child(1), .chart-items table.items-4 td:nth-child(1){ width:34%; }
+.chart-items table.items-4 th:nth-child(2), .chart-items table.items-4 td:nth-child(2){ width:22%; }
+.chart-items table.items-4 th:nth-child(3), .chart-items table.items-4 td:nth-child(3){ width:22%; }
+.chart-items table.items-4 th:nth-child(4), .chart-items table.items-4 td:nth-child(4){ width:22%; }
+.chart-items td, .chart-items th{ overflow-wrap:anywhere; }
+@media (max-width:400px){
+  .chart-items td.num, .chart-items th.num{ font-size:11px; }
+  .chart-items td, .chart-items th{ letter-spacing:0; padding:4px 2px; }
+  /* The figure is the one column that must never be cut. */
+  .chart-items table.items-3 th:nth-child(2), .chart-items table.items-3 td:nth-child(2){ font-size:10.5px; }
+  .chart-items table.items-4 th:nth-child(1), .chart-items table.items-4 td:nth-child(1){ width:26%; }
+  .chart-items table.items-4 th:nth-child(2), .chart-items table.items-4 td:nth-child(2){ width:20%; }
+  .chart-items table.items-4 th:nth-child(3), .chart-items table.items-4 td:nth-child(3){ width:26%;
+    font-size:10.5px; }
+  .chart-items table.items-4 th:nth-child(4), .chart-items table.items-4 td:nth-child(4){ width:28%; }
+}
+.chart-items td.num, .chart-items th.num{ white-space:nowrap; }
+.chart-items td:nth-child(3){ white-space:normal; }
+@media (max-width:520px){
+  .chart-items{ padding:9px 9px; }
+  .chart-items th, .chart-items td{ padding:4px 3px; font-size:12px; }
+}
 .chart-items th{ text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); padding:4px 6px; border-bottom:1px solid var(--rule-strong); font-family:'IBM Plex Sans',sans-serif; font-weight:600; }
 .chart-items th.num, .chart-items td.num{ text-align:right; }
 .chart-items td{ padding:4px 6px; border-bottom:1px solid var(--rule); font-family:'IBM Plex Sans',sans-serif; }
@@ -756,31 +790,146 @@ td.positive{ color:var(--emerald); }
 .asof-cue{ margin:-4px 0 10px; font-size:12.5px; color:var(--clay); }
 .asof-cue.hidden{ display:none; }
 
-#forecast-table.stacked-mode thead{ display:none; }
-#forecast-table.stacked-mode, #forecast-table.stacked-mode tbody, #forecast-table.stacked-mode tfoot, #forecast-table.stacked-mode tr, #forecast-table.stacked-mode td{ display:block; width:100%; }
-/* Empty cells carry no figure; in the stacked card they would render as a
-   label with nothing after it. */
-#forecast-table.stacked-mode tfoot td:empty{ display:none; }
-#forecast-table.stacked-mode tr{ border:1px solid var(--rule); border-radius:8px; padding:10px 12px; margin-bottom:10px; }
-#forecast-table.stacked-mode td{ display:flex; justify-content:space-between; border:none; padding:4px 0; white-space:normal; }
-#forecast-table.stacked-mode td::before{ content:attr(data-label); color:var(--ink-soft); font-family:'IBM Plex Sans',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
-#forecast-table.stacked-mode .editable-cell{ align-items:flex-end; }
+/* Monthly Summary rows ==================================================
+   Not a table, visually: the eight-column form was unreadable on a phone
+   (a real table needs 1001px -- it would have to scale to 0.38, about 5px
+   type) and dense on a desktop. The <table> element and its eight
+   data-label cells are kept exactly as they were so every test reader and
+   the golden baseline still work; only the presentation changed.
+
+   Two things the old form could not say, both asked for directly:
+   what the colours mean (a legend, once, at the top) and the difference
+   between what REMAINS and what is SAFE TO SAVE -- which can be 6,346 and
+   2,443 in the same period.
+   ======================================================================= */
+#forecast-table{ display:block; width:100%; }
+#forecast-table thead{ display:none; }
+#forecast-table tbody{ display:block; }
+.summary-legend{ display:flex; flex-wrap:wrap; gap:6px 14px;
+  padding-bottom:11px; margin-bottom:2px; border-bottom:1px solid var(--rule); }
+.summary-legend div{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); }
+.summary-legend .key{ width:10px; height:10px; border-radius:3px; }
+
+#forecast-tbody tr{ display:grid; grid-template-columns:1fr auto;
+  grid-template-areas:"period save" "bar bar" "note note";
+  align-items:baseline; column-gap:12px;
+  padding:12px 0 13px; border-bottom:1px solid var(--rule); cursor:pointer; }
+#forecast-tbody tr:last-child{ border-bottom:none; }
+#forecast-tbody tr.row-open{ background:transparent; }
+#forecast-tbody td{ display:block; border:none; padding:0; white-space:nowrap; }
+#forecast-tbody td[data-label="Period"]{ grid-area:period;
+  font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; }
+#forecast-tbody td[data-label="Amount to Save"]{ grid-area:save; text-align:right;
+  font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; color:var(--emerald); }
+html[dir=rtl] #forecast-tbody td[data-label="Amount to Save"]{ text-align:left; }
+#forecast-tbody td[data-label="Amount to Save"]::before{ content:attr(data-cap);
+  display:block; font-family:'IBM Plex Sans',sans-serif; font-size:9.5px; font-weight:400;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:1px; }
+#forecast-tbody tr.is-deficit td[data-label="Amount to Save"]{ color:var(--ink-faint); }
+#forecast-tbody tr.is-deficit .row-note{ color:var(--rust); font-weight:600; }
+.row-bar{ grid-area:bar; }
+.row-bar .bar{ display:flex; height:9px; border-radius:5px; overflow:hidden;
+  background:var(--rule); margin:9px 0 6px; }
+.row-bar .bar i{ display:block; height:100%; }
+.row-meta{ display:flex; justify-content:space-between; gap:10px;
+  font-size:11.5px; color:var(--ink-faint); }
+.row-meta b{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink-soft); }
+.row-meta b.neg{ color:var(--rust); }
+/* The id selector on the cells wins over a bare class, so this note has
+   to be at least as specific or it never wraps -- which is exactly how it
+   ended up clipped at the screen edge. */
+#forecast-tbody td.row-note{ grid-area:note; font-size:11.5px; color:var(--clay);
+  margin-top:5px; font-weight:400; white-space:normal; line-height:1.4;
+  text-align:left; }
+html[dir=rtl] #forecast-tbody td.row-note{ text-align:right; }
+.row-note:empty{ display:none; }
+
+/* The four remaining figures, on tap. */
+#forecast-tbody td[data-label="Income"],
+#forecast-tbody td[data-label="Leftover"],
+#forecast-tbody td[data-label="Total Cash"],
+#forecast-tbody td[data-label="Expenses"],
+#forecast-tbody td[data-label="Remaining Cash"],
+#forecast-tbody td[data-label="Saving Account Balance"]{ display:none; }
+#forecast-tbody tr.row-open{ grid-template-areas:"period save" "bar bar" "note note"
+  "d1 d2" "d3 d4" "d5 d6"; row-gap:0; }
+#forecast-tbody tr.row-open td[data-label="Income"]{ display:block; grid-area:d1; }
+#forecast-tbody tr.row-open td[data-label="Expenses"]{ display:block; grid-area:d2; }
+#forecast-tbody tr.row-open td[data-label="Leftover"]{ display:block; grid-area:d3; }
+#forecast-tbody tr.row-open td[data-label="Total Cash"]{ display:block; grid-area:d4; }
+#forecast-tbody tr.row-open td[data-label="Remaining Cash"]{ display:block; grid-area:d5; }
+#forecast-tbody tr.row-open td[data-label="Saving Account Balance"]{ display:block; grid-area:d6; }
+/* The figure cells carry class="num" from the table, and .num is
+   text-align:right. In a grid card there is no column to align to, so
+   they read as though they belonged to the right-hand edge. */
+#forecast-tbody tr.row-open td[data-label]:not([data-label="Period"]):not([data-label="Amount to Save"]):not([data-label="Split"]):not([data-label="Note"]){
+  font-family:'IBM Plex Mono',monospace; font-size:13px; padding:6px 0 0;
+  text-align:left; }
+html[dir=rtl] #forecast-tbody tr.row-open td[data-label]:not([data-label="Period"]):not([data-label="Amount to Save"]):not([data-label="Split"]):not([data-label="Note"]){
+  text-align:right; }
+#forecast-tbody tr.row-open td[data-label="Income"]::before,
+#forecast-tbody tr.row-open td[data-label="Leftover"]::before,
+#forecast-tbody tr.row-open td[data-label="Total Cash"]::before,
+#forecast-tbody tr.row-open td[data-label="Expenses"]::before,
+#forecast-tbody tr.row-open td[data-label="Remaining Cash"]::before,
+#forecast-tbody tr.row-open td[data-label="Saving Account Balance"]::before{
+  content:attr(data-label); display:block; font-family:'IBM Plex Sans',sans-serif;
+  font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); }
+/* Wider screens: the six detail figures in three columns rather than two. */
+@media (min-width:700px){
+  #forecast-tbody tr{ padding:14px 0 15px; }
+}
 
 .year-chart-wrap{ width:100%; }
 .year-chart{ width:100%; height:auto; display:block; }
 .chart-bar{ cursor:pointer; }
 .chart-income-line{ stroke:var(--ink-faint); stroke-width:1.2; pointer-events:none; }
+.chart-baseline{ stroke:var(--rule-strong); stroke-width:1; pointer-events:none; }
+.chart-marker{ stroke:var(--rule-strong); stroke-width:1; stroke-dasharray:2,3; pointer-events:none; }
+.chart-marker-dot{ fill:var(--emerald); pointer-events:none; }
+
+/* The focal block: everything the plot no longer says. */
+.chart-focus{ padding-bottom:14px; }
+.chart-focus-wrap{ margin-bottom:2px; }
+.chart-detail{ margin-top:14px; }
+.focus-period{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--gold-deep); font-weight:600; }
+.focus-figure{ font-family:'Newsreader',Georgia,serif; font-size:clamp(28px,8vw,36px);
+  line-height:1.15; margin:3px 0 1px; color:var(--ink); }
+html[dir=rtl] .focus-figure{ font-family:'Cairo',sans-serif; }
+.focus-figure.negative{ color:var(--rust); }
+.focus-caption{ font-size:11.5px; color:var(--ink-faint); }
+.focus-trio{ display:flex; flex-wrap:wrap; gap:10px 22px; margin-top:11px; }
+.focus-trio div{ font-size:12px; color:var(--ink-faint); }
+.focus-trio b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:14px;
+  color:var(--ink); font-weight:600; margin-top:1px; }
+.focus-trio b.pos{ color:var(--emerald); }
+.focus-note{ margin-top:9px; font-size:11.5px; color:var(--clay); line-height:1.4; }
+
+/* Night mode: the plot is drawn from variables, so it inherits the theme.
+   These are the two places the light values are too heavy against a dark
+   card. */
+html[data-theme=dark] .chart-baseline,
+html[data-theme=dark] .chart-marker{ stroke:var(--rule); }
+html[data-theme=dark] .focus-figure{ color:var(--ink); }
+html[data-theme=dark] .chart-bar.dim{ opacity:.3; }
+.chart-saving-area{ fill:url(#gradArea); pointer-events:none; }
+.chart-bar{ transition:opacity .18s ease; }
+.chart-bar.dim{ opacity:.42; }
+.chart-bar.sel{ opacity:1; }
+@media (prefers-reduced-motion: reduce){ .chart-bar{ transition:none; } }
 .chart-saving-line{ stroke:var(--emerald); stroke-width:2; pointer-events:none; }
 .chart-dot-deficit{ cursor:pointer; }
 .chart-x-label{ font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--ink-soft); }
 .chart-year-label{ font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; fill:var(--gold-deep); }
 .chart-year-rule{ stroke:var(--rule-strong); stroke-width:1; }
 .chart-bar-label{ font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--gold); }
-.chart-detail{ margin-bottom:14px; border-bottom:1px solid var(--rule); padding-bottom:12px; }
+.chart-detail{ border-top:1px solid var(--rule); padding-top:12px; }
 .chart-detail:empty{ display:none; border:none; padding:0; margin:0; }
 /* Monthly Summary: a row is tappable, and the tapped one is marked. */
 #forecast-tbody tr{ cursor:pointer; }
-#forecast-tbody tr.row-open td{ background:var(--card-tint); }
+#forecast-tbody tr.row-open{ background:var(--card-tint); border-radius:8px;
+  padding-left:10px; padding-right:10px; }
 /* Totals sit BELOW the table, not in a <tfoot>: they are a summary of the
    rows, not another row, and inside the table their (wider, summed)
    figures competed with the rows for column width. */
@@ -1167,8 +1316,9 @@ body.modal-open{ overflow:hidden; }
   <section class="card" id="section3" data-tab="dash">
     <h2 data-i18n="s_chart">The Year at a Glance</h2>
     <p class="card-hint" data-i18n="h_chart">Select any bar for that period's full breakdown.</p>
-    <div id="chart-detail" class="chart-detail"></div>
+    <div id="chart-focus" class="chart-focus-wrap"></div>
     <div id="year-chart-wrap" class="year-chart-wrap"></div>
+    <div id="chart-detail" class="chart-detail"></div>
   </section>
 
 <section class="card" id="section2" data-tab="summary">
@@ -1182,9 +1332,13 @@ body.modal-open{ overflow:hidden; }
       </label>
       <p class="field-hint" data-i18n="h_snapshot">View the dashboard as of any date. Credit card charges follow the statement and payment days set for each category in the Expense Ledger.</p>
     </div>
-    <div id="summary-detail" class="chart-detail"></div>
+    <div class="summary-legend">
+      <div><span class="key" style="background:var(--slate)"></span><span data-i18n="lg_spent">Spent &amp; committed</span></div>
+      <div><span class="key" style="background:var(--gold)"></span><span data-i18n="lg_held">Held for a later month</span></div>
+      <div><span class="key" style="background:var(--emerald)"></span><span data-i18n="lg_save">Safe to save</span></div>
+    </div>
     <div class="table-scroll">
-      <table id="forecast-table">
+      <table id="forecast-table" class="row-mode">
         <thead><tr>
           <th data-i18n="c_period">Period</th>
           <th title="Monthly income" data-i18n="c_income">Income</th>
@@ -1194,6 +1348,8 @@ body.modal-open{ overflow:hidden; }
           <th title="Total cash minus expenses" data-i18n="c_remaining">Remaining Cash</th>
           <th title="Safely spendable this period" data-i18n="c_tosave">Amount to Save</th>
           <th title="Cumulative safely-spendable balance" data-i18n="c_savingbal">Saving Account Balance</th>
+          <th class="col-extra">Split</th>
+          <th class="col-extra">Note</th>
         </tr></thead>
         <tbody id="forecast-tbody"></tbody>
       </table>
@@ -2543,7 +2699,7 @@ function computeForecast(){
   }
 
   // Pass 2 -- savings advice (whole-horizon)
-  var isDeficit = [], adviceAmount = [];
+  var isDeficit = [], adviceAmount = [], adviceFor = [];
   for (var i = 0; i < periods.length; i++){
     if (baseline[i] < 0){
       isDeficit[i] = true;
@@ -2557,14 +2713,21 @@ function computeForecast(){
       // particular viewAsOfDate doesn't leak its partial progress into
       // an EARLIER period's savings advice (see the projBaseline note
       // above for the full mechanism and how this was found).
-      var worstAhead = baseline[i];
-      for (var k = i+1; k < periods.length; k++){ if (projBaseline[k] < worstAhead) worstAhead = projBaseline[k]; }
+      var worstAhead = baseline[i], worstIdx = -1;
+      for (var k = i+1; k < periods.length; k++){
+        if (projBaseline[k] < worstAhead){ worstAhead = projBaseline[k]; worstIdx = k; }
+      }
       adviceAmount[i] = Math.max(0, baseline[i] - Math.max(0, worstAhead));
+      // WHICH period made us hold money back. The amount was always
+      // computed; only its provenance is new, so no figure moves. The row
+      // can now say "held back -- Nov-Dec runs short without it" instead
+      // of leaving the user to work out why two numbers differ.
+      adviceFor[i] = adviceAmount[i] > 0.005 ? worstIdx : -1;
     }
   }
 
   // Pass 3 -- the real cascade (displayed)
-  var leftover = [leftoverStart], totalCash = [], remainingCash = [], amountToSave = [], excessCash = [];
+  var leftover = [leftoverStart], totalCash = [], remainingCash = [], amountToSave = [], excessCash = [], rowsHeld = [];
   for (var i = 0; i < periods.length; i++){
     totalCash[i] = leftover[i] + periods[i].income - periods[i].paidExpense;
     remainingCash[i] = totalCash[i] - periods[i].expense;
@@ -2586,6 +2749,7 @@ function computeForecast(){
     excessCash[i] = baseline[i] - remainingCash[i];
     // Pass forward exactly what the displayed row says is left after
     // setting money aside -- keeps the on-screen arithmetic exact.
+    rowsHeld[i] = rowIsDeficit ? 0 : Math.max(0, remainingCash[i] - amountToSave[i]);
     leftover[i+1] = rowIsDeficit ? remainingCash[i] : (remainingCash[i] - amountToSave[i]);
   }
 
@@ -2635,6 +2799,14 @@ function computeForecast(){
       homeExpense: periods[i].homeExpense,
       remainingCash: remainingCash[i],
       amountToSave: amountToSave[i],
+      // Held back for a later period: exactly remainingCash - amountToSave
+      // by construction of Pass 3. Carried explicitly so the row does not
+      // have to re-derive it.
+      heldForLater: rowsHeld[i],
+      heldForLabel: (adviceFor[i] >= 0 && periods[adviceFor[i]])
+        ? periodLabel({ yearA: periods[adviceFor[i]].yearA, monthA: periods[adviceFor[i]].monthA,
+                        yearB: periods[adviceFor[i]].yearB, monthB: periods[adviceFor[i]].monthB })
+        : "",
       excessCash: excessCash[i] - adHocCumulative[i],
       adHocWithdrawn: adHocCumulative[i],
       // Derived from the DISPLAYED remaining cash, not the Pass 1
@@ -3629,19 +3801,61 @@ function renderGauge(row0){
    RENDER -- SECTION 2 (Monthly Summary)
    ========================================================================= */
 
+function pctOf(part, whole){
+  return Math.max(0, Math.min(100, (part / whole) * 100)).toFixed(2);
+}
+
 function renderSection2(rows){
   var html = "";
   rows.forEach(function(row){
     var lbl = periodLabel(row);
-    html += '<tr data-index="' + row.index + '">';
+    html += '<tr data-index="' + row.index + '"'
+         + (row.remainingCash < -0.005 ? ' class="is-deficit"' : "") + ">";
     html += '<td data-label="Period">' + escapeHtml(lbl) + "</td>";
     html += '<td class="num" data-label="Income">' + fmt(row.income) + "</td>";
     html += '<td class="num" data-label="Leftover">' + fmt(row.leftover) + "</td>";
     html += '<td class="num" data-label="Total Cash">' + fmt(row.totalCash) + "</td>";
     html += '<td class="num" data-label="Expenses">' + fmt(row.expense) + "</td>";
     html += '<td class="num' + (row.remainingCash < -0.005 ? " negative" : "") + '" data-label="Remaining Cash">' + fmt(row.remainingCash) + "</td>";
-    html += '<td class="num" data-label="Amount to Save">' + fmt(row.amountToSave) + "</td>";
+    html += '<td class="num" data-label="Amount to Save" data-cap="'
+         + escapeAttr(tr("safe to save","للادخار")) + '">' + fmt(row.amountToSave) + "</td>";
     html += '<td class="num' + (row.excessCash > 0.005 ? " positive" : (row.excessCash < -0.005 ? " negative" : "")) + '" data-label="Saving Account Balance">' + fmt(row.excessCash) + "</td>";
+
+    // The split bar: this period's whole cash, left to right. Three
+    // segments, three words in the legend above -- four colours with no
+    // legend at all is what made the first attempt unreadable.
+    var gross = row.totalCash + (row.paidExpense || 0);
+    var held = row.heldForLater || 0;
+    var save = Math.max(0, row.amountToSave);
+    var bar = "";
+    if (gross > 0.005){
+      if (row.remainingCash < -0.005){
+        bar = '<i style="width:100%;background:var(--rust)"></i>';
+      } else {
+        var spent = Math.max(0, gross - held - save);
+        bar = '<i style="width:' + pctOf(spent, gross) + '%;background:var(--slate)"></i>'
+            + '<i style="width:' + pctOf(held, gross) + '%;background:var(--gold)"></i>'
+            + '<i style="width:' + pctOf(save, gross) + '%;background:var(--emerald)"></i>';
+      }
+    }
+    html += '<td class="row-bar" data-label="Split"><span class="bar">' + bar + "</span>"
+         + '<span class="row-meta"><span>' + tr("in ","دخل ") + "<b>" + fmt(row.income) + "</b> \u00b7 "
+         + tr("out ","صرف ") + "<b>" + fmt(row.expense) + "</b></span>"
+         + "<span>" + tr("left ","متبقٍ ") + '<b class="' + (row.remainingCash < -0.005 ? "neg" : "")
+         + '">' + fmt(row.remainingCash) + "</b></span></span></td>";
+
+    // The note only appears when the two figures differ -- its presence
+    // IS the signal that a later period is claiming the money.
+    var note = "";
+    if (row.remainingCash < -0.005){
+      note = tr("Short by ","النقص ") + fmt(Math.abs(row.remainingCash))
+           + tr(" \u2014 nothing to set aside this period."," \u2014 لا شيء للادخار هذه الفترة.");
+    } else if (held > 0.005){
+      note = tr("","") + fmt(held) + tr(" of that is held back","ﻣﻨﻬﺎ محتجز")
+           + (row.heldForLabel ? tr(" \u2014 ", " \u2014 ") + escapeHtml(row.heldForLabel)
+              + tr(" runs short without it."," سيعاني نقصاً بدونه.") : tr(" for a later period."," لفترة لاحقة."));
+    }
+    html += '<td class="row-note" data-label="Note">' + note + "</td>";
     html += "</tr>";
   });
   el("forecast-tbody").innerHTML = html;
@@ -3688,21 +3902,12 @@ function bindSummaryRowDetail(){
     var tr_ = e.target.closest("tr[data-index]");
     if (!tr_) return;
     var idx = parseInt(tr_.getAttribute("data-index"), 10);
-    var row = (renderedRows || []).filter(function(r){ return r.index === idx; })[0];
-    if (!row) return;
-    var panel = el("summary-detail");
-    // Tapping the open row again closes it -- otherwise the only way to
-    // dismiss the panel would be to switch tabs.
-    if (summaryDetailIndex === idx){
-      summaryDetailIndex = null;
-      panel.innerHTML = "";
-      tbody.querySelectorAll("tr.row-open").forEach(function(x){ x.classList.remove("row-open"); });
-      return;
-    }
-    summaryDetailIndex = idx;
+    var open = tr_.classList.contains("row-open");
     tbody.querySelectorAll("tr.row-open").forEach(function(x){ x.classList.remove("row-open"); });
+    summaryDetailIndex = null;
+    if (open) return;             // tapping the open row closes it
     tr_.classList.add("row-open");
-    showChartDetail(row, "summary-detail");
+    summaryDetailIndex = idx;
   });
 }
 var summaryDetailIndex = null;
@@ -3771,7 +3976,7 @@ function fitForecastTable(){
    ========================================================================= */
 
 function renderYearChart(rows){
-  var svgWidth = 680, svgHeight = 260, pad = { top: 16, right: 16, bottom: 30, left: 10 };
+  var svgWidth = 680, svgHeight = 268, pad = { top: 22, right: 16, bottom: 34, left: 44 };
   var plotW = svgWidth - pad.left - pad.right, plotH = svgHeight - pad.top - pad.bottom;
   // Scale on each period's FULL committed totals (projExpense/projIncome),
   // not the as-of-filtered ones. Filtered values shrink as the snapshot
@@ -3780,16 +3985,24 @@ function renderYearChart(rows){
   // to compare -- a wrong visual indication even though every number was
   // correct. Falls back to the filtered values only if the projected
   // ones aren't present (e.g. a row patched by applySnapshotToRows).
-  var maxVal = 0;
+  var maxVal = 0, maxLine = 0;
   rows.forEach(function(r){
     var e = (r.projExpense !== undefined ? r.projExpense : r.expense);
     var inc = (r.projIncome !== undefined ? r.projIncome : r.income);
-    maxVal = Math.max(maxVal, e, inc, r.excessCash);
+    maxVal = Math.max(maxVal, e, inc);
+    maxLine = Math.max(maxLine, r.excessCash,
+      (r.projRemaining !== undefined ? r.projRemaining : 0));
   });
   maxVal = (maxVal * 1.15) || 1;
+  // The savings balance ACCUMULATES; over twelve periods it dwarfs any
+  // single period's expenses, and putting both on one scale flattened
+  // every bar to a tenth of the plot. Its own scale, named at the end of
+  // the line so the two axes cannot be confused.
+  maxLine = (maxLine * 1.15) || maxVal;
   var n = rows.length, slot = plotW / n, barW = slot * 0.5;
 
   function yFor(v){ return pad.top + plotH - (Math.max(0,v) / maxVal) * plotH; }
+  function yForLine(v){ return pad.top + plotH - (Math.max(0,v) / maxLine) * plotH; }
   function xCenter(i){ return pad.left + slot * i + slot / 2; }
 
   var bars = "", dots = "", labels = "", barLabels = "", linePts = [], yearTicks = [];
@@ -3807,15 +4020,24 @@ function renderYearChart(rows){
     var barH = (Math.max(0,barVal) / maxVal) * plotH;
     var barX = xC - barW / 2, barY = pad.top + plotH - barH;
     var over = barVal > incVal;
-    bars += '<rect class="chart-bar" data-index="' + i + '" x="' + barX.toFixed(1) + '" y="' + barY.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(barH,0).toFixed(1) + '" fill="' + (over ? "var(--gold)" : "var(--navy)") + '" rx="2"></rect>';
-    if (over){
-      barLabels += '<text x="' + xC.toFixed(1) + '" y="' + (barY-6).toFixed(1) + '" class="chart-bar-label" text-anchor="middle">' + fmtShort(barVal) + "</text>";
-    }
+    var selected = (state._chartSelected === i);
+    // Only after the user has actually picked a period. A row is selected
+    // by default, so keying off that alone dimmed eleven bars the moment
+    // the chart appeared.
+    var anySelected = !!chartItemsRevealed;
+    bars += '<rect class="chart-bar' + (anySelected && !selected ? " dim" : "")
+      + (selected ? " sel" : "") + '" data-index="' + i + '" x="' + barX.toFixed(1)
+      + '" y="' + barY.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="'
+      + Math.max(barH,0).toFixed(1) + '" fill="url(#'
+      + (selected ? "gradSel" : over ? "gradOver" : "gradBar") + ')" rx="3"></rect>';
+    // Deliberately no printed value over the bar: its colour says the
+    // month costs more than it earns, and the figure is in the block
+    // above. Words on the plot are what made this look busy.
     // Savings line and deficit dots follow the same committed-total view
     // as the bars (see projRemaining). excessCash/isDeficit are as-of
     // filtered and would make the line drift as the snapshot advanced.
     var lineVal = (r.projRemaining !== undefined && r.projRemaining > 0) ? r.projRemaining : 0;
-    linePts.push(xC.toFixed(1) + "," + yFor(lineVal).toFixed(1));
+    linePts.push(xC.toFixed(1) + "," + yForLine(lineVal).toFixed(1));
     var projDeficit = (r.projRemaining !== undefined) ? (r.projRemaining < -0.005) : r.isDeficit;
     if (projDeficit){
       dots += '<circle class="chart-dot-deficit" data-index="' + i + '" cx="' + xC.toFixed(1) + '" cy="' + yFor(0).toFixed(1) + '" r="4" fill="var(--rust)"></circle>';
@@ -3851,16 +4073,74 @@ function renderYearChart(rows){
   // Reference line uses the full committed income for the same reason
   // the bars do -- otherwise it drifts down as income is received.
   var incomeY = yFor(rows[refIdx].projIncome !== undefined ? rows[refIdx].projIncome : rows[refIdx].income);
-  var incomeLine = '<line x1="' + pad.left + '" y1="' + incomeY.toFixed(1) + '" x2="' + (svgWidth-pad.right) + '" y2="' + incomeY.toFixed(1) + '" class="chart-income-line" stroke-dasharray="4,4"></line>';
+  // The income reference stays -- it is a line, not a label. A dashed
+  // rule at income height says "above this, the month costs more than it
+  // earns" without printing a word.
+  var incomeLine = '<line x1="' + pad.left + '" y1="' + incomeY.toFixed(1) + '" x2="'
+    + (svgWidth-pad.right) + '" y2="' + incomeY.toFixed(1)
+    + '" class="chart-income-line" stroke-dasharray="4,4"></line>';
+  var lineLabel = "";
   var linePath = '<polyline points="' + linePts.join(" ") + '" class="chart-saving-line" fill="none"></polyline>';
 
+  // The savings line reads as a stray stroke without something under it;
+  // an area makes it an accumulating balance at a glance. Closed along
+  // the baseline, so it can only ever describe the same numbers the line
+  // already draws.
+  var areaPath = "";
+  if (linePts.length > 1){
+    var firstX = linePts[0].split(",")[0], lastX = linePts[linePts.length-1].split(",")[0];
+    var base = (pad.top + plotH).toFixed(1);
+    areaPath = '<polygon class="chart-saving-area" points="' + firstX + "," + base + " "
+      + linePts.join(" ") + " " + lastX + "," + base + '"></polygon>';
+  }
+
+  // No guides, no axis labels, no words of any kind on the plot: the
+  // figures live in the focal block above it, which is the whole point of
+  // the redesign. A single hairline baseline is all the structure a
+  // twelve-bar chart needs.
+  var guides = '<line class="chart-baseline" x1="' + pad.left + '" y1="'
+    + (pad.top + plotH + 0.5).toFixed(1) + '" x2="' + (svgWidth - pad.right)
+    + '" y2="' + (pad.top + plotH + 0.5).toFixed(1) + '"></line>';
+
+  var defs = '<defs>'
+    + '<linearGradient id="gradBar" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="var(--navy)" stop-opacity="0.95"/>'
+      + '<stop offset="100%" stop-color="var(--navy)" stop-opacity="0.55"/></linearGradient>'
+    + '<linearGradient id="gradOver" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="var(--rust)" stop-opacity="0.85"/>'
+      + '<stop offset="100%" stop-color="var(--rust)" stop-opacity="0.45"/></linearGradient>'
+    + '<linearGradient id="gradSel" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="var(--gold)"/>'
+      + '<stop offset="100%" stop-color="var(--gold-light)"/></linearGradient>'
+    + '<linearGradient id="gradArea" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="var(--emerald)" stop-opacity="0.22"/>'
+      + '<stop offset="100%" stop-color="var(--emerald)" stop-opacity="0"/></linearGradient>'
+    + "</defs>";
+
+  // Where you are reading, marked on the plot rather than described
+  // beside it.
+  var marker = "";
+  if (chartItemsRevealed && linePts[refIdx]){
+    var mx = linePts[refIdx].split(",")[0], my = linePts[refIdx].split(",")[1];
+    marker = '<line class="chart-marker" x1="' + mx + '" y1="' + pad.top + '" x2="' + mx
+      + '" y2="' + (pad.top + plotH).toFixed(1) + '"></line>'
+      + '<circle class="chart-marker-dot" cx="' + mx + '" cy="' + my + '" r="3.4"></circle>';
+  }
+
   el("year-chart-wrap").innerHTML = '<svg viewBox="0 0 ' + svgWidth + " " + svgHeight + '" class="year-chart" role="img" aria-label="Year at a glance chart">'
-    + bars + incomeLine + linePath + dots + barLabels + labels + yearBand + "</svg>";
+    + defs + guides + areaPath + incomeLine + bars + linePath + marker + dots + barLabels + labels + yearBand + "</svg>";
 
   var nodes = el("year-chart-wrap").querySelectorAll("[data-index]");
   for (var i = 0; i < nodes.length; i++){
     nodes[i].addEventListener("click", (function(idx){
-      return function(){ chartItemsRevealed = true; showChartDetail(rows[idx]); };
+      return function(){
+        chartItemsRevealed = true;
+        state._chartSelected = idx;
+        showChartDetail(rows[idx]);
+        // Redraw so the selection is visible on the CHART, not only in
+        // the panel under it.
+        renderYearChart(rows);
+      };
     })(parseInt(nodes[i].getAttribute("data-index"),10)));
   }
   var selIdx = Math.min(state._chartSelected || 0, rows.length-1);
@@ -3882,7 +4162,7 @@ function renderIncomeBreakdown(items, noun){
     + '<div class="chart-items-header"><div class="chart-items-title">'
     + toArabicDigits(items.length) + " " + tr(items.length === 1 ? noun.replace(/s$/, "") : noun, noun === "income sources" ? "مصدر دخل" : noun)
     + ' &mdash; ' + fmt(total) + '</div></div>'
-    + '<div class="table-scroll"><table><thead><tr><th>' + tr("Source","\u0627\u0644\u0645\u0635\u062f\u0631") + '</th><th>' + tr("Date","\u0627\u0644\u062a\u0627\u0631\u064a\u062e") + '</th><th class="num">' + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + '</th></tr></thead><tbody>';
+    + '<div class="table-scroll"><table class="items-3"><thead><tr><th>' + tr("Source","\u0627\u0644\u0645\u0635\u062f\u0631") + '</th><th>' + tr("Date","\u0627\u0644\u062a\u0627\u0631\u064a\u062e") + '</th><th class="num">' + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + '</th></tr></thead><tbody>';
   sorted.forEach(function(it){
     var dateCell = (it.dueY !== undefined) ? formatDueDate(it.dueY, it.dueM, it.dueD) : "\u2014";
     html += "<tr><td>" + escapeHtml(it.name) + '</td><td class="item-due">' + dateCell + '</td><td class="num">' + fmt(it.amount) + "</td></tr>";
@@ -3899,12 +4179,30 @@ function showChartDetail(row, targetId){
   if (targetId === "chart-detail") state._chartSelected = row.index;
   chartItemsCurrentRow = row;
   chartDetailRows[targetId] = row;
-  var html = '<div class="chart-detail-period">' + escapeHtml(periodLabel(row)) + "</div>"
-    + '<div class="chart-detail-line"><span>' + tr("Income","\u0627\u0644\u062f\u062e\u0644") + '</span><strong>' + fmt(row.income) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>' + tr("Expenses","\u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a") + '</span><strong>' + fmt(row.expense) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>' + tr("Remaining Cash","\u0627\u0644\u0646\u0642\u062f \u0627\u0644\u0645\u062a\u0628\u0642\u064a") + '</span><strong style="color:' + (row.remainingCash<-0.005?"var(--rust)":"inherit") + '">' + fmt(row.remainingCash) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>' + tr("Amount to Save","\u0627\u0644\u0645\u0628\u0644\u063a \u0644\u0644\u0627\u062f\u062e\u0627\u0631") + '</span><strong>' + fmt(row.amountToSave) + "</strong></div>"
-    + '<div class="chart-detail-line"><span>' + tr("Saving Account Balance","\u0631\u0635\u064a\u062f \u062d\u0633\u0627\u0628 \u0627\u0644\u062a\u0648\u0641\u064a\u0631") + '</span><strong style="color:' + (row.excessCash>0.005?"var(--emerald)":(row.excessCash<-0.005?"var(--rust)":"inherit")) + '">' + fmt(row.excessCash) + "</strong></div>";
+  var held = Math.max(0, row.remainingCash - row.amountToSave);
+  var deficit = row.remainingCash < -0.005;
+  var focusHtml = '<div class="chart-focus">'
+    + '<div class="focus-period">' + escapeHtml(periodLabel(row)) + "</div>"
+    + '<div class="focus-figure' + (deficit ? " negative" : "") + '">'
+      + fmt(deficit ? Math.abs(row.remainingCash) : row.remainingCash) + "</div>"
+    + '<div class="focus-caption">'
+      + (deficit
+          ? tr("short, after ","نقص، بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير")
+          : tr("remaining after ","متبقٍ بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير"))
+      + "</div>"
+    + '<div class="focus-trio">'
+      + "<div>" + tr("Income","الدخل") + "<b>" + fmt(row.income) + "</b></div>"
+      + "<div>" + tr("Safe to save","للادخار") + '<b class="pos">' + fmt(row.amountToSave) + "</b></div>"
+      + "<div>" + tr("Saving balance","رصيد التوفير") + "<b>" + fmt(row.excessCash) + "</b></div>"
+      + "</div>"
+    + (held > 0.005
+        ? '<div class="focus-note">' + fmt(held) + tr(" of that is held back for a later period.",
+            " منها محتجز لفترة لاحقة.") + "</div>"
+        : "")
+    + "</div>";
+  var focusBox = el(targetId === "chart-detail" ? "chart-focus" : targetId);
+  if (focusBox) focusBox.innerHTML = focusHtml;
+  var html = "";
   if (row.isDeficit){
     var gap = Math.abs(row.remainingCash);
   }
@@ -3945,7 +4243,7 @@ function renderItemsBreakdown(items, sectionKey, isGrouped, noun){
 
   if (!isGrouped){
     var sorted = items.slice().sort(function(a,b){ return b.amount - a.amount; });
-    html += "<div class=\"table-scroll\"><table><thead><tr><th>" + tr("Expense","\u0627\u0644\u0645\u0635\u0631\u0648\u0641") + "</th><th>" + tr("Category","\u0627\u0644\u0641\u0626\u0629") + "</th><th>" + tr("Due","\u0627\u0644\u0627\u0633\u062a\u062d\u0642\u0627\u0642") + "</th><th class=\"num\">" + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + "</th></tr></thead><tbody>";
+    html += "<div class=\"table-scroll\"><table class=\"items-4\"><thead><tr><th>" + tr("Expense","\u0627\u0644\u0645\u0635\u0631\u0648\u0641") + "</th><th>" + tr("Category","\u0627\u0644\u0641\u0626\u0629") + "</th><th>" + tr("Due","\u0627\u0644\u0627\u0633\u062a\u062d\u0642\u0627\u0642") + "</th><th class=\"num\">" + tr("Amount","\u0627\u0644\u0645\u0628\u0644\u063a") + "</th></tr></thead><tbody>";
     sorted.forEach(function(it){
       html += "<tr>"
         + "<td>" + escapeHtml(it.name) + "</td>"
@@ -4356,6 +4654,9 @@ var I18N = {
     su_next: "التالي",
     su_skip: "تخطَّ الآن",
     su_more: "+ أضف آخر",
+    lg_spent: "مصروف وملتزم به",
+    lg_held: "محتجز لشهر لاحق",
+    lg_save: "آمن للادخار",
     tab_ledger: "الدفتر",
     tab_summary: "الملخص الشهري",
     tab_dash: "اللوحات",
@@ -4700,6 +5001,24 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "106", items: [
+    ["add", "Monthly Summary: the period breakdown opens in the row itself"],
+    ["fix", "Expanded row: figures read left-to-right, tint covers the whole row"],
+    ["fix", "The held-back note wraps instead of running off the edge"],
+    ["add", "The Year at a Glance: the period you pick is spelled out above a clean chart"],
+    ["fix", "The savings balance no longer flattens the expense bars"],
+    ["fix", "Nothing in a period breakdown is cut off on a narrow screen"]
+  ]},
+  { v: "105", items: [
+    ["add", "Monthly Summary redesigned: one row a period, tap for the rest"],
+    ["add", "Each period shows what is spent, what is held for a later month, and what is safe to save"],
+    ["add", "A held-back amount now names the month that needs it"],
+    ["add", "The colours are explained above the rows"]
+  ]},
+  { v: "104", items: [
+    ["fix", "No gap below the menu bar when the browser toolbar hides"],
+    ["fix", "Monthly Summary on a phone: two columns, a third less scrolling"]
+  ]},
   { v: "103", items: [
     ["fix", "The bottom bar is never cut off, at any screen size"],
     ["fix", "Monthly Summary is a table again on tablets"],
@@ -6919,7 +7238,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-103)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-106)";
 }
 
 loadStateAndInit();
