@@ -391,17 +391,26 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
 /* One rounded capsule, floating clear of the edge. The track is recessed
    and the active tab is a raised pill inside it, so the selected view
    reads as lifted rather than merely coloured. */
-.tab-bar{ position:fixed; z-index:9000;
-  left:12px; right:12px;
-  /* The browser already places fixed elements against the visible
-     viewport. The only thing between the capsule and the bottom edge is
-     the home indicator. */
-  bottom:calc(8px + env(safe-area-inset-bottom, 0px));
-  display:flex; gap:3px; background:var(--bg-soft);
+/* The PLATE reaches the bottom edge of the screen and is opaque, so no
+   page content can show beneath the menu -- a floating bar leaves a strip
+   of scrolling content under it, which reads as "the menu is not at the
+   bottom". The safe-area inset is PADDING inside this plate, never a
+   `bottom:` offset: as an offset it lifts the whole bar by the inset
+   (34px of visible page on a notched phone), which is the bug reported
+   four times. */
+.tab-bar{ position:fixed; z-index:9000; left:0; right:0; bottom:0;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  background:var(--bg); }
+.tab-bar::before{ content:""; position:absolute; left:0; right:0; top:-14px; height:14px;
+  background:linear-gradient(to bottom, rgba(250,246,236,0), var(--bg)); pointer-events:none; }
+html[data-theme=dark] .tab-bar::before{
+  background:linear-gradient(to bottom, rgba(20,18,14,0), var(--bg)); }
+/* The capsule itself. */
+.tab-capsule{ display:flex; gap:3px; background:var(--bg-soft);
   border:1px solid var(--rule-strong); border-radius:999px; padding:4px;
-  box-shadow:0 6px 22px rgba(42,36,24,.13); }
-html[data-theme=dark] .tab-bar{ background:var(--card-tint);
-  box-shadow:0 6px 22px rgba(0,0,0,.45); }
+  box-shadow:0 4px 16px rgba(42,36,24,.10); }
+html[data-theme=dark] .tab-capsule{ background:var(--card-tint);
+  box-shadow:0 4px 16px rgba(0,0,0,.45); }
 html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
 .tab-bar.hidden{ display:none; }
 .tab-item{ flex:1 1 0; min-width:0; background:none; border:none; cursor:pointer;
@@ -1538,6 +1547,7 @@ body.modal-open{ overflow:hidden; }
   </footer>
 
 <nav id="tab-bar" class="tab-bar" role="tablist" aria-label="Views">
+  <div class="tab-capsule">
   <button type="button" id="tab-ledger" class="tab-item" role="tab" aria-selected="false" data-tab-name="ledger">
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="3.5" width="18" height="17" rx="3"/><line class="tmo" x1="8" y1="3.5" x2="8" y2="20.5"/><line class="tmi" x1="11.5" y1="9" x2="17.5" y2="9"/><line class="tmi" x1="11.5" y1="12.5" x2="17.5" y2="12.5"/><line class="tmi" x1="11.5" y1="16" x2="15" y2="16"/></svg></span>
     <span class="tab-label" data-i18n="tab_ledger">Ledger</span>
@@ -1550,6 +1560,7 @@ body.modal-open{ overflow:hidden; }
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path class="tmo" d="M3.6 17.5a9.5 9.5 0 1 1 16.8 0"/><line class="tmn" x1="12" y1="17" x2="16.6" y2="10.4"/><circle class="tmd" cx="12" cy="17.3" r="1.9"/></svg></span>
     <span class="tab-label" data-i18n="tab_dash">Dashboards</span>
   </button>
+  </div>
 </nav>
 
   <div id="backup-modal" class="backup-modal hidden">
@@ -5059,6 +5070,9 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "109", items: [
+    ["fix", "The menu now reaches the bottom edge; no page shows beneath it"]
+  ]},
   { v: "108", items: [
     ["fix", "The menu sits at the bottom of the screen on every device"],
     ["fix", "Monthly Summary totals now match Where the money goes"],
@@ -7306,7 +7320,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-108)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-109)";
 }
 
 loadStateAndInit();
