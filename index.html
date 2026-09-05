@@ -128,6 +128,11 @@ body{
      bar off-screen in the first place. */
   min-height:100vh;
   min-height:100lvh;
+  /* Set from window.visualViewport when it exists -- see syncViewport().
+     In an in-app webview the layout viewport (which every CSS unit
+     measures) can be taller than the sheet actually on screen, and no
+     unit can see that difference. */
+  min-height:var(--vv-height, 100lvh);
   display:flex;
   flex-direction:column;
 }
@@ -388,18 +393,26 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
    fully drawn -- pinned to the bottom while there is content to scroll,
    resting at the end when there is not. body is a flex column so the bar
    is pushed down even on a page shorter than the screen. */
-.tab-bar{ position:sticky; bottom:0; z-index:9000; margin-top:auto;
-  display:flex; gap:4px; background:var(--card);
-  border-top:1px solid var(--rule-strong);
-  padding:5px 6px calc(4px + env(safe-area-inset-bottom, 0px));
-  box-shadow:0 -3px 14px rgba(42,36,24,.10); }
+/* One rounded capsule, floating clear of the edge. The track is recessed
+   and the active tab is a raised pill inside it, so the selected view
+   reads as lifted rather than merely coloured. */
+.tab-bar{ position:fixed; z-index:9000;
+  left:12px; right:12px;
+  bottom:calc(var(--vv-bottom, 0px) + 10px + env(safe-area-inset-bottom, 0px));
+  display:flex; gap:3px; background:var(--bg-soft);
+  border:1px solid var(--rule-strong); border-radius:999px; padding:4px;
+  box-shadow:0 6px 22px rgba(42,36,24,.13); }
+html[data-theme=dark] .tab-bar{ background:var(--card-tint);
+  box-shadow:0 6px 22px rgba(0,0,0,.45); }
 html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
 .tab-bar.hidden{ display:none; }
 .tab-item{ flex:1 1 0; min-width:0; background:none; border:none; cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:2px;
-  padding:6px 2px 5px; font-family:inherit; border-radius:8px; }
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:9px 4px; font-family:inherit; border-radius:999px;
+  transition:background .16s ease, box-shadow .16s ease; }
+@media (prefers-reduced-motion: reduce){ .tab-item{ transition:none; } }
 .tab-mark{ display:block; line-height:0; }
-.tab-mark svg{ width:23px; height:23px; }
+.tab-mark svg{ width:19px; height:19px; }
 /* One glyph per destination -- three copies of the app mark told the user
    nothing about where each tab went, which is what made the bar read as
    decoration. Stroked, not filled, so the active state can simply
@@ -411,8 +424,18 @@ html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
 .tab-mark .tmn{ stroke-width:1.8; }
 .tab-mark .tmd{ fill:var(--ink-faint); }
 .tab-label{ display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis;
-  white-space:nowrap; font-size:11px; color:var(--ink-faint); letter-spacing:.01em; }
-.tab-item[aria-selected="true"]{ background:var(--bg-soft); }
+  white-space:nowrap; font-size:11.5px; color:var(--ink-faint); letter-spacing:.01em; }
+/* At the narrowest supported width the icon keeps its size and the label
+   gives up a little. */
+@media (max-width:370px){
+  .tab-item{ gap:4px; padding:9px 2px; }
+  .tab-label{ font-size:10.5px; }
+  .tab-mark svg{ width:17px; height:17px; }
+}
+.tab-item[aria-selected="true"]{ background:var(--card);
+  box-shadow:0 2px 8px rgba(42,36,24,.14); }
+html[data-theme=dark] .tab-item[aria-selected="true"]{ background:var(--card);
+  box-shadow:0 2px 8px rgba(0,0,0,.5); }
 .tab-item[aria-selected="true"] .tab-label{ color:var(--gold-deep); font-weight:600; }
 .tab-item[aria-selected="true"] .tab-mark .tmo,
 .tab-item[aria-selected="true"] .tab-mark .tmi,
@@ -423,9 +446,11 @@ html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
 /* Clearance for the fixed bar belongs to the LAST element on the tab.
    On Dashboards the footer follows .page, so padding on both left a dead
    band between the final card and the footer. */
-.page{ padding-bottom:24px; }
+/* The bar is out of the flow again, so the last element on each tab has
+   to clear it: bar height + the safe-area inset. */
+.page{ padding-bottom:calc(78px + env(safe-area-inset-bottom, 0px)); }
 
-.undo-toast{ bottom:calc(78px + env(safe-area-inset-bottom, 0px)); }
+.undo-toast{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); }
 
 /* Ledger chip row ======================================================
    The Ledger tab still holds six cards, so build 98's one-tap reach is
@@ -948,6 +973,9 @@ html[data-theme=dark] .chart-bar.dim{ opacity:.3; }
 .summary-totals-grid strong{ font-family:'IBM Plex Mono',monospace; font-size:16px;
   color:var(--ink); font-weight:600; }
 .summary-totals-grid strong.pos{ color:var(--emerald); }
+.summary-totals-note{ margin-top:10px; padding-top:9px; border-top:1px solid var(--rule);
+  font-size:11.5px; color:var(--ink-faint); line-height:1.45; }
+.cat-reconcile{ margin-top:-4px; font-size:12px; }
 .chart-detail-period{ font-family:'Newsreader',serif; font-size:16px; margin-bottom:6px; }
 .chart-detail-line{ display:flex; justify-content:space-between; font-size:13px; padding:2px 0; max-width:360px; }
 .chart-detail-line strong{ font-family:'IBM Plex Mono',monospace; }
@@ -1098,7 +1126,8 @@ html[data-theme=dark] .chart-bar.dim{ opacity:.3; }
    because a padding shorthand further down the sheet silently reset an
    earlier padding-bottom -- measured at -6px, i.e. the build stamp sat
    under the bar. */
-.page-footer{ width:100%; max-width:1040px; margin:0 auto; padding:0 20px 32px;
+.page-footer{ width:100%; max-width:1040px; margin:0 auto;
+  padding:0 20px calc(88px + env(safe-area-inset-bottom, 0px));
   display:block; }
 .page-footer > p{ display:flex; align-items:center; gap:14px; margin-top:10px;
   color:var(--ink-faint); font-size:12px; flex-wrap:wrap; }
@@ -1515,9 +1544,9 @@ body.modal-open{ overflow:hidden; }
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="3.5" width="18" height="17" rx="3"/><line class="tmo" x1="8" y1="3.5" x2="8" y2="20.5"/><line class="tmi" x1="11.5" y1="9" x2="17.5" y2="9"/><line class="tmi" x1="11.5" y1="12.5" x2="17.5" y2="12.5"/><line class="tmi" x1="11.5" y1="16" x2="15" y2="16"/></svg></span>
     <span class="tab-label" data-i18n="tab_ledger">Ledger</span>
   </button>
-  <button type="button" id="tab-summary" class="tab-item" role="tab" aria-selected="false" data-tab-name="summary">
+  <button type="button" id="tab-summary" class="tab-item" role="tab" aria-selected="false" data-tab-name="summary" aria-label="Monthly Summary">
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="4" width="18" height="16" rx="3"/><line class="tmo" x1="3" y1="9" x2="21" y2="9"/><line class="tmi" x1="9.5" y1="9" x2="9.5" y2="20"/><line class="tmi" x1="3" y1="14.5" x2="21" y2="14.5"/></svg></span>
-    <span class="tab-label" data-i18n="tab_summary">Monthly Summary</span>
+    <span class="tab-label" data-i18n="tab_summary">Summary</span>
   </button>
   <button type="button" id="tab-dash" class="tab-item" role="tab" aria-selected="false" data-tab-name="dash">
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path class="tmo" d="M3.6 17.5a9.5 9.5 0 1 1 16.8 0"/><line class="tmn" x1="12" y1="17" x2="16.6" y2="10.4"/><circle class="tmd" cx="12" cy="17.3" r="1.9"/></svg></span>
@@ -3872,6 +3901,11 @@ function renderSection2(rows){
   // and into the stacked-card fallback on a tablet.
   var tIncome = 0, tExpense = 0, tSave = 0;
   rows.forEach(function(r){ tIncome += r.income; tExpense += r.expense; tSave += r.amountToSave; });
+  // The current period's row counts only what is still due. Say so, and
+  // name the amount, so this total can be reconciled with the category
+  // card on the Dashboards tab.
+  var paidNow = 0;
+  rows.forEach(function(r){ paidNow += (r.paidExpense || 0); });
   var box = el("forecast-totals");
   if (box){
     box.classList.toggle("hidden", !rows.length);
@@ -3886,7 +3920,14 @@ function renderSection2(rows){
         + '<div><span>' + tr("Expenses","المصروفات") + "</span><strong>" + fmt(tExpense) + "</strong></div>"
         + '<div><span>' + tr("Amount to save","المبلغ للادخار")
           + '</span><strong class="pos">' + fmt(tSave) + "</strong></div>"
-        + "</div>";
+        + "</div>"
+        + (paidNow > 0.005
+            ? '<div class="summary-totals-note">'
+              + tr("The current period counts only what is still due. ",
+                   "الفترة الحالية تحسب ما هو مستحق فقط. ")
+              + fmt(paidNow) + tr(" already paid is not included here.",
+                                  " مدفوع بالفعل وغير مشمول هنا.") + "</div>"
+            : "");
     }
   }
 }
@@ -4658,7 +4699,7 @@ var I18N = {
     lg_held: "محتجز لشهر لاحق",
     lg_save: "آمن للادخار",
     tab_ledger: "الدفتر",
-    tab_summary: "الملخص الشهري",
+    tab_summary: "الملخص",
     tab_dash: "اللوحات",
     nv_in: "الدخل",
     nv_out: "المصروفات",
@@ -4863,6 +4904,11 @@ function renderCategoryBreakdown(rows){
   var box = el("cat-breakdown");
   if (!box) return;
   var t = categoryTotals(rows);
+  // What the Monthly Summary leaves out of its current row. Naming it
+  // here is what lets a reader reconcile the two totals instead of
+  // assuming one of them is wrong.
+  var paidNow = 0;
+  rows.forEach(function(r){ paidNow += (r.paidExpense || 0); });
   if (!t.list.length || t.grand <= 0){
     box.innerHTML = '<p class="card-hint">' + tr("Add some expenses to see where your money goes.","\u0623\u0636\u0641 \u0628\u0639\u0636 \u0627\u0644\u0645\u0635\u0631\u0648\u0641\u0627\u062a \u0644\u062a\u0631\u0649 \u0623\u064a\u0646 \u064a\u0630\u0647\u0628 \u0645\u0627\u0644\u0643.") + "</p>";
     return;
@@ -4878,6 +4924,16 @@ function renderCategoryBreakdown(rows){
     + "<strong>" + fmt(t.grand) + "</strong>. "
     + tr("Average ","\u0627\u0644\u0645\u062a\u0648\u0633\u0637 ") + "<strong>" + fmt(t.grand / Math.max(1, n)) + "</strong> "
     + tr("per period.","\u0644\u0643\u0644 \u0641\u062a\u0631\u0629.") + "</p>";
+  // Whole periods, including what has already gone out this month. The
+  // Monthly Summary's current row deliberately excludes that, so without
+  // this line the two totals look like a contradiction.
+  if (paidNow > 0.005){
+    html += '<p class="card-hint cat-reconcile">'
+      + tr("Whole periods, including ","فترات كاملة، تشمل ") + "<strong>" + fmt(paidNow)
+      + "</strong>" + tr(" already paid this period \u2014 which the Monthly Summary totals leave out.",
+                         " مدفوعة بالفعل هذه الفترة \u2014 وهي غير مشمولة في إجماليات الملخص الشهري.")
+      + "</p>";
+  }
   html += '<div class="catbar-list">';
   t.list.forEach(function(x){
     html += '<div class="catbar-row">'
@@ -5001,6 +5057,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "107", items: [
+    ["add", "New menu: one rounded capsule, floating clear of the edge"],
+    ["fix", "No gap under the menu when the app is opened in an in-app browser"],
+    ["add", "Both expense totals now say which periods they count, so they reconcile"]
+  ]},
   { v: "106", items: [
     ["add", "Monthly Summary: the period breakdown opens in the row itself"],
     ["fix", "Expanded row: figures read left-to-right, tint covers the whole row"],
@@ -5471,6 +5532,28 @@ function renderTabBar(){
   var overlayOpen = document.querySelector(".unlock-overlay:not(.hidden)")
     || !el("backup-modal").classList.contains("hidden");
   bar.classList.toggle("hidden", setupActive() || !!overlayOpen);
+}
+
+/* The visible area, as opposed to the area CSS thinks exists. In Safari,
+   an in-app webview and a page mid-toolbar-collapse all report a layout
+   viewport taller than what the user can see; a bar pinned to the bottom
+   of the layout viewport then sits below the screen edge, or leaves a
+   strip of page under it. visualViewport is the only thing that reports
+   the truth, so the bar's offset and the body's height come from it. */
+function syncViewport(){
+  var vv = window.visualViewport;
+  if (!vv) return;                        // older browsers keep the CSS fallback
+  var gap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+  document.documentElement.style.setProperty("--vv-bottom", gap.toFixed(0) + "px");
+  document.documentElement.style.setProperty("--vv-height", vv.height.toFixed(0) + "px");
+}
+
+function initViewportSync(){
+  if (!window.visualViewport) return;
+  syncViewport();
+  window.visualViewport.addEventListener("resize", syncViewport);
+  window.visualViewport.addEventListener("scroll", syncViewport);
+  window.addEventListener("orientationchange", function(){ setTimeout(syncViewport, 200); });
 }
 
 function initTabBar(){
@@ -6440,6 +6523,7 @@ function bindStaticListeners(){
     el("changelog-overlay").classList.remove("hidden");
   });
   initSectionNav();
+  initViewportSync();
   initTabBar();
   bindSummaryRowDetail();
   el("setup-next").addEventListener("click", function(){
@@ -7238,7 +7322,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-106)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-107)";
 }
 
 loadStateAndInit();
