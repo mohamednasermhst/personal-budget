@@ -498,8 +498,11 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
    `bottom:` offset: as an offset it lifts the whole bar by the inset
    (34px of visible page on a notched phone), which is the bug reported
    four times. */
+/* The plate reaches the bottom edge and adds NOTHING below the capsule
+   beyond the home-indicator inset. The cream strip the user kept seeing
+   under the bar was 10px of padding of my own. */
 .tab-bar{ position:fixed; z-index:9000; left:0; right:0; bottom:0;
-  padding:10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  padding:8px 10px calc(env(safe-area-inset-bottom, 0px) + 2px);
   background:var(--bg); }
 .tab-bar::before{ content:""; position:absolute; left:0; right:0; top:-14px; height:14px;
   background:linear-gradient(to bottom, rgba(250,246,236,0), var(--bg)); pointer-events:none; }
@@ -607,7 +610,34 @@ body[data-tab="ledger"] .page section.card{ scroll-margin-top:62px; }
 .gauge-perday.negative{ color:var(--rust); }
 /* Two-up on a phone: five stats stacked one per row filled the screen. */
 #section-gauge .s1-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-#section-gauge .s1-stat{ min-width:0; }
+/* BROADSIDE -- small cards, two up. Labels in small caps above the
+   figure, figures in mono, and the one number the user acts on (Amount to
+   save) set in the display serif on a gold plate so it is legible as the
+   answer rather than the fifth item in a list. */
+#section-gauge .s1-grid{ margin-top:14px; }
+#section-gauge .s1-stat{ min-width:0; border:1px solid var(--rule);
+  border-radius:10px; padding:10px 11px; background:var(--card); }
+html[data-theme=dark] #section-gauge .s1-stat{ background:var(--card-tint); }
+#section-gauge .s1-stat > span{ display:block; font-family:'IBM Plex Sans',sans-serif;
+  font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-faint); margin-bottom:3px; }
+#section-gauge .s1-stat > strong{ display:block; font-family:'IBM Plex Mono',monospace;
+  font-size:15px; font-weight:600; color:var(--ink); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; }
+#section-gauge .s1-stat.highlight{ grid-column:1 / -1;
+  background:linear-gradient(180deg,#FBF3DE,#F6EBCF);
+  border-color:var(--rule-strong); }
+html[data-theme=dark] #section-gauge .s1-stat.highlight{
+  background:linear-gradient(180deg,rgba(184,137,31,.22),rgba(184,137,31,.10)); }
+#section-gauge .s1-stat.highlight > strong{ font-family:'Newsreader',Georgia,serif;
+  font-size:26px; line-height:1.1; color:var(--gold-deep); }
+html[data-theme=dark] #section-gauge .s1-stat.highlight > strong{ color:var(--gold-light); }
+html[dir=rtl] #section-gauge .s1-stat.highlight > strong{ font-family:'Cairo',sans-serif; }
+@media (max-width:360px){
+  #section-gauge .s1-stat{ padding:9px 9px; }
+  #section-gauge .s1-stat > strong{ font-size:13.5px; }
+  #section-gauge .s1-stat.highlight > strong{ font-size:22px; }
+}
 .gauge-progress{ margin-top:12px; }
 .gauge-bar{ height:6px; border-radius:3px; background:var(--rule); overflow:hidden; }
 .gauge-bar span{ display:block; height:100%; background:var(--ink-faint); border-radius:3px; }
@@ -1363,16 +1393,6 @@ body.modal-open{ overflow:hidden; }
 
   <header class="ledger-header">
     <div class="header-top">
-      <div class="header-switches">
-      <div class="lang-toggle" role="group" aria-label="Theme">
-        <button type="button" id="theme-light" class="lang-btn" title="Light">☀</button>
-        <button type="button" id="theme-dark" class="lang-btn" title="Night">☽</button>
-      </div>
-      <div class="lang-toggle" role="group" aria-label="Language">
-        <button type="button" id="lang-en" class="lang-btn">EN</button>
-        <button type="button" id="lang-ar" class="lang-btn">عربي</button>
-      </div>
-      </div>
       <div class="lang-toggle" id="digit-toggle-wrap" style="display:none;">
         <button type="button" id="digit-ar" class="lang-btn" title="Arabic-Indic digits">٩٩</button>
         <button type="button" id="digit-en" class="lang-btn" title="Western digits">99</button>
@@ -1382,6 +1402,16 @@ body.modal-open{ overflow:hidden; }
       <div class="title-with-mark">
         <span class="app-mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"><rect width="44" height="44" rx="10" fill="#FAF6EC"/><path d="M 7.48 20.24 L 22.00 13.20 L 36.52 20.24" fill="none" stroke="#B8894A" stroke-width="3.30" stroke-linecap="round" stroke-linejoin="round"/><rect x="10.67" y="29.04" width="5.94" height="5.06" rx="1.66" fill="#C9B48A"/><rect x="19.03" y="25.74" width="5.94" height="8.36" rx="1.66" fill="#B8894A"/><rect x="27.39" y="22.00" width="5.94" height="12.10" rx="1.66" fill="#1F3A4D"/></svg></span>
         <span class="nameplate-text"><span class="eyebrow" data-i18n="eyebrow">Household Ledger &middot; AED</span><h1 data-i18n="title">Household Budget Dashboard</h1></span>
+      </div>
+      <div class="header-switches">
+      <div class="lang-toggle" role="group" aria-label="Theme">
+        <button type="button" id="theme-light" class="lang-btn" title="Light">☀</button>
+        <button type="button" id="theme-dark" class="lang-btn" title="Night">☽</button>
+      </div>
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" id="lang-en" class="lang-btn">EN</button>
+        <button type="button" id="lang-ar" class="lang-btn">عربي</button>
+      </div>
       </div>
       <div class="range-wrap">
         <label class="field-inline"><span data-i18n="rangeFrom">Show from</span>
@@ -4163,8 +4193,7 @@ function renderYearChart(rows){
     var e = (r.projExpense !== undefined ? r.projExpense : r.expense);
     var inc = (r.projIncome !== undefined ? r.projIncome : r.income);
     maxVal = Math.max(maxVal, e, inc);
-    maxLine = Math.max(maxLine, r.excessCash,
-      (r.projRemaining !== undefined ? r.projRemaining : 0));
+    maxLine = Math.max(maxLine, r.excessCash || 0);
   });
   maxVal = (maxVal * 1.15) || 1;
   // The savings balance ACCUMULATES; over twelve periods it dwarfs any
@@ -4209,7 +4238,10 @@ function renderYearChart(rows){
     // Savings line and deficit dots follow the same committed-total view
     // as the bars (see projRemaining). excessCash/isDeficit are as-of
     // filtered and would make the line drift as the snapshot advanced.
-    var lineVal = (r.projRemaining !== undefined && r.projRemaining > 0) ? r.projRemaining : 0;
+    // The SAVING ACCOUNT BALANCE, which is what the label says and what
+    // carries across periods. It only falls when savings are actually
+    // spent (ad-hoc spending, or a deficit the hold-back could not cover).
+    var lineVal = Math.max(0, r.excessCash || 0);
     linePts.push(xC.toFixed(1) + "," + yForLine(lineVal).toFixed(1));
     var projDeficit = (r.projRemaining !== undefined) ? (r.projRemaining < -0.005) : r.isDeficit;
     if (projDeficit){
@@ -5190,6 +5222,13 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "111", items: [
+    ["fix", "The savings curve now plots your saving balance, not each period's leftover"],
+    ["fix", "The backup notice updates as soon as you take a backup"],
+    ["fix", "The menu sits flush with the bottom of the screen"],
+    ["add", "The five figures redrawn as cards, with the amount to save set apart"],
+    ["add", "Theme and language sit beside the title"]
+  ]},
   { v: "110", items: [
     ["add", "New look: nameplate header, pay-period dial, backup vault and drawer"],
     ["add", "Monthly Summary totals rewritten around income"],
@@ -5746,7 +5785,13 @@ function renderVaultLine(){
   var lock = '<span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="var(--gold-deep)" '
     + 'stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="2"/>'
     + '<path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>';
-  var stamp = state.lastBackupAt || (list[0] && (list[0].at || list[0].time));
+  // lastBackupAt is written by the EXPORT path; a snapshot has its own
+  // timestamp. Preferring one over the other let a stale export date
+  // survive three fresh backups, which is what the user reported.
+  var newest = list[0] && (list[0].at || list[0].time);
+  var stamp = (state.lastBackupAt && newest)
+    ? (new Date(newest) > new Date(state.lastBackupAt) ? newest : state.lastBackupAt)
+    : (newest || state.lastBackupAt);
   if (!stamp){
     box.className = "vault-line stale";
     box.innerHTML = lock + '<span class="vl-main"><span class="vl-when">'
@@ -5759,9 +5804,13 @@ function renderVaultLine(){
     if (vb0) vb0.addEventListener("click", function(){ takeSnapshot("manual"); render(); });
     return;
   }
-  var days = Math.floor((Date.now() - new Date(stamp).getTime()) / 86400000);
+  var ms = Date.now() - new Date(stamp).getTime();
+  var days = Math.floor(ms / 86400000);
+  var mins = Math.floor(ms / 60000);
   box.className = "vault-line" + (days >= 7 ? " stale" : "");
-  var whenTxt = days <= 0 ? tr("Backed up today","نُسخت اليوم")
+  var whenTxt = mins < 2 ? tr("Backed up just now","نُسخت للتو")
+    : mins < 60 ? tr("Backed up ","نُسخت قبل ") + toArabicDigits(mins) + tr(" minutes ago"," دقيقة")
+    : days <= 0 ? tr("Backed up today","نُسخت اليوم")
     : days === 1 ? tr("Backed up yesterday","نُسخت أمس")
     : tr("Last backed up ","آخر نسخة قبل ") + toArabicDigits(days) + tr(" days ago"," يوماً");
   var sub = list.length
@@ -7540,7 +7589,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-110)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-111)";
 }
 
 loadStateAndInit();
