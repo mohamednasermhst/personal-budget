@@ -2825,7 +2825,16 @@ function periodIncomeTotal(yearA, monthA, yearB, monthB, incomeDay, sinceAbs, up
    totals, the chart and the hold-back all read the substituted amount
    without knowing actuals exist.
    ====================================================================== */
-function periodKeyOf(yearA, monthA){ return yearA + "-" + monthA; }
+function periodKeyOf(yearA, monthA){ return yearA + "-" + monthA; }   // legacy, migration only
+
+/* The key an actual is stored under: the occurrence's own due date. A
+   period key (build 116) went stale whenever an occurrence changed
+   period; the due date does not move when the pay day, the category or
+   the frequency does. */
+function dateKeyOf(y, m, d){
+  return y + "-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d;
+}
+var PERIOD_KEY_RE = /^\d{4}-\d{1,2}$/;
 
 function actualsFor(id){
   return (state.actuals && id && state.actuals[id]) || null;
@@ -2839,10 +2848,47 @@ function actualEntry(id, key){
 
 /* The single substitution point. Returns a NEW list; never mutates the
    occurrences it was given. */
+/* Build 116-126 stored actuals under a period key. Convert each to the
+   due date of the occurrence that fell in that period. Idempotent: date
+   keys are left alone. */
+function migrateActualKeys(){
+  if (!state.actuals) return 0;
+  var day = getPrimaryIncomeDay(), moved = 0;
+  Object.keys(state.actuals).forEach(function(id){
+    var byKey = state.actuals[id];
+    Object.keys(byKey).forEach(function(k){
+      if (!PERIOD_KEY_RE.test(k)) return;
+      var ya = parseInt(k.split("-")[0], 10), ma = parseInt(k.split("-")[1], 10);
+      var nx = addMonths(ya, ma, 1);
+      var found = null;
+      function scan(list, y, m, first){
+        list.forEach(function(o){
+          if (found || o.id !== id) return;
+          if (first ? o.day >= day : o.day < day) found = { y: y, m: m, d: o.day };
+        });
+      }
+      scan(monthOccurrences(ya, ma), ya, ma, true);
+      scan(monthOccurrences(nx.y, nx.m), nx.y, nx.m, false);
+      if (!found){
+        scan(monthIncomeOccurrences(ya, ma), ya, ma, true);
+        scan(monthIncomeOccurrences(nx.y, nx.m), nx.y, nx.m, false);
+      }
+      if (found){
+        var nk = dateKeyOf(found.y, found.m, found.d);
+        if (!byKey[nk]) byKey[nk] = byKey[k];
+        delete byKey[k];
+        moved++;
+      }
+    });
+  });
+  if (moved) saveState();
+  return moved;
+}
+
 function applyActuals(occs, key){
   if (!state.actuals) return occs;
   return occs.map(function(o){
-    var rec = o.id ? actualEntry(o.id, key) : null;
+    var rec = o.id ? actualEntry(o.id, dateKeyOf(o.y, o.m, o.d)) : null;
     if (!rec) return o;
     var copy = {};
     for (var k in o) if (o.hasOwnProperty(k)) copy[k] = o[k];
@@ -3641,6 +3687,7 @@ function applyLoadedState(raw){
     merged.backupSnapshots = existing.length ? existing
       : (loaded.backupSnapshots || merged.backupSnapshots || []);
     state = merged;
+    migrateActualKeys();
     return true;
   } catch(e){ return false; }
 }
@@ -4446,7 +4493,7 @@ function renderActuals(rows){
       var done = o.actual !== null;
       var d = done ? (o.actual - o.planned) : 0;
       html += '<div class="act-row' + (done ? " done" : "") + '" data-id="'
-        + escapeAttr(o.id) + '" data-key="' + escapeAttr(key) + '" data-planned="'
+        + escapeAttr(o.id) + '" data-key="' + escapeAttr(dateKeyOf(o.y, o.m, o.d)) + '" data-planned="'
         + escapeAttr(String(o.planned)) + '">'
         + '<div class="act-name"><span>' + escapeHtml(o.name) + "</span></div>"
         + '<div class="act-planned">' + fmt(o.planned) + "</div>"
@@ -5846,6 +5893,9 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "127", items: [
+    ["fix", "An actual now stays with its bill if you change the pay day, category or frequency"]
+  ]},
   { v: "126", items: [
     ["fix", "Clearing an amount to retype it no longer saves zero"],
     ["fix", "A savings reconciliation dated outside the forecast now says so instead of claiming a match"]
@@ -8362,7 +8412,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-126)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-127)";
 }
 
 loadStateAndInit();
