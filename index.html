@@ -46,6 +46,7 @@
   --navy:#3E6B8A;
   --clay:#C97A4A;
   --slate:#55605C;
+--spent:#4A443C;
   --wine:#8C3B4A;
   --plum:#7A5980;
   --rust:#A8452F;
@@ -78,6 +79,7 @@ html[data-theme=dark]{
   --navy:#6FA3C7;
   --rust:#E08A6E;
   --shadow:0 1px 3px rgba(0,0,0,.4);
+  --spent:#8A8175;
 }
 /* Panels that use literal colours need explicit dark equivalents --
    a light tint on a dark card is unreadable. */
@@ -1179,8 +1181,7 @@ html[dir=rtl] #forecast-tbody tr.row-open td[data-label]:not([data-label="Period
 #forecast-tbody tr.row-open td[data-label="Leftover"]::before,
 #forecast-tbody tr.row-open td[data-label="Total Cash"]::before,
 #forecast-tbody tr.row-open td[data-label="Expenses"]::before,
-#forecast-tbody tr.row-open td[data-label="Remaining Cash"]::before,
-#forecast-tbody tr.row-open td[data-label="Saving Account Balance"]::before{
+#forecast-tbody tr.row-open td[data-label="Remaining Cash"]::before{
   content:attr(data-label); display:block; font-family:'IBM Plex Sans',sans-serif;
   font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); }
 /* Wider screens: the six detail figures in three columns rather than two. */
@@ -1660,7 +1661,7 @@ body.modal-open{ overflow:hidden; }
       <p class="field-hint" data-i18n="h_snapshot">View the dashboard as of any date. Credit card charges follow the statement and payment days set for each category in the Expense Ledger.</p>
     </div>
     <div class="summary-legend">
-      <div><span class="key" style="background:var(--slate)"></span><span data-i18n="lg_spent">Spent &amp; committed</span></div>
+      <div><span class="key" style="background:var(--spent)"></span><span data-i18n="lg_spent">Spent &amp; committed</span></div>
       <div><span class="key" style="background:var(--gold)"></span><span data-i18n="lg_held">Held for a later month</span></div>
       <div><span class="key" style="background:var(--emerald)"></span><span data-i18n="lg_save">Safe to save</span></div>
     </div>
@@ -1674,7 +1675,7 @@ body.modal-open{ overflow:hidden; }
           <th title="Total expenses due this period" data-i18n="c_expenses">Expenses</th>
           <th title="Total cash minus expenses" data-i18n="c_remaining">Remaining Cash</th>
           <th title="Safely spendable this period" data-i18n="c_tosave">Amount to Save</th>
-          <th title="Cumulative safely-spendable balance" data-i18n="c_savingbal">Saving Account Balance</th>
+          <th title="Cumulative safely-spendable balance" data-i18n="c_savingbal">Savings balance</th>
           <th class="col-extra">Split</th>
           <th class="col-extra">Note</th>
         </tr></thead>
@@ -1793,7 +1794,7 @@ body.modal-open{ overflow:hidden; }
 
 <section class="card" id="section5" data-tab="ledger">
     <h2 data-i18n="s_adhoc">Ad-hoc Savings Spending</h2>
-    <p class="card-hint" data-i18n="h_adhoc">One-off purchases paid from savings. Reduces the Saving Account Balance only.</p>
+    <p class="card-hint" data-i18n="h_adhoc">One-off purchases paid from savings. Reduces the Savings balance only.</p>
     <div class="table-scroll">
       <table id="adhoc-table">
         <thead><tr><th data-i18n="c_name">Name</th><th data-i18n="c_date">Date</th><th data-i18n="c_amount">Amount</th><th></th></tr></thead>
@@ -4667,7 +4668,7 @@ function renderSection2(rows){
         bar = '<i style="width:100%;background:var(--rust)"></i>';
       } else {
         var spent = Math.max(0, gross - held - save);
-        bar = '<i style="width:' + pctOf(spent, gross) + '%;background:var(--slate)"></i>'
+        bar = '<i style="width:' + pctOf(spent, gross) + '%;background:var(--spent)"></i>'
             + '<i style="width:' + pctOf(held, gross) + '%;background:var(--gold)"></i>'
             + '<i style="width:' + pctOf(save, gross) + '%;background:var(--emerald)"></i>';
       }
@@ -5050,7 +5051,7 @@ function showChartDetail(row, targetId){
     + '<div class="focus-trio">'
       + "<div>" + tr("Income","الدخل") + "<b>" + fmt(row.income) + "</b></div>"
       + "<div>" + tr("Safe to save","للادخار") + '<b class="pos">' + fmt(row.amountToSave) + "</b></div>"
-      + "<div>" + tr("Saving balance","رصيد التوفير") + "<b>" + fmt(row.excessCash) + "</b></div>"
+      + "<div>" + tr("Savings balance","رصيد التوفير") + "<b>" + fmt(row.excessCash) + "</b></div>"
       + "</div>"
     + (held > 0.005
         ? '<div class="focus-note">' + fmt(held) + tr(" of that is held back for a later period.",
@@ -5893,6 +5894,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "128", items: [
+    ["fix", "Spent & committed is a warmer grey, clearly apart from Safe to save"],
+    ["fix", "The savings balance keeps its name when a period is expanded"],
+    ["fix", "One spelling of Savings balance across the dashboard"]
+  ]},
   { v: "127", items: [
     ["fix", "An actual now stays with its bill if you change the pay day, category or frequency"]
   ]},
@@ -8412,7 +8418,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-127)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-128)";
 }
 
 loadStateAndInit();
