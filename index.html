@@ -354,6 +354,96 @@ html[dir=rtl] .cl-dot{ left:auto; right:0; }
 #snapshots-body .snap-row:first-child{ border-top:none; }
 #snapshots-body .card-hint{ margin:0; padding:12px 13px; }
 
+/* DOCKET-SHEET -- a printed reconciliation: planned, the variances that
+   made up the difference, actual. Set the way an accountant would. */
+.docket{ border:1px solid var(--rule-strong); border-radius:10px; padding:12px 13px;
+  background:var(--card-tint); margin-bottom:14px; }
+.dk-row{ display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  padding:5px 0; font-size:13px; }
+.dk-row span{ color:var(--ink); }
+.dk-row b{ font-family:'IBM Plex Mono',monospace; font-weight:600; white-space:nowrap; }
+.dk-row.sm{ font-size:12px; padding:3px 0 3px 12px; color:var(--ink-soft); }
+html[dir=rtl] .dk-row.sm{ padding:3px 12px 3px 0; }
+.dk-row.sm span{ color:var(--ink-soft); }
+.dk-row.sm b{ font-weight:500; }
+.dk-total{ border-top:1px solid var(--ink); margin-top:6px; padding-top:8px; font-weight:600; }
+html[data-theme=dark] .dk-total{ border-top-color:var(--rule-strong); }
+.dk-diff{ padding-top:7px; }
+.dk-note{ font-size:12px; color:var(--ink-soft); margin-top:8px; padding-top:8px;
+  border-top:1px solid var(--rule); line-height:1.45; }
+.dk-note.over{ color:var(--rust); }
+.dk-note.under{ color:var(--emerald); }
+.dk-row .over{ color:var(--rust); } .dk-row .under{ color:var(--emerald); }
+
+/* FOLIO-CASE -- one envelope per category. The header answers "how much
+   of this category have I reconciled, and where has it landed?" before
+   any row is read. */
+.env{ border:1px solid var(--rule-strong); border-radius:10px; overflow:hidden;
+  margin-bottom:12px; }
+.env.full{ border-color:var(--rule); }
+.env-head{ background:var(--card-tint); padding:9px 11px 10px;
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:3px 10px; }
+.env-cat{ font-weight:600; font-size:13px; }
+.env-tot{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11.5px;
+  color:var(--ink-faint); white-space:nowrap; display:flex; align-items:baseline; gap:2px; }
+html[dir=rtl] .env-tot{ margin-left:0; margin-right:auto; }
+/* RAIL -- planned, an arrow, actual. No labels on the envelope: they are
+   said once in the legend at the top of the card, which is what keeps
+   this on ONE line. */
+.env-tot s{ text-decoration:line-through; text-decoration-color:var(--rule-strong);
+  color:var(--ink-faint); }
+.env-tot em{ font-style:normal; color:var(--rule-strong); margin:0 5px; }
+.env-tot b{ font-weight:600; color:var(--ink); }
+.env-tot b.plan-only{ font-weight:400; color:var(--ink-faint); }
+.act-legend{ font-size:10px; }
+.act-legend{ display:flex; align-items:baseline; gap:5px; font-size:10.5px;
+  color:var(--ink-faint); margin:0 0 10px; font-family:'IBM Plex Mono',monospace; }
+.act-legend s{ text-decoration:line-through; text-decoration-color:var(--rule-strong); }
+.act-legend span{ font-family:'IBM Plex Sans',sans-serif; letter-spacing:.05em;
+  text-transform:uppercase; font-size:9.5px; }
+.env-bar{ flex-basis:100%; height:4px; background:var(--rule); border-radius:2px;
+  overflow:hidden; margin-top:6px; }
+.env-bar i{ display:block; height:100%; background:var(--gold); border-radius:2px; }
+.env.full .env-bar i{ background:var(--emerald); }
+/* The count and the difference: one line, one size, as asked. */
+.env-line{ flex-basis:100%; font-size:10.5px; color:var(--ink-faint); margin-top:5px; }
+.env-diff{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; margin-left:8px; }
+html[dir=rtl] .env-diff{ margin-left:0; margin-right:8px; }
+.env-diff.over{ color:var(--rust); } .env-diff.under{ color:var(--emerald); }
+.env .act-row{ padding:9px 11px; border-bottom:1px solid var(--rule); }
+.env .act-row:last-child{ border-bottom:none; }
+.act-same{ grid-column:2 / -1; justify-self:end; background:none; border:none;
+  font-family:inherit; font-size:11px; color:var(--gold-deep); cursor:pointer;
+  padding:2px 0; text-decoration:underline; text-underline-offset:2px; }
+.act-var.under{ color:var(--emerald); }
+
+/* Planned vs actual ===================================================== */
+.act-switch{ margin:2px 0 10px; }
+.act-group{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold-deep); font-weight:600; margin:14px 0 4px; }
+.act-row{ display:grid; grid-template-columns:1fr auto auto; gap:4px 10px;
+  align-items:center; padding:9px 0; border-bottom:1px solid var(--rule); }
+.act-row:last-child{ border-bottom:none; }
+.act-name{ display:flex; align-items:center; gap:7px; min-width:0; font-size:13.5px; }
+.act-name i{ width:7px; height:7px; border-radius:50%; flex:none; }
+.act-name span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.act-due{ grid-column:1; font-size:11px; color:var(--ink-faint);
+  font-family:'IBM Plex Mono',monospace; }
+.act-planned{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-faint);
+  text-align:right; white-space:nowrap; }
+.act-input{ width:104px; font-family:'IBM Plex Mono',monospace; font-size:13.5px;
+  text-align:right; padding:6px 8px; border:1px solid var(--rule-strong);
+  border-radius:8px; background:var(--card); color:var(--ink); }
+.act-input:focus{ outline:none; border-color:var(--gold); }
+.act-row.done .act-input{ border-color:var(--emerald); }
+.act-row.done .act-planned{ text-decoration:line-through; }
+.act-var{ grid-column:2 / -1; text-align:right; font-size:11px;
+  font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); }
+.act-var.over{ color:var(--rust); }
+.act-var.under{ color:var(--emerald); }
+.act-empty{ font-size:12.5px; color:var(--ink-faint); padding:6px 0; }
+@media (max-width:360px){ .act-input{ width:88px; } }
+
 /* SUNDIAL */
 .sundial{ display:flex; align-items:center; gap:16px; margin:12px 0 16px;
   border:1px solid var(--rule); border-radius:12px; padding:13px 14px; background:var(--card-tint); }
@@ -475,10 +565,12 @@ html[dir=rtl] .setup-card h2{ font-family:'Cairo',sans-serif; }
    same handlers, nothing to rebind on a switch.
    ====================================================================== */
 body[data-tab="ledger"]  [data-tab]:not([data-tab~="ledger"]),
+body[data-tab="actuals"] [data-tab]:not([data-tab~="actuals"]),
 body[data-tab="summary"] [data-tab]:not([data-tab~="summary"]),
 body[data-tab="dash"]    [data-tab]:not([data-tab~="dash"]){ display:none !important; }
 /* The forecast range only means something where a range is displayed. */
-body[data-tab="ledger"] .range-wrap{ display:none; }
+body[data-tab="ledger"] .range-wrap,
+body[data-tab="actuals"] .range-wrap{ display:none; }
 
 /* Sticky, NOT fixed. A fixed bar is placed against the viewport, and
    when the viewport is taller than the visible area (an iframe expanded
@@ -542,7 +634,15 @@ html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
 .tab-mark .tmn{ stroke-width:1.8; }
 .tab-mark .tmd{ fill:var(--ink-faint); }
 .tab-label{ display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis;
-  white-space:nowrap; font-size:11.5px; color:var(--ink-faint); letter-spacing:.01em; }
+  white-space:nowrap; font-size:11px; color:var(--ink-faint); letter-spacing:0; }
+/* Four tabs: the icon shrinks before the word does. */
+.tab-item{ gap:5px; padding:9px 2px; }
+.tab-mark svg{ width:18px; height:18px; }
+@media (max-width:430px){
+  .tab-item{ flex-direction:column; gap:2px; padding:7px 2px; }
+  .tab-label{ font-size:9.5px; }
+  .tab-mark svg{ width:19px; height:19px; }
+}
 /* At the narrowest supported width the icon keeps its size and the label
    gives up a little. */
 @media (max-width:370px){
@@ -995,8 +1095,8 @@ td.positive{ color:var(--emerald); }
 .summary-legend div{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); }
 .summary-legend .key{ width:10px; height:10px; border-radius:3px; }
 
-#forecast-tbody tr{ display:grid; grid-template-columns:1fr auto;
-  grid-template-areas:"period save" "bar bar" "note note";
+#forecast-tbody tr{ display:grid; grid-template-columns:1fr auto auto;
+  grid-template-areas:"period save bal" "bar bar bar" "note note note";
   align-items:baseline; column-gap:12px;
   padding:12px 0 13px; border-bottom:1px solid var(--rule); cursor:pointer; }
 #forecast-tbody tr:last-child{ border-bottom:none; }
@@ -1010,6 +1110,27 @@ html[dir=rtl] #forecast-tbody td[data-label="Amount to Save"]{ text-align:left; 
 #forecast-tbody td[data-label="Amount to Save"]::before{ content:attr(data-cap);
   display:block; font-family:'IBM Plex Sans',sans-serif; font-size:9.5px; font-weight:400;
   letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:1px; }
+/* The running savings balance sits beside Safe to save, in the same
+   caption-over-figure form: the two figures a reader wants together are
+   together. */
+#forecast-tbody td[data-label="Saving Account Balance"]{ grid-area:bal; text-align:right;
+  font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; color:var(--ink);
+  padding-left:18px; }
+html[dir=rtl] #forecast-tbody td[data-label="Saving Account Balance"]{ text-align:left;
+  padding-left:0; padding-right:18px; }
+#forecast-tbody td[data-label="Saving Account Balance"]::before{
+  content:attr(data-cap); display:block; font-family:'IBM Plex Sans',sans-serif;
+  font-size:9.5px; font-weight:400; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--ink-faint); margin-bottom:1px; }
+/* In the open row it keeps its place in the headline rather than
+   repeating among the detail cells. */
+#forecast-tbody tr.row-open td[data-label="Saving Account Balance"]{
+  font-size:16px; padding-top:0; text-align:right; }
+@media (max-width:380px){
+  #forecast-tbody td[data-label="Amount to Save"],
+  #forecast-tbody td[data-label="Saving Account Balance"]{ font-size:14px; }
+  #forecast-tbody td[data-label="Saving Account Balance"]{ padding-left:12px; }
+}
 #forecast-tbody tr.is-deficit td[data-label="Amount to Save"]{ color:var(--ink-faint); }
 #forecast-tbody tr.is-deficit .row-note{ color:var(--rust); font-weight:600; }
 .row-bar{ grid-area:bar; }
@@ -1020,6 +1141,8 @@ html[dir=rtl] #forecast-tbody td[data-label="Amount to Save"]{ text-align:left; 
   font-size:11.5px; color:var(--ink-faint); }
 .row-meta b{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink-soft); }
 .row-meta b.neg{ color:var(--rust); }
+.row-meta b.pos{ color:var(--emerald); }
+
 /* The id selector on the cells wins over a bare class, so this note has
    to be at least as specific or it never wraps -- which is exactly how it
    ended up clipped at the screen edge. */
@@ -1034,16 +1157,15 @@ html[dir=rtl] #forecast-tbody td.row-note{ text-align:right; }
 #forecast-tbody td[data-label="Leftover"],
 #forecast-tbody td[data-label="Total Cash"],
 #forecast-tbody td[data-label="Expenses"],
-#forecast-tbody td[data-label="Remaining Cash"],
-#forecast-tbody td[data-label="Saving Account Balance"]{ display:none; }
-#forecast-tbody tr.row-open{ grid-template-areas:"period save" "bar bar" "note note"
-  "d1 d2" "d3 d4" "d5 d6"; row-gap:0; }
+#forecast-tbody td[data-label="Remaining Cash"]{ display:none; }
+#forecast-tbody tr.row-open{ grid-template-areas:"period save bal" "bar bar bar"
+  "note note note" "d1 d2 d2" "d3 d4 d4" "d5 d5 d5"; row-gap:0; }
 #forecast-tbody tr.row-open td[data-label="Income"]{ display:block; grid-area:d1; }
 #forecast-tbody tr.row-open td[data-label="Expenses"]{ display:block; grid-area:d2; }
 #forecast-tbody tr.row-open td[data-label="Leftover"]{ display:block; grid-area:d3; }
 #forecast-tbody tr.row-open td[data-label="Total Cash"]{ display:block; grid-area:d4; }
 #forecast-tbody tr.row-open td[data-label="Remaining Cash"]{ display:block; grid-area:d5; }
-#forecast-tbody tr.row-open td[data-label="Saving Account Balance"]{ display:block; grid-area:d6; }
+
 /* The figure cells carry class="num" from the table, and .num is
    text-align:right. In a grid card there is no column to align to, so
    they read as though they belonged to the right-hand edge. */
@@ -1470,6 +1592,21 @@ body.modal-open{ overflow:hidden; }
       <button type="button" id="cashonhand-recalc-btn" class="link-btn" data-i18n="k_recalc">Recalculate</button>
       <p id="cashonhand-stale-note" class="cashonhand-stale-note hidden"></p>
     </div>
+    <label class="asof-checkbox has-cash-toggle">
+      <input type="checkbox" id="has-savingbal-checkbox">
+      <span data-i18n="l_recsav">I want to reconcile my savings balance</span>
+    </label>
+    <div class="s1-grid hidden" id="savingbal-fields">
+      <label class="s1-field"><span data-i18n="l_savbal">Savings balance</span>
+        <input type="text" inputmode="decimal" id="savingbal-input">
+      </label>
+      <label class="s1-field"><span data-i18n="l_rec2">Recorded on</span>
+        <input type="date" id="savingbal-date-input">
+      </label>
+    </div>
+    <p class="field-hint hidden" id="savingbal-hint" data-i18n="h_savbal">Enter what was really in the account and the date you checked it. Every balance shown is calculated forward from that figure.</p>
+    <div id="savingbal-note" class="reconciled-badge hidden"></div>
+
     <div id="cashonhand-suggestion" class="cashonhand-suggestion hidden">
       <p id="cashonhand-suggestion-text"></p>
       <div class="cashonhand-suggestion-actions">
@@ -1564,7 +1701,18 @@ body.modal-open{ overflow:hidden; }
     <p data-i18n="g_driving_sub">Everything you enter. Changes here flow through the figures above.</p>
   </div>
 
-<section class="card" id="section-income" data-tab="ledger">
+<section class="card" id="section-actuals" data-tab="actuals">
+    <h2 data-i18n="s_actuals">What actually happened</h2>
+    <p class="card-hint" id="actuals-period"></p>
+    <p class="field-hint" data-i18n="h_actuals">Type what you really paid or received beside the planned figure. Everything on the dashboard switches to your figure for that bill. Leave it blank to keep the plan. A bill already due is recorded on its due date; one still ahead is marked paid today.</p>
+    <div class="act-switch">
+      <label class="field-inline"><span data-i18n="k_period">Period</span>
+        <select id="act-period"></select></label>
+    </div>
+    <div id="actuals-body"></div>
+  </section>
+
+  <section class="card" id="section-income" data-tab="ledger">
     <div class="ledger-header-row">
       <h2 data-i18n="s_income">Income Ledger</h2>
       <div class="ledger-actions">
@@ -1705,6 +1853,10 @@ body.modal-open{ overflow:hidden; }
   <button type="button" id="tab-ledger" class="tab-item" role="tab" aria-selected="false" data-tab-name="ledger">
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="3.5" width="18" height="17" rx="3"/><line class="tmo" x1="8" y1="3.5" x2="8" y2="20.5"/><line class="tmi" x1="11.5" y1="9" x2="17.5" y2="9"/><line class="tmi" x1="11.5" y1="12.5" x2="17.5" y2="12.5"/><line class="tmi" x1="11.5" y1="16" x2="15" y2="16"/></svg></span>
     <span class="tab-label" data-i18n="tab_ledger">Ledger</span>
+  </button>
+  <button type="button" id="tab-actuals" class="tab-item" role="tab" aria-selected="false" data-tab-name="actuals">
+    <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3.5" y="4" width="17" height="16" rx="3"/><line class="tmi" x1="7.5" y1="9" x2="12" y2="9"/><line class="tmi" x1="7.5" y1="13" x2="12" y2="13"/><path class="tmn" d="M14.5 12.6 L16.4 14.5 L20 10.8"/></svg></span>
+    <span class="tab-label" data-i18n="tab_actuals">Actuals</span>
   </button>
   <button type="button" id="tab-summary" class="tab-item" role="tab" aria-selected="false" data-tab-name="summary" aria-label="Monthly Summary">
     <span class="tab-mark" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect class="tmo" x="3" y="4" width="18" height="16" rx="3"/><line class="tmo" x1="3" y1="9" x2="21" y2="9"/><line class="tmi" x1="9.5" y1="9" x2="9.5" y2="20"/><line class="tmi" x1="3" y1="14.5" x2="21" y2="14.5"/></svg></span>
@@ -2178,26 +2330,26 @@ function monthOccurrences(y, m){
       })[0];
       if (ov) amount = Number(ov.amount) || 0;
       var day1 = clampDay(exp.dueDay || 1);
-      if (!pastEnd(day1)) out.push({ day: day1, amount: amount, category: exp.category, name: exp.name });
+      if (!pastEnd(day1)) out.push({ day: day1, amount: amount, category: exp.category, name: exp.name, id: exp.id });
     } else if (exp.frequency === "yearly"){
       var ym = (exp.dueMonth !== undefined && exp.dueMonth !== null && exp.dueMonth !== "") ? Number(exp.dueMonth) : 1;
       if (ym === m){
         var day2 = clampDay(exp.dueDay || 1);
-        if (!pastEnd(day2)) out.push({ day: day2, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name });
+        if (!pastEnd(day2)) out.push({ day: day2, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name, id: exp.id });
       }
     } else if (exp.frequency === "onetime"){
       var dy = (exp.dueYear !== undefined && exp.dueYear !== null && exp.dueYear !== "") ? Number(exp.dueYear) : todayYear();
       var om = (exp.dueMonth !== undefined && exp.dueMonth !== null && exp.dueMonth !== "") ? Number(exp.dueMonth) : 1;
       if (dy === y && om === m){
         var day3 = clampDay(exp.dueDay || 1);
-        if (!pastEnd(day3)) out.push({ day: day3, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name });
+        if (!pastEnd(day3)) out.push({ day: day3, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name, id: exp.id });
       }
     } else if (exp.frequency === "custom"){
       (exp.dates || []).forEach(function(d){
         var dy = (d.year !== undefined && d.year !== null && d.year !== "") ? Number(d.year) : todayYear();
         if (dy === y && Number(d.month) === m){
           var day4 = clampDay(d.day || 1);
-          if (!pastEnd(day4)) out.push({ day: day4, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name });
+          if (!pastEnd(day4)) out.push({ day: day4, amount: Number(exp.amount) || 0, category: exp.category, name: exp.name, id: exp.id });
         }
       });
     }
@@ -2524,17 +2676,17 @@ function monthIncomeOccurrences(y, m){
       // for a budgeting tool to be wrong in.
       var stop = src.endDate ? parseISODate(src.endDate) : null;
       if (!stop || toAbsDay(y, m, clampDay(src.incomeDay || 1)) <= toAbsDay(stop.y, stop.m, stop.d)){
-        out.push({ day: clampDay(src.incomeDay || 1), amount: tieredAmountFor(src.tiers, y, m), name: src.name });
+        out.push({ day: clampDay(src.incomeDay || 1), amount: tieredAmountFor(src.tiers, y, m), name: src.name, id: src.id });
       }
     } else if (src.type === "onetime"){
       var d = parseISODate(src.date);
       if (d && d.y === y && d.m === m){
-        out.push({ day: d.d, amount: Number(src.amount) || 0, name: src.name });
+        out.push({ day: d.d, amount: Number(src.amount) || 0, name: src.name, id: src.id });
       }
     } else if (src.type === "rental"){
       rentalChequeDates(src).forEach(function(c){
         if (c.y === y && c.m === m){
-          out.push({ day: c.d, amount: c.amount, name: src.name });
+          out.push({ day: c.d, amount: c.amount, name: src.name, id: src.id });
         }
       });
     }
@@ -2599,16 +2751,19 @@ function periodIncomeTotal(yearA, monthA, yearB, monthB, incomeDay, sinceAbs, up
   //   "arrived" or "not arrived" yet in any meaningful sense).
   var occs = [];
   monthIncomeOccurrences(yearA, monthA).forEach(function(o){
-    if (o.day >= incomeDay) occs.push({ y: yearA, m: monthA, d: o.day, amount: o.amount, name: o.name });
+    if (o.day >= incomeDay) occs.push({ y: yearA, m: monthA, d: o.day, amount: o.amount, name: o.name, id: o.id });
   });
   monthIncomeOccurrences(yearB, monthB).forEach(function(o){
-    if (o.day < incomeDay) occs.push({ y: yearB, m: monthB, d: o.day, amount: o.amount, name: o.name });
+    if (o.day < incomeDay) occs.push({ y: yearB, m: monthB, d: o.day, amount: o.amount, name: o.name, id: o.id });
   });
+  occs = applyActuals(occs, periodKeyOf(yearA, monthA));
   var total = 0, items = [], pendingTotal = 0, pendingItems = [];
   occs.forEach(function(o){
     var abs = toAbsDay(o.y, o.m, o.d);
     if (sinceAbs !== null && abs <= sinceAbs) return;
-    var item = { name: o.name, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d };
+    var item = { name: o.name, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d,
+                 id: o.id || null, planned: (o.planned !== undefined ? o.planned : o.amount),
+                 isActual: !!o.isActual };
     if (uptoAbs !== null && abs > uptoAbs){
       // Dated later than the as-of point: not received yet. Tracked
       // separately (rather than dropped) so the Year-at-a-Glance
@@ -2622,6 +2777,64 @@ function periodIncomeTotal(yearA, monthA, yearB, monthB, incomeDay, sinceAbs, up
     items.push(item);
   });
   return { income: total, items: items, pendingIncome: pendingTotal, pendingItems: pendingItems };
+}
+
+/* Planned vs actual =====================================================
+   An actual never modifies the planned entry: it is recorded beside it,
+   keyed by entry id and by the PERIOD it belongs to, so September's rent
+   stays planned until September's actual is typed.
+
+       state.actuals = { "exp_12": { "2026-8": { amount, enteredAt } } }
+
+   Substitution happens in ONE place per side (see applyActuals), which is
+   what keeps every downstream figure consistent -- rows, gauge, category
+   totals, the chart and the hold-back all read the substituted amount
+   without knowing actuals exist.
+   ====================================================================== */
+function periodKeyOf(yearA, monthA){ return yearA + "-" + monthA; }
+
+function actualsFor(id){
+  return (state.actuals && id && state.actuals[id]) || null;
+}
+
+function actualEntry(id, key){
+  var byPeriod = actualsFor(id);
+  var rec = byPeriod && byPeriod[key];
+  return (rec && typeof rec.amount === "number") ? rec : null;
+}
+
+/* The single substitution point. Returns a NEW list; never mutates the
+   occurrences it was given. */
+function applyActuals(occs, key){
+  if (!state.actuals) return occs;
+  return occs.map(function(o){
+    var rec = o.id ? actualEntry(o.id, key) : null;
+    if (!rec) return o;
+    var copy = {};
+    for (var k in o) if (o.hasOwnProperty(k)) copy[k] = o[k];
+    copy.planned = o.amount;      // what the plan said, kept for the card
+    copy.amount = rec.amount;
+    copy.isActual = true;
+    // An actual is known only once it is entered, so that is the day the
+    // money is treated as having moved -- which is what entering one means.
+    copy.actualOn = rec.enteredAt || null;
+    return copy;
+  });
+}
+
+function setActual(id, key, amount){
+  if (!state.actuals) state.actuals = {};
+  if (!state.actuals[id]) state.actuals[id] = {};
+  state.actuals[id][key] = { amount: amount, enteredAt: todayISO() };
+  saveState();
+}
+
+function clearActual(id, key){
+  if (state.actuals && state.actuals[id]){
+    delete state.actuals[id][key];
+    if (!Object.keys(state.actuals[id]).length) delete state.actuals[id];
+    saveState();
+  }
 }
 
 function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBeforeAbs){
@@ -2650,11 +2863,11 @@ function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBefo
   var occs = [];
   monthOccurrences(yearA, monthA).forEach(function(o){
     if (categoryHasBehavior(o.category, "statementBilling")) return; // handled below
-    if (o.day >= incomeDay) occs.push({ y: yearA, m: monthA, d: o.day, amount: o.amount, category: o.category, name: o.name });
+    if (o.day >= incomeDay) occs.push({ y: yearA, m: monthA, d: o.day, amount: o.amount, category: o.category, name: o.name, id: o.id });
   });
   monthOccurrences(yearB, monthB).forEach(function(o){
     if (categoryHasBehavior(o.category, "statementBilling")) return; // handled below
-    if (o.day < incomeDay) occs.push({ y: yearB, m: monthB, d: o.day, amount: o.amount, category: o.category, name: o.name });
+    if (o.day < incomeDay) occs.push({ y: yearB, m: monthB, d: o.day, amount: o.amount, category: o.category, name: o.name, id: o.id });
   });
   // Statement-billed items: include any whose PAYMENT date lands inside
   // this period, wherever the transaction itself sits. Scanning three
@@ -2675,15 +2888,31 @@ function periodExpenseTotal(yearA, monthA, yearB, monthB, incomeDay, excludeBefo
       var eff = statementEffectiveAbs(o.category, sm.y, sm.m, o.day);
       if (eff >= periodStartAbs && eff < periodEndExAbs){
         seenStmt[key] = true;
-        occs.push({ y: sm.y, m: sm.m, d: o.day, amount: o.amount, category: o.category, name: o.name });
+        occs.push({ y: sm.y, m: sm.m, d: o.day, amount: o.amount, category: o.category, name: o.name, id: o.id });
       }
     });
   }
+  occs = applyActuals(occs, periodKeyOf(yearA, monthA));
   var total = 0, home = 0, items = [], paidTotal = 0, paidItems = [];
   occs.forEach(function(o){
     var isStatementItem = categoryHasBehavior(o.category, "statementBilling");
-    var effAbs = isStatementItem ? statementEffectiveAbs(o.category, o.y, o.m, o.d) : toAbsDay(o.y, o.m, o.d);
-    var item = { name: o.name, category: o.category, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d, effAbs: effAbs };
+    // A recorded actual belongs to the day the money moved. For a bill
+    // whose due date has passed that IS the due date -- you are recording
+    // what already happened, not paying it today. Only a bill still ahead
+    // of its due date is treated as paid on the day it was entered.
+    var actualAbs = null;
+    if (o.isActual && o.actualOn){
+      var ad = parseISODate(o.actualOn);
+      var enteredAbs = ad ? toAbsDay(ad.y, ad.m, ad.d) : null;
+      var dueAbs = toAbsDay(o.y, o.m, o.d);
+      actualAbs = (enteredAbs === null) ? null : Math.min(dueAbs, enteredAbs);
+    }
+    var effAbs = actualAbs !== null ? actualAbs
+      : isStatementItem ? statementEffectiveAbs(o.category, o.y, o.m, o.d) : toAbsDay(o.y, o.m, o.d);
+    var item = { name: o.name, category: o.category, amount: o.amount, dueY: o.y, dueM: o.m, dueD: o.d,
+                 effAbs: effAbs, id: o.id || null,
+                 planned: (o.planned !== undefined ? o.planned : o.amount),
+                 isActual: !!o.isActual };
     if (isStatementItem){
       var stmt = statementMonthFor(o.category, o.y, o.m, o.d);
       item.stmtY = stmt.y; item.stmtM = stmt.m; item.stmtD = getCategoryStatementDay(o.category);
@@ -2961,6 +3190,36 @@ function computeForecast(){
     adHocCumulative[i] = cum;
   }
 
+  // The reconciliation offset. Anchor = the period containing the date
+  // the user checked the account. offset = what was really there minus
+  // what the model had accumulated by the end of that period, INCLUDING
+  // ad-hoc withdrawals up to then, since those are part of the same
+  // displayed balance.
+  var savingOffset = 0;
+  lastSavingOffset = 0;
+  if (state.hasSavingBalance && state.savingBalanceDate){
+    var sd = parseISODate(state.savingBalanceDate);
+    if (sd){
+      var sAbs = toAbsDay(sd.y, sd.m, sd.d);
+      var anchor = -1;
+      for (var i = 0; i < periods.length; i++){
+        var st0 = toAbsDay(periods[i].yearA, periods[i].monthA, incomeDay);
+        var en0 = toAbsDay(periods[i].yearB, periods[i].monthB, incomeDay);
+        if (sAbs >= st0 && sAbs < en0){ anchor = i; break; }
+      }
+      if (anchor >= 0){
+        // Only what was spent from savings ON OR BEFORE the date checked:
+        // that is already reflected in the balance the user read off the
+        // account. Anything after it is a real deduction and must show.
+        var adHocByDate = 0;
+        adHoc.forEach(function(a){ if (a.abs <= sAbs) adHocByDate += a.amount; });
+        var computedAtAnchor = excessCash[anchor] - adHocByDate;
+        savingOffset = (Number(state.savingBalance) || 0) - computedAtAnchor;
+        lastSavingOffset = savingOffset;
+      }
+    }
+  }
+
   var rows = [];
   for (var i = periodOffset; i <= windowEnd; i++){
     rows.push({
@@ -2999,7 +3258,10 @@ function computeForecast(){
         ? periodLabel({ yearA: periods[adviceFor[i]].yearA, monthA: periods[adviceFor[i]].monthA,
                         yearB: periods[adviceFor[i]].yearB, monthB: periods[adviceFor[i]].monthB })
         : "",
-      excessCash: excessCash[i] - adHocCumulative[i],
+      // The offset shifts the whole series, so the curve keeps its shape
+      // and only its starting point changes.
+      excessCash: excessCash[i] - adHocCumulative[i] + savingOffset,
+      savingOffset: savingOffset,
       adHocWithdrawn: adHocCumulative[i],
       // Derived from the DISPLAYED remaining cash, not the Pass 1
       // baseline's own deficit flag -- the two can diverge once
@@ -3049,6 +3311,17 @@ function makeDefaultState(){
     cashOnHand: DEFAULT_CASH_ON_HAND,
     cashOnHandAssumed: DEFAULT_CASH_ON_HAND_ASSUMED,
     cashOnHandAdjustmentRef: null,
+    // Reconciled saving balance (build 122): what was really in the
+    // savings account on a given date. Applied as an offset to the
+    // computed running balance -- never as a movement of money, which
+    // would disturb the cascade.
+    hasSavingBalance: false,
+    savingBalance: 0,
+    savingBalanceDate: null,
+    // Planned vs actual (build 116). Keyed by entry id, then period key.
+    // Never merged into the entry itself: the plan and what happened are
+    // different facts and the user may edit either.
+    actuals: {},
     cashOnHandDate: DEFAULT_CASH_ON_HAND_DATE || todayISO(),
     expenses: DEFAULT_EXPENSES.map(function(e, i){
       var copy = {};
@@ -3290,6 +3563,16 @@ function applyLoadedState(raw){
     // mid-edit could carry a null. Every P2P helper assumes an array.
     if (!merged.p2pLoans || !merged.p2pLoans.length) merged.p2pLoans = merged.p2pLoans || [];
     merged.p2pLoans.forEach(function(l){ if (!l.payments) l.payments = []; });
+    if (!merged.actuals || typeof merged.actuals !== "object") merged.actuals = {};
+    // An actual belongs to an entry. If the entry is gone the actual is
+    // meaningless, and keeping it would resurrect a figure if an id were
+    // ever reused.
+    var liveIds = {};
+    (merged.expenses || []).forEach(function(e){ liveIds[e.id] = true; });
+    (merged.incomeSources || []).forEach(function(i){ liveIds[i.id] = true; });
+    Object.keys(merged.actuals).forEach(function(id){
+      if (!liveIds[id]) delete merged.actuals[id];
+    });
     // Device-local backup history survives an import. An imported file
     // carries no snapshots (stripped on export), so taking the loaded
     // value would silently wipe this device's recovery points at the
@@ -3963,8 +4246,8 @@ function renderGauge(row0){
       + toArabicDigits(pct) + "% " + tr("committed","ملتزم به") + "</span></div>"
     + '<div class="gauge-bar"><span style="width:' + ((day / days) * 100).toFixed(1) + '%"></span></div>'
     + (perDay !== null
-        ? '<div class="gauge-perday">' + fmt(perDay) + tr(" a day if you spend it, over the ", " يومياً إن أنفقته، على مدى ")
-          + toArabicDigits(daysLeft) + tr(" days left", " يوماً المتبقية") + "</div>"
+        ? '<div class="gauge-perday">' + fmt(perDay) + tr(" a day for the remaining ", " يومياً على مدى ")
+          + toArabicDigits(daysLeft) + tr(" days", " يوماً المتبقية") + "</div>"
         : (free <= 0
             ? '<div class="gauge-perday negative">' + tr("This period is short by ","هذه الفترة ينقصها ")
               + fmt(Math.abs(free)) + "</div>"
@@ -3998,6 +4281,267 @@ function pctOf(part, whole){
   return Math.max(0, Math.min(100, (part / whole) * 100)).toFixed(2);
 }
 
+/* Planned vs actual -- the card ==========================================
+   One row per occurrence in the period being reconciled, planned figure
+   beside an Actual field. Typing a figure and leaving the field is the
+   whole process: no mode, no dialog, no confirmation.
+
+   The list is built from the SAME occurrence walk the engine uses, so a
+   row exists here if and only if that occurrence counts toward the
+   period's totals.
+   ======================================================================= */
+// Which period the card is reconciling. Null = the current one. Held as a
+// period key so it survives a re-render and a range change.
+var actualsKey = null;
+
+/* Twelve periods back and twelve forward from the current one, so a late
+   reconciliation or an early one is a single choice rather than a walk.
+   Built by stepping months from the current period's own start, which is
+   the only definition of a period this app has. */
+function actualsPeriodOptions(row0){
+  var out = [], day = getPrimaryIncomeDay();
+  for (var k = -12; k <= 11; k++){
+    var ym = addMonths(row0.yearA, row0.monthA, k);
+    var nx = addMonths(ym.y, ym.m, 1);
+    out.push({ yearA: ym.y, monthA: ym.m, yearB: nx.y, monthB: nx.m,
+               key: periodKeyOf(ym.y, ym.m), offset: k });
+  }
+  return out;
+}
+
+function addMonths(y, m, n){
+  var t = m + n;
+  var yy = y + Math.floor((t - 1) / 12);
+  var mm = ((t - 1) % 12 + 12) % 12 + 1;
+  return { y: yy, m: mm };
+}
+
+function occurrencesForActuals(row){
+  // Straight from the engine: exactly the occurrences it counts for this
+  // period, pooled its way (a card charge lands in the period that PAYS
+  // the statement, not the one that made the purchase).
+  var day = getPrimaryIncomeDay();
+  var exp = periodExpenseTotal(row.yearA, row.monthA, row.yearB, row.monthB, day, null);
+  var inc = periodIncomeTotal(row.yearA, row.monthA, row.yearB, row.monthB, day, null, null);
+  var bills = (exp.items || []).concat(exp.paidItems || []);
+  var income = (inc.items || []).concat(inc.pendingItems || []);
+  function shape(list){
+    return list.filter(function(it){ return !!it.id; })   // schedule rows take no actuals
+               .map(function(it){
+      return { id: it.id, name: it.name, category: it.category || null,
+               y: it.dueY, m: it.dueM, d: it.dueD,
+               planned: (it.planned !== undefined ? it.planned : it.amount),
+               actual: it.isActual ? it.amount : null };
+    });
+  }
+  var out = { bills: shape(bills), income: shape(income) };
+  out.bills.sort(function(a,b){ return toAbsDay(a.y,a.m,a.d) - toAbsDay(b.y,b.m,b.d); });
+  out.income.sort(function(a,b){ return toAbsDay(a.y,a.m,a.d) - toAbsDay(b.y,b.m,b.d); });
+  return out;
+}
+
+function renderActuals(rows){
+  var body = el("actuals-body");
+  if (!body) return;
+  rows = rows || [];
+  if (!rows.length){ body.innerHTML = ""; return; }
+  var current = rows[0];
+  var opts = actualsPeriodOptions(current);
+  var sel = el("act-period");
+  var chosen = null;
+  for (var i = 0; i < opts.length; i++) if (opts[i].key === actualsKey) chosen = opts[i];
+  if (!chosen){ chosen = opts[12]; actualsKey = chosen.key; }   // offset 0
+  if (sel){
+    sel.innerHTML = opts.map(function(o){
+      var label = periodLabel(o) + (o.offset === 0 ? tr("  \u00b7  This period","  \u00b7  الحالية") : "");
+      return '<option value="' + escapeAttr(o.key) + '"'
+        + (o.key === chosen.key ? " selected" : "") + ">" + escapeHtml(label) + "</option>";
+    }).join("");
+  }
+  var row = chosen;
+  var key = chosen.key;
+  el("actuals-period").textContent = formatDayRange(row, getPrimaryIncomeDay());
+
+  var occs = occurrencesForActuals(row);
+  function envelope(list, title){
+    if (!list.length) return "";
+    var plannedSum = 0, actualSum = 0, entered = 0, diff = 0;
+    list.forEach(function(o){
+      plannedSum += o.planned;
+      if (o.actual !== null){
+        entered++;
+        actualSum += o.actual;              // "Same as planned" lands here too
+        diff += (o.actual - o.planned);
+      } else {
+        actualSum += o.planned;             // not reconciled yet: the plan stands
+      }
+    });
+    var pct = list.length ? Math.round(entered / list.length * 100) : 0;
+    var diffTxt = "";
+    if (entered && Math.abs(diff) > 0.005){
+      diffTxt = '<span class="env-diff ' + (diff > 0 ? "over" : "under") + '">\u00b7 '
+        + (diff > 0 ? "+" : "\u2212") + fmt(Math.abs(diff)) + "</span>";
+    }
+    var html = '<div class="env' + (entered === list.length ? " full" : "") + '">'
+      + '<div class="env-head">'
+        + '<span class="env-cat">' + title + "</span>"
+        + '<span class="env-tot">'
+          + (entered
+              ? "<s>" + fmt(plannedSum) + "</s><em>\u2192</em><b>" + fmt(actualSum) + "</b>"
+              : '<b class="plan-only">' + fmt(plannedSum) + "</b>")
+          + "</span>"
+        + '<span class="env-bar"><i style="width:' + pct + '%"></i></span>'
+        + '<span class="env-line">' + toArabicDigits(entered) + tr(" of "," من ")
+          + toArabicDigits(list.length) + tr(" entered"," مُدخل") + diffTxt + "</span>"
+      + "</div>";
+    list.forEach(function(o){
+      var done = o.actual !== null;
+      var d = done ? (o.actual - o.planned) : 0;
+      html += '<div class="act-row' + (done ? " done" : "") + '" data-id="'
+        + escapeAttr(o.id) + '" data-key="' + escapeAttr(key) + '" data-planned="'
+        + escapeAttr(String(o.planned)) + '">'
+        + '<div class="act-name"><span>' + escapeHtml(o.name) + "</span></div>"
+        + '<div class="act-planned">' + fmt(o.planned) + "</div>"
+        + '<input class="act-input" type="text" inputmode="decimal" value="'
+          + (done ? escapeAttr(fmt(o.actual)) : "") + '" placeholder="'
+          + escapeAttr(tr("Actual","فعلي")) + '" aria-label="'
+          + escapeAttr(tr("Actual for ","الفعلي لـ") + o.name) + '">'
+        + '<div class="act-due">' + monthShort(o.m) + " " + toArabicDigits(o.d) + "</div>"
+        + (done
+            ? (Math.abs(d) > 0.005
+                ? '<div class="act-var ' + (d > 0 ? "over" : "under") + '">'
+                  + (d > 0 ? "+" : "\u2212") + fmt(Math.abs(d)) + "</div>"
+                : '<div class="act-var under">' + tr("As planned","كما هو مخطط") + "</div>")
+            : '<button type="button" class="act-same">'
+              + tr("Same as planned","نفس المخطط") + "</button>")
+        + "</div>";
+    });
+    return html + "</div>";
+  }
+
+  // Bills grouped by the categories defined in the Expense Ledger, in the
+  // same alphabetical order the ledger uses, so the two read the same
+  // way. Income last, in its own envelope.
+  var byCat = {};
+  occs.bills.forEach(function(o){
+    var c = o.category || tr("Other","أخرى");
+    (byCat[c] = byCat[c] || []).push(o);
+  });
+  // DOCKET-SHEET -- planned, then every variance that made up the
+  // difference, then actual. Only what the user has evidence for appears:
+  // an unreconciled bill contributes nothing, because nothing is known
+  // about it yet.
+  var docket = "";
+  var plannedAll = 0, actualAll = 0, anyEntered = false;
+  var overs = [], underCount = 0, underSum = 0;
+  Object.keys(byCat).forEach(function(c){
+    var pl = 0, ac = 0, d = 0, n = 0;
+    byCat[c].forEach(function(o){
+      pl += o.planned;
+      ac += (o.actual !== null ? o.actual : o.planned);
+      if (o.actual !== null){ anyEntered = true; d += (o.actual - o.planned); n++; }
+    });
+    plannedAll += pl; actualAll += ac;
+    if (n && d > 0.005) overs.push({ cat: c, diff: d });
+    else if (n && d < -0.005){ underCount += n; underSum += d; }
+  });
+  if (anyEntered){
+    overs.sort(function(a, b){ return b.diff - a.diff; });
+    docket = '<div class="docket">'
+      + '<div class="dk-row"><span>' + tr("Planned","مخطط") + "</span><b>" + fmt(plannedAll) + "</b></div>";
+    overs.forEach(function(o){
+      docket += '<div class="dk-row sm"><span>' + escapeHtml(o.cat)
+        + tr(" over"," تجاوز") + '</span><b class="over">+' + fmt(o.diff) + "</b></div>";
+    });
+    if (underCount){
+      docket += '<div class="dk-row sm"><span>' + toArabicDigits(underCount)
+        + tr(underCount === 1 ? " bill under" : " bills under", " فاتورة أقل")
+        + '</span><b class="under">\u2212' + fmt(Math.abs(underSum)) + "</b></div>";
+    }
+    docket += '<div class="dk-row dk-total"><span>' + tr("Actual","فعلي") + "</span><b>"
+      + fmt(actualAll) + "</b></div>";
+    // Planned minus actual: positive means you came in under.
+    var net = plannedAll - actualAll;
+    var netCls = net > 0.005 ? "under" : (net < -0.005 ? "over" : "");
+    docket += '<div class="dk-row dk-diff"><span>' + tr("Difference","الفرق") + "</span>"
+      + '<b class="' + netCls + '">'
+      + (net > 0.005 ? "\u2212" : net < -0.005 ? "+" : "") + fmt(Math.abs(net)) + "</b></div>";
+    if (net < -0.005){
+      var worst = overs.length ? overs[0].cat : null;
+      docket += '<div class="dk-note over">'
+        + tr("You are ","تجاوزت الخطة بمقدار ") + fmt(Math.abs(net))
+        + tr(" above plan."," .")
+        + (worst ? " " + tr("Review ","راجع ") + escapeHtml(worst)
+                   + tr(", which accounts for the largest share.","، وهو صاحب النصيب الأكبر.") : "")
+        + "</div>";
+    } else if (net > 0.005){
+      docket += '<div class="dk-note under">'
+        + tr("Well done \u2014 you are ","أحسنت \u2014 أنت أقل من الخطة بمقدار ") + fmt(net)
+        + tr(" below plan. That amount remains available to save.",
+             " ويبقى هذا المبلغ متاحاً للادخار.")
+        + "</div>";
+    } else if (!overs.length && !underCount){
+      docket += '<div class="dk-note">' + tr("Everything entered so far came in as planned.",
+        "كل ما أُدخل حتى الآن جاء كما هو مخطط.") + "</div>";
+    }
+    docket += "</div>";
+  }
+
+  var legend = '<div class="act-legend"><s>' + tr("Planned","مخطط") + "</s>"
+    + '<em>\u2192</em>' + tr("Actual","فعلي") + "</div>";
+
+  var html = docket + legend;
+  Object.keys(byCat).sort(function(a, b){
+    return String(a).localeCompare(String(b), undefined, { sensitivity: "base" });
+  }).forEach(function(c){ html += envelope(byCat[c], escapeHtml(c)); });
+  html += envelope(occs.income, tr("Income","الدخل"));
+
+  body.innerHTML = html || '<div class="act-empty">'
+    + tr("Nothing falls in this period.","لا شيء في هذه الفترة.") + "</div>";
+}
+
+function bindActuals(){
+  var body = el("actuals-body");
+  if (!body) return;
+  // Delegated and bound once: the body is rebuilt by innerHTML on every
+  // render, so a per-row listener would be dropped and re-added
+  // constantly.
+  // "Same as planned" -- the commonest case is that the bill came in
+  // exactly as budgeted, and retyping the figure is work the app can do.
+  body.addEventListener("click", function(e){
+    var btn = e.target.closest(".act-same");
+    if (!btn) return;
+    var row = btn.closest(".act-row");
+    var planned = parseFloat(row.getAttribute("data-planned"));
+    if (isNaN(planned)) return;
+    setActual(row.getAttribute("data-id"), row.getAttribute("data-key"), planned);
+    render();
+  });
+  body.addEventListener("change", function(e){
+    var input = e.target.closest(".act-input");
+    if (!input) return;
+    var row = input.closest(".act-row");
+    var id = row.getAttribute("data-id"), key = row.getAttribute("data-key");
+    var raw = String(input.value).replace(/,/g, "").trim();
+    if (raw === ""){                  // cleared: back to the plan
+      clearActual(id, key);
+    } else {
+      var v = parseFloat(raw);
+      if (isNaN(v) || v < 0){         // not a number: an edit in progress,
+        render();                     // not an instruction. Restore.
+        return;
+      }
+      setActual(id, key, v);
+    }
+    render();
+  });
+  var sel = el("act-period");
+  if (sel) sel.addEventListener("change", function(){
+    actualsKey = sel.value;
+    render();
+  });
+}
+
 function renderSection2(rows){
   var html = "";
   rows.forEach(function(row){
@@ -4011,8 +4555,10 @@ function renderSection2(rows){
     html += '<td class="num" data-label="Expenses">' + fmt(row.expense) + "</td>";
     html += '<td class="num' + (row.remainingCash < -0.005 ? " negative" : "") + '" data-label="Remaining Cash">' + fmt(row.remainingCash) + "</td>";
     html += '<td class="num" data-label="Amount to Save" data-cap="'
-         + escapeAttr(tr("safe to save","للادخار")) + '">' + fmt(row.amountToSave) + "</td>";
-    html += '<td class="num' + (row.excessCash > 0.005 ? " positive" : (row.excessCash < -0.005 ? " negative" : "")) + '" data-label="Saving Account Balance">' + fmt(row.excessCash) + "</td>";
+         + escapeAttr(tr("Safe to save","للادخار")) + '">' + fmt(row.amountToSave) + "</td>";
+    html += '<td class="num' + (row.excessCash > 0.005 ? " positive" : (row.excessCash < -0.005 ? " negative" : ""))
+      + '" data-label="Saving Account Balance" data-cap="'
+      + escapeAttr(tr("Savings balance","رصيد التوفير")) + '">' + fmt(row.excessCash) + "</td>";
 
     // The split bar: this period's whole cash, left to right. Three
     // segments, three words in the legend above -- four colours with no
@@ -4032,10 +4578,13 @@ function renderSection2(rows){
       }
     }
     html += '<td class="row-bar" data-label="Split"><span class="bar">' + bar + "</span>"
-         + '<span class="row-meta"><span>' + tr("in ","دخل ") + "<b>" + fmt(row.income) + "</b> \u00b7 "
-         + tr("out ","صرف ") + "<b>" + fmt(row.expense) + "</b></span>"
-         + "<span>" + tr("left ","متبقٍ ") + '<b class="' + (row.remainingCash < -0.005 ? "neg" : "")
-         + '">' + fmt(row.remainingCash) + "</b></span></span></td>";
+         + '<span class="row-meta"><span>' + tr("In ","دخل ") + "<b>" + fmt(row.income) + "</b> \u00b7 "
+         + tr("Out ","صرف ") + "<b>" + fmt(row.expense) + "</b></span>"
+         + "<span>" + tr("Left over ","متبقٍ ") + '<b class="' + (row.remainingCash < -0.005 ? "neg" : "")
+         + '">' + fmt(row.remainingCash) + "</b>"
+         // The running saving balance: what is actually in the pot after
+         // this period, ad-hoc spending already taken off it.
+         + "</span></span></td>";
 
     // The note only appears when the two figures differ -- its presence
     // IS the signal that a later period is claiming the money.
@@ -4400,8 +4949,8 @@ function showChartDetail(row, targetId){
       + fmt(deficit ? Math.abs(row.remainingCash) : row.remainingCash) + "</div>"
     + '<div class="focus-caption">'
       + (deficit
-          ? tr("short, after ","نقص، بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير")
-          : tr("remaining after ","متبقٍ بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير"))
+          ? tr("Short by, after ","نقص، بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير")
+          : tr("Remaining after ","متبقٍ بعد ") + fmt(row.expense) + tr(" of bills"," من الفواتير"))
       + "</div>"
     + '<div class="focus-trio">'
       + "<div>" + tr("Income","الدخل") + "<b>" + fmt(row.income) + "</b></div>"
@@ -4630,7 +5179,7 @@ function dueDateCell(exp){
 }
 
 function overridesCell(exp){
-  if (exp.frequency !== "monthly") return '<span class="muted-placeholder">' + tr("only for monthly","للشهري فقط") + '</span>';
+  if (exp.frequency !== "monthly") return '<span class="muted-placeholder">' + tr("Monthly only","للشهري فقط") + '</span>';
   var overrides = exp.overrides || [];
   var html = '<div class="overrides-editor">';
   overrides.forEach(function(o,i){
@@ -4660,7 +5209,7 @@ function renderExpenseRow(exp, isFirst, isLast){
   row += '<td class="due-date-cell">' + dueDateCell(exp) + "</td>";
   row += '<td class="overrides-cell">' + overridesCell(exp) + "</td>";
   row += '<td><label class="field-inline"><span>' + tr("Note","ملاحظة") + '</span>'
-    + '<input type="text" class="exp-note" data-id="' + escapeAttr(exp.id) + '" data-field="note" placeholder="' + escapeAttr(tr("optional","اختياري")) + '" value="' + escapeAttr(exp.note||"") + '"></label></td>';
+    + '<input type="text" class="exp-note" data-id="' + escapeAttr(exp.id) + '" data-field="note" placeholder="' + escapeAttr(tr("Optional","اختياري")) + '" value="' + escapeAttr(exp.note||"") + '"></label></td>';
   row += '<td class="del-cell"><div class="del-cell-inner">'
     + '<button type="button" class="dup-row-btn" data-dup-exp="' + escapeAttr(exp.id) + '">' + tr("Duplicate","تكرار") + '</button>'
     + '<button type="button" class="del-row-btn" data-id="' + escapeAttr(exp.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></div></td>';
@@ -4697,7 +5246,11 @@ function renderCategoryManager(){
 }
 
 function renderLedgerTable(){
-  var cats = getAllCategories();
+  // Alphabetical, so a category is where the user expects it rather than
+  // wherever it happened to be created.
+  var cats = getAllCategories().slice().sort(function(a, b){
+    return String(a).localeCompare(String(b), undefined, { sensitivity: "base" });
+  });
   var html = "";
   cats.forEach(function(cat){
     var items = state.expenses.filter(function(e){
@@ -4782,6 +5335,10 @@ var I18N = {
     h_summary: "توقع متدرج لاثنتي عشرة فترة. كل رقم هنا محسوب من مدخلات الدخل والمصروفات — لا يُعدّل شيء في هذا الجدول مباشرة.",
     h_chart: "اختر أي عمود أو نقطة لعرض أرقام تلك الفترة، مع تفصيل كامل للدخل المستلم، والدخل المتوقع، والمصروفات المدفوعة، والمستحقة.",
     l_payday: "تبدأ فترة الراتب في يوم",
+    l_recsav: "أريد مطابقة رصيد التوفير",
+    l_savbal: "رصيد التوفير",
+    l_rec2: "سُجّل بتاريخ",
+    h_savbal: "أدخل ما كان فعلاً في الحساب وتاريخ التحقق منه. تُحسب كل الأرصدة المعروضة تصاعدياً من ذلك الرقم.",
     l_reconcile: "أريد مطابقة رصيد نقدي فعلي",
     l_coh: "النقد المتوفر",
     l_rec: "بتاريخ",
@@ -4867,10 +5424,19 @@ var I18N = {
     su_next: "التالي",
     su_skip: "تخطَّ الآن",
     su_more: "+ أضف آخر",
+    s_actuals: "ما حدث فعلياً",
+    h_actuals: "اكتب ما دفعته أو استلمته فعلاً بجانب الرقم المخطط. تتحول كل أرقام اللوحة إلى رقمك لتلك الفاتورة. اتركه فارغاً للإبقاء على الخطة. الفاتورة المستحقة تُسجَّل بتاريخ استحقاقها، وما زال قادماً يُسجَّل اليوم.",
+    k_period: "الفترة",
+    k_thisperiod: "الفترة الحالية",
+    k_planned: "مخطط",
+    k_actual: "فعلي",
+    g_bills: "الفواتير",
+    g_incomes: "الدخل",
     lg_spent: "مصروف وملتزم به",
     lg_held: "محتجز لشهر لاحق",
     lg_save: "آمن للادخار",
     tab_ledger: "الدفتر",
+    tab_actuals: "الفعلي",
     tab_summary: "الملخص",
     tab_dash: "اللوحات",
     nv_in: "الدخل",
@@ -5091,18 +5657,20 @@ function renderCategoryBreakdown(rows){
   var n = rows.length;
   var span = n === 1 ? periodLabel(rows[0]) : (periodLabel(rows[0]) + " \u2013 " + periodLabel(rows[n-1]));
   var html = '<p class="card-hint">'
-    + toArabicDigits(n) + " " + tr(n === 1 ? "period" : "periods", "\u0641\u062a\u0631\u0629") + " ("
-    + escapeHtml(span) + "), " + tr("totalling ","\u0628\u0625\u062c\u0645\u0627\u0644\u064a ")
-    + "<strong>" + fmt(t.grand) + "</strong>. "
-    + tr("Average ","\u0627\u0644\u0645\u062a\u0648\u0633\u0637 ") + "<strong>" + fmt(t.grand / Math.max(1, n)) + "</strong> "
-    + tr("per period.","\u0644\u0643\u0644 \u0641\u062a\u0631\u0629.") + "</p>";
+    + "<strong>" + fmt(t.grand) + "</strong>"
+    + tr(" across ","\u0639\u0628\u0631 ") + toArabicDigits(n) + " "
+    + tr(n === 1 ? "period" : "periods", "\u0641\u062a\u0631\u0629") + ", "
+    + escapeHtml(span) + tr(". Average ",". \u0627\u0644\u0645\u062a\u0648\u0633\u0637 ")
+    + "<strong>" + fmt(t.grand / Math.max(1, n)) + "</strong>"
+    + tr(" a period.","\u0644\u0643\u0644 \u0641\u062a\u0631\u0629.") + "</p>";
   // Whole periods, including what has already gone out this month. The
   // Monthly Summary's current row deliberately excludes that, so without
   // this line the two totals look like a contradiction.
   if (paidNow > 0.005){
     html += '<p class="card-hint cat-reconcile">'
-      + tr("Whole periods, including ","فترات كاملة، تشمل ") + "<strong>" + fmt(paidNow)
-      + "</strong>" + tr(" already paid this period."," مدفوعة بالفعل هذه الفترة.") + "</p>";
+      + tr("Includes ","يشمل ") + "<strong>" + fmt(paidNow)
+      + "</strong>" + tr(" already paid in the current period."," مدفوعة بالفعل في الفترة الحالية.")
+      + "</p>";
   }
   html += '<div class="mos-grid">';
   t.list.forEach(function(x, i){
@@ -5230,6 +5798,44 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "124", items: [
+    ["fix", "Ad-hoc savings spending is deducted again when a savings balance is reconciled"]
+  ]},
+  { v: "123", items: [
+    ["fix", "Savings balance now sits beside Safe to save on each period"],
+    ["fix", "Shorter label so the reconciliation field fits on one line"]
+  ]},
+  { v: "122", items: [
+    ["add", "Reconcile your saving account balance, the way you reconcile cash on hand"],
+    ["add", "Every balance shown is then calculated forward from the figure you recorded"]
+  ]},
+  { v: "121", items: [
+    ["fix", "Actuals always opens on the current period"],
+    ["fix", "A bill already due is recorded on its due date, so matching the plan changes nothing"],
+    ["add", "The running saving balance now shows on each Monthly Summary row"],
+    ["fix", "Clearer wording on Where the money goes"]
+  ]},
+  { v: "120", items: [
+    ["add", "A reconciliation above the categories: planned, what moved, actual, difference"],
+    ["add", "The difference tells you where you stand and what to look at"],
+    ["fix", "Labels capitalised and wording tightened throughout"]
+  ]},
+  { v: "119", items: [
+    ["add", "Each category shows its planned total beside its actual total"],
+    ["add", "Same as planned — one tap when the bill came in exactly as budgeted"],
+    ["add", "Each category envelope shows progress and how far off you are"]
+  ]},
+  { v: "117", items: [
+    ["add", "Actuals has its own tab"],
+    ["add", "Choose any period from a dropdown to enter its actuals"],
+    ["add", "Actuals grouped by expense category, A to Z"],
+    ["fix", "The Expense Ledger lists categories alphabetically"],
+    ["fix", "An actual on a card charge now reaches the period that pays it"]
+  ]},
+  { v: "116", items: [
+    ["add", "What actually happened: type what you really paid beside the planned figure"],
+    ["add", "Actuals override the plan everywhere; clear the field to go back to it"]
+  ]},
   { v: "115", items: [
     ["fix", "The menu sits on the page colour, a little above the home indicator"]
   ]},
@@ -5665,7 +6271,7 @@ function renderSnapshots(){
    is not a data change, and it has no business inside a backup or inside
    the encrypted blob either. It lives under its own localStorage key.
    ========================================================================= */
-var TABS = ["ledger", "summary", "dash"];
+var TABS = ["ledger", "actuals", "summary", "dash"];
 var UI_KEY = STORAGE_KEY + ":ui";
 var activeTab = "dash";
 // Session-only, like viewAsOfDate: where you were on each tab is a lens on
@@ -5696,11 +6302,16 @@ function tabOfSection(id){
 
 function showTab(name){
   if (TABS.indexOf(name) === -1) name = "dash";
+  // Entering the Actuals tab always starts on the period you are in.
+  // A period chosen to fix up an old month should not still be showing
+  // the next time the tab is opened.
+  var enteringActuals = (name === "actuals" && activeTab !== "actuals");
+  if (enteringActuals) actualsKey = null;
   if (name !== activeTab) tabScroll[activeTab] = window.pageYOffset;
   activeTab = name;
   document.body.setAttribute("data-tab", name);
   TABS.forEach(function(t){
-    var btn = el("tab-" + (t === "summary" ? "summary" : t === "dash" ? "dash" : "ledger"));
+    var btn = el("tab-" + t);
     if (btn) btn.setAttribute("aria-selected", String(t === name));
   });
   writeUiPrefs();
@@ -5710,6 +6321,9 @@ function showTab(name){
   // rAF, so the browser has laid the newly-shown tab out first.
   requestAnimationFrame(function(){
     fitForecastTable();
+    // The period field is re-rendered so it shows the current period,
+    // not whichever one was last chosen.
+    if (enteringActuals) renderActuals(renderedRows || []);
     var y = tabVisited[name] ? (tabScroll[name] || 0) : 0;
     tabVisited[name] = true;
     window.scrollTo(0, y);
@@ -5742,6 +6356,7 @@ function renderTabBar(){
 
 function initTabBar(){
   el("tab-ledger").addEventListener("click", function(){ showTab("ledger"); });
+  el("tab-actuals").addEventListener("click", function(){ showTab("actuals"); });
   el("tab-summary").addEventListener("click", function(){ showTab("summary"); });
   el("tab-dash").addEventListener("click", function(){ showTab("dash"); });
   var prefs = readUiPrefs();
@@ -5796,6 +6411,43 @@ function renderSundial(row0){
     + '<div class="sd-row"><span>' + tr("Still to pay","المتبقي للدفع") + '</span><b>'
       + fmt(row0.expense) + "</b></div>";
   box.innerHTML = ring + '<div class="sd-list">' + rows + "</div>";
+}
+
+// Published by computeForecast: the size of the correction the user's
+// reconciled balance applies. A row-level copy would be lost the moment
+// the rows are re-shaped for the snapshot view.
+var lastSavingOffset = 0;
+
+function renderSavingBalance(rows){
+  var box = el("savingbal-fields");
+  if (!box) return;
+  var on = !!state.hasSavingBalance;
+  el("has-savingbal-checkbox").checked = on;
+  box.classList.toggle("hidden", !on);
+  el("savingbal-hint").classList.toggle("hidden", !on);
+  var note = el("savingbal-note");
+  if (!on){ note.classList.add("hidden"); return; }
+  if (document.activeElement !== el("savingbal-input")){
+    el("savingbal-input").value = fmt(Number(state.savingBalance) || 0);
+  }
+  if (document.activeElement !== el("savingbal-date-input")){
+    el("savingbal-date-input").value = state.savingBalanceDate || todayISO();
+  }
+  // What the reconciliation did, stated plainly: a user who cannot see
+  // the size of the correction cannot judge whether it is right.
+  var off = lastSavingOffset || 0;
+  if (Math.abs(off) < 0.005){
+    note.className = "reconciled-badge";
+    note.innerHTML = "<span>\u2713 " + tr("Reconciled \u2014 your entries already match this balance.",
+      "مطابق \u2014 قيودك تطابق هذا الرصيد بالفعل.") + "</span>";
+  } else {
+    note.className = "reconciled-badge";
+    note.innerHTML = "<span>\u2713 " + tr("Reconciled \u2014 every saving balance shown is ",
+      "مطابق \u2014 كل رصيد توفير معروض ")
+      + (off > 0 ? tr("raised by ","مرفوع بمقدار ") : tr("reduced by ","مخفوض بمقدار "))
+      + "<strong>" + fmt(Math.abs(off)) + "</strong>"
+      + tr(" to meet the figure you recorded."," ليطابق الرقم الذي سجّلته.") + "</span>";
+  }
 }
 
 function renderVaultLine(){
@@ -6147,7 +6799,7 @@ function renderP2P(){
           html += '<tr>'
             + '<td data-label="' + tr("Date","التاريخ") + '"><input type="date" data-p2p-pay="date" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + escapeAttr(pp.date || "") + '"></td>'
             + '<td class="num" data-label="' + tr("Amount","المبلغ") + '"><input type="text" inputmode="decimal" data-p2p-pay="amount" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" value="' + fmt(Number(pp.amount)||0) + '"></td>'
-            + '<td data-label="' + tr("Note","ملاحظة") + '"><input type="text" data-p2p-pay="note" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" placeholder="' + tr("optional","اختياري") + '" value="' + escapeAttr(pp.note || "") + '"></td>'
+            + '<td data-label="' + tr("Note","ملاحظة") + '"><input type="text" data-p2p-pay="note" data-p2p-id="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '" placeholder="' + tr("Optional","اختياري") + '" value="' + escapeAttr(pp.note || "") + '"></td>'
             + '<td><button type="button" class="link-btn" data-p2p-delpay="' + escapeAttr(loan.id) + '" data-pay-id="' + escapeAttr(pp.id) + '">' + tr("Remove","إزالة") + '</button></td>'
             + '</tr>';
         });
@@ -6421,7 +7073,7 @@ function renderIncomeRow(src){
   row += '<td class="income-details-cell">' + incomeDetailsCell(src) + "</td>";
   row += '<td class="num">' + incomeAmountCell(src) + "</td>";
   row += '<td><label class="field-inline"><span>' + tr("Note","ملاحظة") + '</span>'
-    + '<input type="text" class="inc-note" data-id="' + escapeAttr(src.id) + '" data-field="note" placeholder="' + escapeAttr(tr("optional","اختياري")) + '" value="' + escapeAttr(src.note||"") + '"></label></td>';
+    + '<input type="text" class="inc-note" data-id="' + escapeAttr(src.id) + '" data-field="note" placeholder="' + escapeAttr(tr("Optional","اختياري")) + '" value="' + escapeAttr(src.note||"") + '"></label></td>';
   row += '<td class="del-cell"><div class="del-cell-inner">'
     + '<button type="button" class="dup-row-btn" data-dup-inc="' + escapeAttr(src.id) + '">' + tr("Duplicate","تكرار") + '</button>'
     + '<button type="button" class="del-row-btn inc-del-btn" data-id="' + escapeAttr(src.id) + '" title="' + escapeAttr(tr("Delete","حذف")) + '">\u2715</button></div></td>';
@@ -6657,6 +7309,7 @@ function render(){
   renderSection1(rows);
   renderGauge(snapView);
   renderSection2(syncedRows);
+  renderActuals(syncedRows);
   renderYearChart(syncedRows);
   renderIncomeTable();
   renderCategoryManager();
@@ -6673,6 +7326,7 @@ function render(){
   }
   renderSnapshots();
   renderSetup();
+  renderSavingBalance(syncedRows);
   renderVaultLine();
   renderSectionNav();
   renderTabBar();
@@ -6720,6 +7374,24 @@ function bindStaticListeners(){
     saveState(); setTimeout(render, 0);
   });
 
+  el("has-savingbal-checkbox").addEventListener("change", function(e){
+    state.hasSavingBalance = !!e.target.checked;
+    if (state.hasSavingBalance && !state.savingBalanceDate) state.savingBalanceDate = todayISO();
+    saveState(); render();
+  });
+  el("savingbal-input").addEventListener("change", function(e){
+    var raw = String(e.target.value).replace(/,/g, "").trim();
+    if (raw === ""){ render(); return; }      // cleared to retype: commit nothing
+    var v = parseFloat(raw);
+    if (isNaN(v)){ render(); return; }
+    state.savingBalance = v;
+    saveState(); render();
+  });
+  el("savingbal-date-input").addEventListener("change", function(e){
+    if (!e.target.value) { render(); return; }
+    state.savingBalanceDate = e.target.value;
+    saveState(); render();
+  });
   el("has-cashonhand-checkbox").addEventListener("change", function(e){
     state.hasCashOnHand = e.target.checked;
     saveState(); render();
@@ -6808,6 +7480,7 @@ function bindStaticListeners(){
   initSectionNav();
   initTabBar();
   bindSummaryRowDetail();
+  bindActuals();
   el("setup-next").addEventListener("click", function(){
     if (setupStep < SETUP_STEPS){ setupStep++; renderSetup(); return; }
     setupFinish();
@@ -7609,7 +8282,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-115)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-124)";
 }
 
 loadStateAndInit();
