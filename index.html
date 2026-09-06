@@ -325,6 +325,7 @@ html[dir=rtl] .cl-dot{ left:auto; right:0; }
 .vault-line .vl-sub{ display:block; font-size:11.5px; color:var(--ink-faint); margin-top:1px; }
 .vault-line .vl-act{ flex:none; }
 .vault-line.stale .vl-when{ color:var(--rust); }
+.reconciled-badge.stale{ color:var(--rust); border-color:var(--rust); }
 
 /* WATERMARK -- the footer reduced to one sentence and quiet links, so it
    stops competing with the figures above it. */
@@ -3230,6 +3231,7 @@ function computeForecast(){
   // displayed balance.
   var savingOffset = 0;
   lastSavingOffset = 0;
+  lastSavingAnchored = false;
   if (state.hasSavingBalance && state.savingBalanceDate){
     var sd = parseISODate(state.savingBalanceDate);
     if (sd){
@@ -3249,6 +3251,7 @@ function computeForecast(){
         var computedAtAnchor = excessCash[anchor] - adHocByDate;
         savingOffset = (Number(state.savingBalance) || 0) - computedAtAnchor;
         lastSavingOffset = savingOffset;
+        lastSavingAnchored = true;
       }
     }
   }
@@ -5843,6 +5846,10 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "126", items: [
+    ["fix", "Clearing an amount to retype it no longer saves zero"],
+    ["fix", "A savings reconciliation dated outside the forecast now says so instead of claiming a match"]
+  ]},
   { v: "125", items: [
     ["fix", "Renaming a category a second time no longer hides its expenses"],
     ["fix", "Renaming onto an existing category name is refused instead of merging silently"],
@@ -6467,6 +6474,7 @@ function renderSundial(row0){
 // reconciled balance applies. A row-level copy would be lost the moment
 // the rows are re-shaped for the snapshot view.
 var lastSavingOffset = 0;
+var lastSavingAnchored = false;   // false = the date fell outside the forecast
 
 function renderSavingBalance(rows){
   var box = el("savingbal-fields");
@@ -6486,6 +6494,12 @@ function renderSavingBalance(rows){
   // What the reconciliation did, stated plainly: a user who cannot see
   // the size of the correction cannot judge whether it is right.
   var off = lastSavingOffset || 0;
+  if (!lastSavingAnchored){
+    note.className = "reconciled-badge stale";
+    note.innerHTML = "<span>" + tr("That date is outside the periods on the dashboard, so no correction has been applied. Use a date within the last twelve months.",
+      "هذا التاريخ خارج الفترات المعروضة، فلم يُطبَّق أي تصحيح. استخدم تاريخاً ضمن الاثني عشر شهراً الماضية.") + "</span>";
+    return;
+  }
   if (Math.abs(off) < 0.005){
     note.className = "reconciled-badge";
     note.innerHTML = "<span>\u2713 " + tr("Reconciled \u2014 your entries already match this balance.",
@@ -7865,6 +7879,7 @@ function bindStaticListeners(){
   el("add-lent-btn").addEventListener("click", function(){ addP2PLoan("lent"); });
   el("add-borrowed-btn").addEventListener("click", function(){ addP2PLoan("borrowed"); });
   el("adhoc-table").addEventListener("change", function(e){
+    if (isBlankNumeric(e.target)){ render(); return; }
     var id = e.target.getAttribute("data-id");
     if (!id) return;
     var a = state.adHocExpenses.filter(function(x){ return String(x.id) === id; })[0];
@@ -7897,6 +7912,7 @@ function bindStaticListeners(){
     saveState(); render();
   });
   el("income-table").addEventListener("change", function(e){
+    if (isBlankNumeric(e.target)){ render(); return; }
     var t = e.target;
     var id = t.getAttribute("data-id");
     if (!id) return;
@@ -8022,11 +8038,24 @@ function bindStaticListeners(){
   }
 }
 
+/* An empty numeric field is an edit in progress, not a value. Every
+   amount handler checks this first and, if the field is blank, re-renders
+   (which restores the stored figure) instead of committing 0. */
+function isBlankNumeric(t){
+  if (!t || !t.getAttribute) return false;
+  var f = (t.getAttribute("data-field") || "").toLowerCase();
+  var cls = t.className || "";
+  var numeric = /amount|principal|total|rate|payment/.test(f) || /amount/.test(cls)
+    || t.type === "number";
+  return numeric && String(t.value).trim() === "";
+}
+
 function bindLedgerDelegatedEvents(){
   var table = el("ledger-table");
 
   table.addEventListener("change", function(e){
     var t = e.target;
+    if (isBlankNumeric(t)){ render(); return; }   // cleared to retype: keep the stored value
     var id = t.getAttribute("data-id");
     if (!id) return;
     var exp = findExpense(id);
@@ -8333,7 +8362,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-125)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-126)";
 }
 
 loadStateAndInit();
