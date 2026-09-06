@@ -2140,6 +2140,21 @@ function isBuiltinCategory(name){
   return false;
 }
 
+
+/* An expense whose category is not in the list is invisible in the
+   ledger, and invisible is indistinguishable from deleted. Nothing
+   should be able to orphan a row; if anything ever does, it lands in
+   "Other" where it can be seen and re-filed. */
+function rehomeOrphanedExpenses(){
+  var known = {};
+  getAllCategories().forEach(function(c){ known[c] = true; });
+  var moved = 0;
+  (state.expenses || []).forEach(function(e){
+    if (!known[e.category]){ e.category = "Other"; moved++; }
+  });
+  return moved;
+}
+
 function renameCategory(oldName, newName){
   // Works for BUILT-IN categories too. They were locked because the
   // names live in a constant, but "Household" or "Utilities" are the
@@ -2150,11 +2165,29 @@ function renameCategory(oldName, newName){
   // Cascades everywhere the name is used as a key or a value, so nothing
   // silently reverts to "Other" or loses its behaviour, statement day,
   // payment day or collapsed state.
+  if (!newName || newName === oldName) return;
+  // Renaming onto a name that already exists would merge two categories
+  // silently. Refuse; the caller re-renders and the field reverts.
+  if (getAllCategories().indexOf(newName) !== -1) return;
   if (isBuiltinCategory(oldName)){
     state.builtinCategoryNames = state.builtinCategoryNames || {};
-    state.builtinCategoryNames[oldName] = newName;
+    // The override is keyed by the ORIGINAL builtin, whatever the
+    // category is called today. Keying it by the current name creates a
+    // second, unused entry and orphans every expense that was moved.
+    var originalKey = null;
+    if (BUILTIN_CATEGORIES.indexOf(oldName) !== -1){
+      originalKey = oldName;
+    } else {
+      for (var k in state.builtinCategoryNames){
+        if (state.builtinCategoryNames[k] === oldName){ originalKey = k; break; }
+      }
+    }
+    if (!originalKey) return;              // nothing to rename: leave the data alone
+    if (newName === originalKey) delete state.builtinCategoryNames[originalKey];
+    else state.builtinCategoryNames[originalKey] = newName;
     if (state.builtinCategoryColors && state.builtinCategoryColors.hasOwnProperty(oldName)){
       state.builtinCategoryColors[newName] = state.builtinCategoryColors[oldName];
+      delete state.builtinCategoryColors[oldName];
     }
   } else {
     var entry = state.customCategories.filter(function(c){ return c.name === oldName; })[0];
@@ -3564,6 +3597,18 @@ function applyLoadedState(raw){
     if (!merged.p2pLoans || !merged.p2pLoans.length) merged.p2pLoans = merged.p2pLoans || [];
     merged.p2pLoans.forEach(function(l){ if (!l.payments) l.payments = []; });
     if (!merged.actuals || typeof merged.actuals !== "object") merged.actuals = {};
+    // An expense whose category no longer exists would be invisible in
+    // the ledger, and invisible is indistinguishable from deleted. Land
+    // it in "Other", where it can be seen and re-filed. Applies to
+    // imports, restores and states written by older builds alike.
+    var knownCats = {};
+    var renamesNow = merged.builtinCategoryNames || {};
+    BUILTIN_CATEGORIES.forEach(function(bc){ knownCats[renamesNow[bc] || bc] = true; });
+    (merged.customCategories || []).forEach(function(c){ knownCats[c.name] = true; });
+    knownCats["Other"] = true;
+    (merged.expenses || []).forEach(function(e){
+      if (!knownCats[e.category]) e.category = "Other";
+    });
     // An actual belongs to an entry. If the entry is gone the actual is
     // meaningless, and keeping it would resurrect a figure if an id were
     // ever reused.
@@ -5798,6 +5843,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "125", items: [
+    ["fix", "Renaming a category a second time no longer hides its expenses"],
+    ["fix", "Renaming onto an existing category name is refused instead of merging silently"],
+    ["fix", "An expense can never disappear because its category is missing"]
+  ]},
   { v: "124", items: [
     ["fix", "Ad-hoc savings spending is deducted again when a savings balance is reconciled"]
   ]},
@@ -7650,6 +7700,7 @@ function bindStaticListeners(){
       var dup = getAllCategories().some(function(c){ return c !== cat && c.toLowerCase() === newName.toLowerCase(); });
       if (dup){ notify(tr("Name already used","الاسم مستخدم"), tr("A category named \"" + newName + "\" already exists.","توجد فئة بهذا الاسم بالفعل.")); render(); return; }
       renameCategory(cat, newName);
+      rehomeOrphanedExpenses();
       saveState(); render(); return;
     }
   });
@@ -8282,7 +8333,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-124)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-125)";
 }
 
 loadStateAndInit();
