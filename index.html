@@ -502,11 +502,12 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
    beyond the home-indicator inset. The cream strip the user kept seeing
    under the bar was 10px of padding of my own. */
 .tab-bar{ position:fixed; z-index:9000; left:0; right:0; bottom:0;
-  padding:7px 10px 4px;
-  background:var(--card); border-top:1px solid var(--rule-strong);
-  box-shadow:0 -4px 16px rgba(42,36,24,.07); }
-html[data-theme=dark] .tab-bar{ background:var(--card);
-  box-shadow:0 -4px 16px rgba(0,0,0,.4); }
+  /* A little above the home indicator, never the whole inset: the full
+     34px read as an empty band. Capped at 10px so an oversized value
+     from an in-app browser cannot reopen the gap. */
+  padding:7px 10px calc(4px + min(env(safe-area-inset-bottom, 0px), 10px));
+  background:var(--bg); border:none; box-shadow:none; }
+html[data-theme=dark] .tab-bar{ background:var(--bg); box-shadow:none; }
 .tab-bar::before{ content:""; position:absolute; left:0; right:0; top:-14px; height:14px;
   background:linear-gradient(to bottom, rgba(250,246,236,0), var(--bg)); pointer-events:none; }
 html[data-theme=dark] .tab-bar::before{
@@ -517,7 +518,8 @@ html[data-theme=dark] .tab-bar::before{
    stay above the indicator. */
 .tab-capsule{ display:flex; gap:3px; background:var(--bg-soft);
   border:1px solid var(--rule-strong); border-radius:999px; padding:4px;
-  box-shadow:none; }
+  box-shadow:0 4px 14px rgba(42,36,24,.10); }
+html[data-theme=dark] .tab-capsule{ box-shadow:0 4px 14px rgba(0,0,0,.4); }
 html[data-theme=dark] .tab-capsule{ background:var(--card-tint);
   box-shadow:0 4px 16px rgba(0,0,0,.45); }
 html[data-theme=dark] .tab-bar{ box-shadow:0 -2px 10px rgba(0,0,0,.35); }
@@ -5228,6 +5230,9 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "115", items: [
+    ["fix", "The menu sits on the page colour, a little above the home indicator"]
+  ]},
   { v: "114", items: [
     ["fix", "Nothing sits below the menu now — it ends at the screen edge"]
   ]},
@@ -7604,7 +7609,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-114)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-115)";
 }
 
 loadStateAndInit();
