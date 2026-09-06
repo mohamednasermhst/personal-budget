@@ -420,6 +420,18 @@ html[dir=rtl] .env-diff{ margin-left:0; margin-right:8px; }
   padding:2px 0; text-decoration:underline; text-underline-offset:2px; }
 .act-var.under{ color:var(--emerald); }
 
+/* Optional dates need a way out. A native date input has no empty state
+   on iOS -- its own Reset returns to today rather than clearing -- so the
+   clear is ours to provide. */
+.date-wrap{ position:relative; display:inline-flex; align-items:center; }
+.date-clear{ margin-left:4px; width:22px; height:22px; flex:none; border-radius:50%;
+  border:1px solid var(--rule-strong); background:var(--card); color:var(--ink-soft);
+  font-size:14px; line-height:1; cursor:pointer; padding:0; }
+.date-clear:hover{ color:var(--rust); border-color:var(--rust); }
+html[dir=rtl] .date-clear{ margin-left:0; margin-right:4px; }
+/* "Stops after" was clipped to two lines on a phone. */
+.date-clearable > span:first-child{ white-space:nowrap; }
+
 /* Planned vs actual ===================================================== */
 .act-switch{ margin:2px 0 10px; }
 .act-group{ font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
@@ -5269,7 +5281,15 @@ function dueDateCell(exp){
     html = "";
   }
   if (categoryHasBehavior(exp.category, "finiteTerm")){
-    html += '<div class="end-date-row">Ends <input type="date" class="exp-enddate" data-id="' + escapeAttr(exp.id) + '" data-field="endDate" value="' + escapeAttr(exp.endDate||"") + '" title="Last date this expense is counted -- leave blank if it recurs forever"></div>';
+    html += '<div class="end-date-row">' + tr("Ends","ينتهي")
+      + ' <span class="date-wrap"><input type="date" class="exp-enddate" data-id="' + escapeAttr(exp.id)
+      + '" data-field="endDate" value="' + escapeAttr(exp.endDate||"")
+      + '" title="' + escapeAttr(tr("Last date this expense is counted \u2014 leave blank if it recurs forever",
+          "آخر تاريخ تُحتسب فيه هذه المصروفة \u2014 اتركه فارغاً إن كانت متكررة دائماً")) + '">'
+      + (exp.endDate ? '<button type="button" class="date-clear" data-id="' + escapeAttr(exp.id)
+          + '" data-field="endDate" data-kind="expense" title="' + escapeAttr(tr("Clear","مسح"))
+          + '" aria-label="' + escapeAttr(tr("Clear this date","مسح هذا التاريخ")) + '">&times;</button>' : "")
+      + "</span></div>";
   }
   return html;
 }
@@ -5894,6 +5914,11 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "129", items: [
+    ["add", "Optional dates can be cleared with one tap"],
+    ["fix", "Clearing a required date keeps what was there instead of jumping to today"],
+    ["fix", "\"Stops after\" no longer cut off on a phone"]
+  ]},
   { v: "128", items: [
     ["fix", "Spent & committed is a warmer grey, clearly apart from Safe to save"],
     ["fix", "The savings balance keeps its name when a period is expanded"],
@@ -7142,7 +7167,13 @@ function incomeDetailsCell(src){
     var increments = tiers.slice(1);
     var html = '<div class="field-inline-row">'
       + '<label class="field-inline"><span>' + tr("Day","اليوم") + '</span><input type="number" min="1" max="31" class="inc-day" data-id="' + escapeAttr(src.id) + '" data-field="incomeDay" value="' + (src.incomeDay||1) + '"></label>'
-      + '<label class="field-inline"><span>' + tr("Stops after (optional)","يتوقف بعد (اختياري)") + '</span><input type="date" class="inc-enddate" data-id="' + escapeAttr(src.id) + '" data-field="endDate" value="' + escapeAttr(src.endDate||"") + '"></label>'
+      + '<label class="field-inline date-clearable"><span>' + tr("Stops after","يتوقف بعد") + '</span>'
+        + '<span class="date-wrap"><input type="date" class="inc-enddate" data-id="' + escapeAttr(src.id)
+        + '" data-field="endDate" value="' + escapeAttr(src.endDate||"") + '">'
+        + (src.endDate ? '<button type="button" class="date-clear" data-id="' + escapeAttr(src.id)
+            + '" data-field="endDate" data-kind="income" title="' + escapeAttr(tr("Clear","مسح"))
+            + '" aria-label="' + escapeAttr(tr("Clear this date","مسح هذا التاريخ")) + '">&times;</button>' : "")
+        + "</span></label>"
       + '</div>';
     html += '<div class="income-tiers">';
     increments.forEach(function(t, i){
@@ -7508,7 +7539,9 @@ function bindStaticListeners(){
     saveState(); render();
   });
   el("savingbal-date-input").addEventListener("change", function(e){
-    if (!e.target.value) { render(); return; }
+    // Empty is an edit in progress: put the stored date back on screen
+    // so the field and the state never disagree.
+    if (!e.target.value){ e.target.value = state.savingBalanceDate || todayISO(); render(); return; }
     state.savingBalanceDate = e.target.value;
     saveState(); render();
   });
@@ -7703,13 +7736,15 @@ function bindStaticListeners(){
     sizeMoneyInput(e.target);
   });
   el("cash-onhand-date-input").addEventListener("change", function(e){
-    state.cashOnHandDate = e.target.value || todayISO();
+    if (!e.target.value){ e.target.value = state.cashOnHandDate || todayISO(); render(); return; }
+    state.cashOnHandDate = e.target.value;
     state.cashOnHandAssumed = false;
     saveState(); render();
   });
 
   el("asof-date-input").addEventListener("change", function(e){
-    viewAsOfDate = e.target.value || todayISO();
+    if (!e.target.value){ e.target.value = viewAsOfDate || todayISO(); render(); return; }
+    viewAsOfDate = e.target.value;
     // Jump the chart's selection to whichever period now matches the new
     // snapshot date, so the breakdown panel below the chart shows what's
     // actually relevant without requiring a separate manual click --
@@ -7942,7 +7977,7 @@ function bindStaticListeners(){
     if (!a) return;
     var field = e.target.getAttribute("data-field");
     if (field === "name") a.name = e.target.value;
-    else if (field === "date") a.date = e.target.value || todayISO();
+    else if (field === "date") if (e.target.value) a.date = e.target.value; else { render(); return; }
     else if (field === "amount") a.amount = parseFloat(e.target.value) || 0;
     saveState(); render();
   });
@@ -7967,6 +8002,28 @@ function bindStaticListeners(){
     state.incomeSources.push({ id: "inc_" + state.nextIncomeId, name: "", type: "onetime", date: todayISO(), amount: 0 });
     saveState(); render();
   });
+  // Clearing an optional date, which the native control cannot do.
+  function bindDateClear(container){
+    if (!container) return;
+    container.addEventListener("click", function(e){
+      var btn = e.target.closest(".date-clear");
+      if (!btn) return;
+      var id = btn.getAttribute("data-id");
+      var kind = btn.getAttribute("data-kind");
+      if (kind === "income"){
+        var src = (state.incomeSources || []).filter(function(x){ return x.id === id; })[0];
+        if (src) src.endDate = null;
+      } else {
+        var exp = findExpense(id);
+        if (exp) exp.endDate = null;
+      }
+      saveState();
+      render();
+    });
+  }
+  bindDateClear(el("income-table"));
+  bindDateClear(el("ledger-table"));
+
   el("income-table").addEventListener("change", function(e){
     if (isBlankNumeric(e.target)){ render(); return; }
     var t = e.target;
@@ -8003,14 +8060,14 @@ function bindStaticListeners(){
           }
           break;
         case "incomeDay": src.incomeDay = clampDay(t.value); break;
-        case "date": src.date = t.value || todayISO(); break;
+        case "date": if (t.value) src.date = t.value; else { render(); return; } break;
         case "amount": src.amount = parseFloat(t.value) || 0; break;
         case "base-amount":
           src.tiers = src.tiers || [{ amount: 0, startMonth: null, startYear: null }];
           src.tiers[0].amount = parseFloat(t.value) || 0;
           break;
-        case "contractStart": src.contractStart = t.value || todayISO(); break;
-        case "contractEnd": src.contractEnd = t.value || todayISO(); break;
+        case "contractStart": if (t.value) src.contractStart = t.value; else { render(); return; } break;
+        case "contractEnd": if (t.value) src.contractEnd = t.value; else { render(); return; } break;
         case "numberOfCheques": src.numberOfCheques = Math.max(1, parseInt(t.value,10) || 1); break;
         case "totalAmount": src.totalAmount = parseFloat(t.value) || 0; break;
       }
@@ -8418,7 +8475,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-06-128)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-06-129)";
 }
 
 loadStateAndInit();
