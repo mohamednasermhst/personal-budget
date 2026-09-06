@@ -502,7 +502,7 @@ body[data-tab="ledger"] .range-wrap{ display:none; }
    beyond the home-indicator inset. The cream strip the user kept seeing
    under the bar was 10px of padding of my own. */
 .tab-bar{ position:fixed; z-index:9000; left:0; right:0; bottom:0;
-  padding:7px 10px calc(7px + min(env(safe-area-inset-bottom, 0px), 22px));
+  padding:7px 10px 4px;
   background:var(--card); border-top:1px solid var(--rule-strong);
   box-shadow:0 -4px 16px rgba(42,36,24,.07); }
 html[data-theme=dark] .tab-bar{ background:var(--card);
@@ -5228,6 +5228,9 @@ function renderSanity(){
    Add to this in the SAME commit as the change, or it will not happen.
    ======================================================================= */
 var CHANGELOG = [
+  { v: "114", items: [
+    ["fix", "Nothing sits below the menu now — it ends at the screen edge"]
+  ]},
   { v: "113", items: [
     ["fix", "The menu is a bar at the bottom of the screen again, with nothing under it"]
   ]},
@@ -7601,7 +7604,7 @@ function afterInit(){
   attachAutoSelect();
   render();
   var stampEl = el("build-stamp");
-  if (stampEl) stampEl.textContent = "(build 2026-09-05-113)";
+  if (stampEl) stampEl.textContent = "(build 2026-09-05-114)";
 }
 
 loadStateAndInit();
